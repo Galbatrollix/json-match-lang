@@ -1,0 +1,51 @@
+{
+  // Visit https://aka.ms/tsconfig to read more about this file
+  "compilerOptions": {
+    "noEmitOnError": true,
+
+    // Environment Settings
+    // See also https://aka.ms/tsconfig/module
+    "module": "es2020",
+    "target": "esnext",
+    "declaration": true,
+
+    "esModuleInterop": true,
+    "rewriteRelativeImportExtensions": true,
+
+    "types": [],
+
+    // Other Outputs
+    "sourceMap": true,
+    "declarationMap": true,
+    
+
+    // Typechecking Options
+    "strict": true,
+    "noUnusedParameters": true,
+    "noUnusedLocals": true,
+    "noImplicitOverride": true,
+    "noImplicitReturns": true,
+    "allowUnusedLabels":false,
+    "allowUnreachableCode": false,
+    
+    "noPropertyAccessFromIndexSignature": true,
+    "noUncheckedSideEffectImports": true,
+
+    "noFallthroughCasesInSwitch": false,
+    "noUncheckedIndexedAccess": false,
+    "exactOptionalPropertyTypes": false,
+
+    
+    // File Layout
+    "rootDir": "./src",
+    "outDir": "./dist",
+    "rewriteRelativeImportExtensions": true,
+
+    // Recommended Options
+    "jsx": "react-jsx",
+    "verbatimModuleSyntax": true,
+    "isolatedModules": true,
+    "moduleDetection": "force",
+    "skipLibCheck": true,
+  }
+}

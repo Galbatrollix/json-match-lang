@@ -1,0 +1,43 @@
+{
+  "name": "===========repoName===========",
+  "version": "0.0.1",
+  "description": "==========temp==========",
+  "exports": {
+     ".": {
+      "import": {
+        "types": "./dist/esm/main.d.ts",
+        "default": "./dist/esm/main.js"
+      },
+      "require": {
+        "types": "./dist/cjs/main.d.ts",
+        "default": "./dist/cjs/main.js"
+      }
+    }
+  },
+  "type": "module",
+  "files": [
+    "./dist"
+  ],
+  "scripts": {
+    "clean": "rimraf --glob ./dist/**",
+    "cleantemp": "rimraf --glob ./temp/**",
+    "make_dist": "node ./scripts/makedist.js",
+    "build": "npm run clean && npm run make_dist && tsc -p ./tsconfig.esm.release.json && tsc -p ./tsconfig.cjs.release.json",
+    "test": "npm run cleantemp && tsc -p ./tsconfig.test.json && node ./temp/tests/main.test.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+===========repoLink=============.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "Unlicense",
+  "bugs": {
+    "url": "===========repoLink=============/issues"
+  },
+  "homepage": "===========repoLink=============#readme",
+  "devDependencies": {
+    "typescript": "^7.0.2",
+    "rimraf": "^6.0.1"
+  }
+}

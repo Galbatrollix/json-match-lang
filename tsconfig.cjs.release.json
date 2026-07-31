@@ -1,0 +1,16 @@
+{
+	"extends": "./tsconfig.base.json",
+
+ 	"compilerOptions": {
+		"module": "CommonJS",
+	    "target": "ES6",
+		
+		"outDir": "./dist/cjs",
+		"verbatimModuleSyntax":false,
+
+		"sourceMap": false
+	},
+
+	"exclude": ["**/**/tests/*"],
+
+}
