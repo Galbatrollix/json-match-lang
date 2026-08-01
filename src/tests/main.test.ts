@@ -15,4 +15,6 @@ for(let i = 0; i<dupa.length; i++) {
 
 console.log(Array.from(dupa));
 
-console.log(tokenizeJsonPathString(dupa));
+const testt = "𝒳 12345 01 || + 😂+😂";
+console.log(testt);
+console.log(tokenizeJsonPathString(testt));

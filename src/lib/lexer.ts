@@ -98,15 +98,20 @@ const LexFunctionsCollection: Array<{fn: LexFunction, kind: TokenKind}> = [
 	{fn: lexPrimitiveNull,              kind: TokenKind.PRIMITIVE_NULL},
 	{fn: lexPrimitiveTrue,              kind: TokenKind.PRIMITIVE_TRUE},
 	{fn: lexPrimitiveFalse,             kind: TokenKind.PRIMITIVE_FALSE},
+	
+	{fn: lexMatchIndexAll,              kind: TokenKind.MATCH_INDEX_ALL},
+	
 
+
+	{fn: lexError,                      kind: TokenKind.ERROR},
 ]
 
 
 
 function nextToken(charList: Array<string>, current: number): PathToken {
-	const remainingChars = charList.length - current;
+	const end = charList.length;
 	for (const {fn, kind} of LexFunctionsCollection) {
-		const [consumed, success] = fn(charList, current, remainingChars);
+		const [consumed, success] = fn(charList, current, end);
 		if (success){
 			return {kind: kind, endIdx: current + consumed};
 		}
@@ -132,7 +137,7 @@ type LexFunction = (
 	MAIN LEX FUNCTIONS
 
 */
-function lexWhitespace(charList: Array<string>, current: number, end: number): [number, boolean] {
+function lexError(charList: Array<string>, current: number, end: number): [number, boolean] {
 	
 	return [1, true];
 }
@@ -216,6 +221,21 @@ function lexPrimitiveTrue(charList: Array<string>, current: number, end: number)
 function lexPrimitiveFalse(charList: Array<string>, current: number, end: number): [number, boolean] {
 	return helperMatchExact("#false", charList, current, end);
 }
+function lexWhitespace(charList: Array<string>, current: number, end: number): [number, boolean] {
+	return helperTestMatchSequence(isWhitespaceChar, charList, current, end);
+}
+function lexMatchIndexAll(charList: Array<string>, current: number, end: number): [number, boolean] {
+	const [consumed, success] = helperTestMatchSequence(isDigitChar, charList, current, end);
+	if (!success){
+		return [0, false];	
+	}
+	const leadingZerosOk = helperNoLeadingZeroes(charList, current, current + consumed);
+	if (leadingZerosOk) {
+		return [consumed, true];
+	}else{
+		return [0, false];	
+	}
+}
 
 /*
 
@@ -254,16 +274,47 @@ function helperMatchExact(
 }
 
 
-// only for single characters 
-function isDigit(c: string): boolean {
-	return (c >= '0' && c <= '9');
-}
-
 /*
 	This function tries to match longest string 
 	containing only digits starting at current
 */
-function helperDigitSequence(
+// function helperDigitSequence(
+// 	charList: Array<string>,
+// 	current: number,
+// 	end: number,
+// ): [number, boolean] {
+// 	let at = current;
+// 	for (;at < end; at++) {
+// 		const c = charList[at];	
+// 		if (! isDigit(c)){
+// 			break;
+// 		}
+// 	}
+// 	const consumed = at - current;
+
+// 	if (consumed){
+// 		return [consumed, true];
+// 	}else{
+// 		return [0, false];
+// 	}
+// }
+
+// only for single characters 
+function isDigitChar(c: string): boolean {
+	return (c >= '0' && c <= '9');
+}
+// only for single characters
+function isWhitespaceChar(c: string): boolean {
+	return " \f\n\r\t\v\u00A0\u2028\u2029".includes(c);
+}
+
+/*
+	This function tries to match longest string 
+	containing only characters that pass the test
+	provided via test function parameter.
+*/
+function helperTestMatchSequence(
+	test: (c: string) => boolean,
 	charList: Array<string>,
 	current: number,
 	end: number,
@@ -271,7 +322,7 @@ function helperDigitSequence(
 	let at = current;
 	for (;at < end; at++) {
 		const c = charList[at];	
-		if (! isDigit(c)){
+		if (! test(c)){
 			break;
 		}
 	}
@@ -282,4 +333,32 @@ function helperDigitSequence(
 	}else{
 		return [0, false];
 	}
+
 }
+
+/*
+	Expected to call on digit-only sequences
+	Will return true only if: 
+		1st character is not zero.
+	OR
+		end - current == 1 && charList[current] == 0
+	Assumes end - current >= 1
+	
+*/
+function helperNoLeadingZeroes(
+	charList: Array<string>,
+	current: number,
+	end: number,
+): boolean {
+	const first = charList[current];
+	if (first != '0'){
+		return true;
+	}
+	// first is zero
+	if (end - current == 1){
+		return true;
+	}
+	return false;
+	
+}	
+
