@@ -1,14 +1,14 @@
 import {
-	tokenizeJsonPathString as tok,
-	type JsonPathTokenized as ptk,
-	tokenizedPrettyPrint as tpp,
-} from "./lib/lexer_main.ts"
+	tokenizeJsonPathString as _tokenizeJsonPathString,
+	type JsonPathTokenized as _JsonPathTokenized,
+	tokenizedPrettyPrint as _tokenizedPrettyPrint,
+} from "./lex/lexer_main.ts"
 
-import {TokenKind as TK} from "./lib/lexer_enum.ts" 
+import {TokenKind as _TokenKind} from "./lex/lexer_enum.ts" 
 
-export const  tokenizedPrettyPrint = tpp;
-export const tokenizeJsonPathString = tok;
-export type JsonPathTokenized = ptk;
+export const tokenizedPrettyPrint = _tokenizedPrettyPrint;
+export const tokenizeJsonPathString = _tokenizeJsonPathString;
+export type JsonPathTokenized = _JsonPathTokenized;
 
-export const TokenKind = TK;
-export type TokenKind = TK;
+export const TokenKind = _TokenKind;
+export type TokenKind = _TokenKind;

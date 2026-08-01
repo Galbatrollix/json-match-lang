@@ -3,7 +3,6 @@
 	(...) means this is an example not the only possible value of the token
 */
 export enum TokenKind {
-	HEAD,
 	ERROR,
 	
 	WHITESPACE,
@@ -63,11 +62,9 @@ export namespace TokenKind {
 	export function isOperatorParentChild(t: TokenKind): boolean{
 		return (TokenKind.OPERATOR_CHILD <= t && t <= TokenKind.OPERATOR_PARENT);
 	}
-	
 	export function isMatch(t: TokenKind): boolean{
 		return (TokenKind.MATCH_KEY <= t && t <= TokenKind.MATCH_WILDCARD_OBJECT);
 	}
-	
 	export function isPrimitive(t: TokenKind): boolean{
 		return (TokenKind.PRIMITIVE_KIND_WILDCARD <= t && t <= TokenKind.PRIMITIVE_STRING);
 	}

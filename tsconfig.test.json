@@ -1,11 +1,11 @@
 {
 	"extends": "./tsconfig.base.json",
 	
- 	"compilerOptions": {
+	"compilerOptions": {
 		
-    	"outDir": "./temp",
+		"outDir": "./temp",
 		"noUnusedLocals": false,
-	    "noUnusedParameters": false
+		"noUnusedParameters": false
 
 	}
 }

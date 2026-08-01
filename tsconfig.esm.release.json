@@ -1,7 +1,7 @@
 {
 	"extends": "./tsconfig.base.json",
 	
- 	"compilerOptions": {
+	"compilerOptions": {
 		"outDir": "./dist/esm",
 			
 		"sourceMap": false
