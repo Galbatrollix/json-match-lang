@@ -1,4 +1,8 @@
-import {tokenizeJsonPathString as TK, type PathToken as PT} from "./lib/lexer.ts"
+import {tokenizeJsonPathString as tokenize, type PathToken as pathtk} from "./lib/lexer_impl.ts"
+import {TokenKind as TK} from "./lib/lexer_enum.ts" 
 
-export const tokenizeJsonPathString = TK;
-export type PathToken = PT;
+export const tokenizeJsonPathString = tokenize;
+export type PathToken = pathtk;
+
+export const TokenKind = TK;
+export type TokenKind = TK;

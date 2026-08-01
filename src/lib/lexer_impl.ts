@@ -1,50 +1,4 @@
-
-/*
-	All them types of tokens that lexing json path can possibly output.
-	(...) means this is an example not the only possible value of the token
-*/
-const enum TokenKind {
-	HEAD,      
-	WHITESPACE,
-	ERROR,
-
-	OPERATOR_CHILD,                // > 
-	OPERATOR_PARENT,               // <
-	
-	OPERATOR_SIBLING_NEXT,         // +
-	OPERATOR_SIBLING_PREV,         // -
-	OPERATOR_SIBLING_SUBSEQUENT,   // ++
-	OPERATOR_SIBLING_PRECEDING,    // --
-	OPERATOR_SIBLING_ANY,          // ~
-
-	OPERATOR_OR,                   // |
-	OPERATOR_AND,                  // &
-	OPERATOR_NOT,                  // !
-	
-	// they match array indexes or object keys
-	MATCH_KEY,                     // "dupa" (...)
-	MATCH_KEY_NAKED,               // dupa   (...)
-	MATCH_INDEX_ALL,               // 1234   (...)
-	MATCH_INDEX_ARRAY,             // [1234] (...)
-	MATCH_INDEX_OBJECT,            // {1234} (...)
-	VALUE_WILDCARD_ALL,            // *
-	VALUE_WILDCARD_ARRAY,          // [*]
-	VALUE_WILDCARD_OBJECT,         // {*}
-	
-	// they match type of primitives
-	PRIMITIVE_KIND_WILDCARD,       // #*
-	PRIMITIVE_KIND_STRING,         // #string
-	PRIMITIVE_KIND_NUMBER,         // #number
-	PRIMITIVE_KIND_BOOLEAN,        // #boolean
-	
-	// they match exact values of primitives
-	// use json parse to resolve primitives properly
-	PRIMITIVE_NULL,                // #null
-	PRIMITIVE_TRUE,                // #true
-	PRIMITIVE_FALSE,               // #false
-	PRIMITIVE_NUMBER,              // #124.2    (...)
-	PRIMITIVE_STRING,              // #"duuupa" (...)
-}
+import {TokenKind} from "./lexer_enum.ts"
 
 
 export type PathToken = {
@@ -86,9 +40,9 @@ const LexFunctionsCollection: Array<{fn: LexFunction, kind: TokenKind}> = [
 	{fn: lexOperatorAnd,                kind: TokenKind.OPERATOR_AND},
 	{fn: lexOperatorNot,                kind: TokenKind.OPERATOR_NOT},
 
-	{fn: lexValueWildcardAll,           kind: TokenKind.VALUE_WILDCARD_ALL},
-	{fn: lexValueWildcardArray,         kind: TokenKind.VALUE_WILDCARD_ARRAY},
-	{fn: lexValueWildcardObject,        kind: TokenKind.VALUE_WILDCARD_OBJECT},
+	{fn: lexMatchWildcardAll,           kind: TokenKind.MATCH_WILDCARD_ALL},
+	{fn: lexMatchWildcardArray,         kind: TokenKind.MATCH_WILDCARD_ARRAY},
+	{fn: lexMatchWildcardObject,        kind: TokenKind.MATCH_WILDCARD_OBJECT},
 
 	{fn: lexPrimitiveKindWildcard,      kind: TokenKind.PRIMITIVE_KIND_WILDCARD},
 	{fn: lexPrimitiveKindString,        kind: TokenKind.PRIMITIVE_KIND_STRING},
@@ -100,8 +54,12 @@ const LexFunctionsCollection: Array<{fn: LexFunction, kind: TokenKind}> = [
 	{fn: lexPrimitiveFalse,             kind: TokenKind.PRIMITIVE_FALSE},
 	
 	{fn: lexMatchIndexAll,              kind: TokenKind.MATCH_INDEX_ALL},
-	
+	{fn: lexMatchIndexArray,            kind: TokenKind.MATCH_INDEX_ARRAY},
+	{fn: lexMatchIndexObject,           kind: TokenKind.MATCH_INDEX_OBJECT},
 
+	{fn: lexMatchKey,                   kind: TokenKind.MATCH_KEY},
+	{fn: lexPrimitiveString,            kind: TokenKind.PRIMITIVE_STRING},
+	{fn: lexMatchKeyNaked,              kind: TokenKind.MATCH_KEY_NAKED},
 
 	{fn: lexError,                      kind: TokenKind.ERROR},
 ]
@@ -118,8 +76,8 @@ function nextToken(charList: Array<string>, current: number): PathToken {
 	}
 	
 	// unreachable once functions are finished 	
-	return {kind: TokenKind.ERROR, endIdx: current + 1};
-	//throw new Error("Lexer encountered a fatal internal error");
+	// return {kind: TokenKind.ERROR, endIdx: current + 1};
+	throw new Error("Lexer encountered a fatal internal error");
 	
 }
 
@@ -137,10 +95,6 @@ type LexFunction = (
 	MAIN LEX FUNCTIONS
 
 */
-function lexError(charList: Array<string>, current: number, end: number): [number, boolean] {
-	
-	return [1, true];
-}
 
 function lexOperatorChild(charList: Array<string>, current: number, end: number): [number, boolean] {
 	return helperMatchExact(">", charList, current, end);
@@ -182,15 +136,15 @@ function lexOperatorNot(charList: Array<string>, current: number, end: number): 
 	return helperMatchExact("!", charList, current, end);
 }
 
-function lexValueWildcardAll(charList: Array<string>, current: number, end: number): [number, boolean] {
+function lexMatchWildcardAll(charList: Array<string>, current: number, end: number): [number, boolean] {
 	return helperMatchExact("*", charList, current, end);
 }
 
-function lexValueWildcardArray(charList: Array<string>, current: number, end: number): [number, boolean] {
+function lexMatchWildcardArray(charList: Array<string>, current: number, end: number): [number, boolean] {
 	return helperMatchExact("[*]", charList, current, end);
 }
 
-function lexValueWildcardObject(charList: Array<string>, current: number, end: number): [number, boolean] {
+function lexMatchWildcardObject(charList: Array<string>, current: number, end: number): [number, boolean] {
 	return helperMatchExact("{*}", charList, current, end);
 }
 
@@ -221,22 +175,63 @@ function lexPrimitiveTrue(charList: Array<string>, current: number, end: number)
 function lexPrimitiveFalse(charList: Array<string>, current: number, end: number): [number, boolean] {
 	return helperMatchExact("#false", charList, current, end);
 }
+
 function lexWhitespace(charList: Array<string>, current: number, end: number): [number, boolean] {
 	return helperTestMatchSequence(isWhitespaceChar, charList, current, end);
 }
-function lexMatchIndexAll(charList: Array<string>, current: number, end: number): [number, boolean] {
-	const [consumed, success] = helperTestMatchSequence(isDigitChar, charList, current, end);
-	if (!success){
-		return [0, false];	
-	}
-	const leadingZerosOk = helperNoLeadingZeroes(charList, current, current + consumed);
-	if (leadingZerosOk) {
-		return [consumed, true];
-	}else{
-		return [0, false];	
-	}
+
+function lexMatchKeyNaked(charList: Array<string>, current: number, end: number): [number, boolean] {
+	return helperTestMatchSequence(isAsciiLetterChar, charList, current, end);
 }
 
+function lexMatchIndexAll(charList: Array<string>, current: number, end: number): [number, boolean] {
+	return helperMatchInteger(charList, current, end);
+}
+
+function lexMatchIndexArray(charList: Array<string>, current: number, end: number): [number, boolean] {
+	const matchOpenBracket = function(charList: Array<string>, current: number, end: number){
+		return helperMatchExact("[", charList, current, end);
+	}
+	const matchClosedBracket = function(charList: Array<string>, current: number, end: number){
+		return helperMatchExact("]", charList, current, end);
+	}
+	return helperLexChain([
+		matchOpenBracket, helperMatchInteger, matchClosedBracket
+	])(charList, current, end);
+}
+
+function lexMatchIndexObject(charList: Array<string>, current: number, end: number): [number, boolean] {
+	const matchOpenBracket = function(charList: Array<string>, current: number, end: number){
+		return helperMatchExact("{", charList, current, end);
+	}
+	const matchClosedBracket = function(charList: Array<string>, current: number, end: number){
+		return helperMatchExact("}", charList, current, end);
+	}
+	return helperLexChain([
+		matchOpenBracket, helperMatchInteger, matchClosedBracket
+	])(charList, current, end);
+}
+
+function lexMatchKey(charList: Array<string>, current: number, end: number): [number, boolean] {
+	return helperMatchString(charList, current, end);
+}
+
+function lexPrimitiveString(charList: Array<string>, current: number, end: number): [number, boolean] {
+	const matchHash = function(charList: Array<string>, current: number, end: number){
+		return helperMatchExact("#", charList, current, end);
+	}
+	return helperLexChain([matchHash, helperMatchString ])(charList, current, end);
+}
+
+function lePrimitiveNumber(charList: Array<string>, current: number, end: number): [number, boolean] {
+	//TODO, NOT IMPLEMENTED YET
+	return [0, false];
+}
+
+function lexError(charList: Array<string>, current: number, end: number): [number, boolean] {
+
+	return [1, true];
+}
 /*
 
 	HELPER FUNCTIONS
@@ -274,31 +269,6 @@ function helperMatchExact(
 }
 
 
-/*
-	This function tries to match longest string 
-	containing only digits starting at current
-*/
-// function helperDigitSequence(
-// 	charList: Array<string>,
-// 	current: number,
-// 	end: number,
-// ): [number, boolean] {
-// 	let at = current;
-// 	for (;at < end; at++) {
-// 		const c = charList[at];	
-// 		if (! isDigit(c)){
-// 			break;
-// 		}
-// 	}
-// 	const consumed = at - current;
-
-// 	if (consumed){
-// 		return [consumed, true];
-// 	}else{
-// 		return [0, false];
-// 	}
-// }
-
 // only for single characters 
 function isDigitChar(c: string): boolean {
 	return (c >= '0' && c <= '9');
@@ -307,7 +277,11 @@ function isDigitChar(c: string): boolean {
 function isWhitespaceChar(c: string): boolean {
 	return " \f\n\r\t\v\u00A0\u2028\u2029".includes(c);
 }
-
+// only for single characters
+function isAsciiLetterChar(c: string): boolean {
+	const code = c.charCodeAt(0);
+	return ( code >= 65 && code <= 90 || code >= 97 && code <= 122 );
+}
 /*
 	This function tries to match longest string 
 	containing only characters that pass the test
@@ -362,3 +336,102 @@ function helperNoLeadingZeroes(
 	
 }	
 
+/*
+	Matches sequence of consecutive digits if it has no leading zeros.
+	A single zero will match if followed by non-digit character.
+*/
+function helperMatchInteger(
+	charList: Array<string>,
+	current: number,
+	end: number
+): [number, boolean] {
+	const [consumed, success] = helperTestMatchSequence(isDigitChar, charList, current, end);
+	if (!success){
+		return [0, false];	
+	}
+	const leadingZerosOk = helperNoLeadingZeroes(charList, current, current + consumed);
+	if (leadingZerosOk) {
+		return [consumed, true];
+	}else{
+		return [0, false];	
+	}
+}
+
+/*
+	Will match an arbitrary string starting and ending with " character
+	Handles backslash escapes in manner compatible with json
+*/
+function helperMatchString(
+	charList: Array<string>,
+	current: number,
+	end: number
+): [number, boolean] {
+	
+	// must at least have room for 2 " characters
+	const remaining = end - current;
+	if (remaining < 2){
+		return [0, false];
+	}
+	// must start with a " character.
+	if (charList[current] != '"'){
+		return [0, false];
+	}
+	//moving pointer past first doublequote
+	let at = current + 1;
+
+	let precedingBackslashes = 0;
+	for (;at < end; at++) {
+		const c = charList[at];	
+
+		let escaped: boolean = precedingBackslashes % 2 == 1
+		if (c == '"' && !escaped ){
+			const consumed = at - current + 1;
+			return [consumed, true];
+		}
+
+		if (c == '\\'){
+			precedingBackslashes += 1;	
+		}else{
+			precedingBackslashes = 0;
+		}
+	}
+	
+	//charList ran out of characters without matching the string, match failed
+	return [0, false];
+}
+
+/*
+	Parser combinator that tranforms an array of lex functions into a single lex
+	function that matches if and only if all given functions match in provided order.
+*/
+function helperLexChain(lexerList: Array<LexFunction> ): LexFunction {
+
+	const resultFunc = function(
+		charList: Array<string>,
+		current: number,
+		end: number
+	): [number, boolean] {
+		let fnIndex = 0;
+		const fnCount = lexerList.length;
+		let at = current;		
+
+		while (at < end && fnIndex < fnCount) {
+			const [consumed, matched] = lexerList[fnIndex](charList, at, end);
+			if (! matched){
+				return [0, false];
+			}
+			at += consumed;
+			fnIndex += 1;
+		}
+
+		const consumedTotal = at - current;
+		const allFunctionsPassed: boolean = (fnIndex == fnCount);
+		if (allFunctionsPassed){
+			return [consumedTotal, true];
+		}else{
+			return [0, false];
+		}
+	}
+
+	return resultFunc;
+}
