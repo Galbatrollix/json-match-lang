@@ -1,7 +1,7 @@
 {
-  "name": "===========repoName===========",
+  "name": "json-match-lang",
   "version": "0.0.1",
-  "description": "==========temp==========",
+  "description": "Parser for a language designed to match items in json files.",
   "exports": {
      ".": {
       "import": {
@@ -27,15 +27,15 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+===========repoLink=============.git"
+    "url": "git+https://github.com/Galbatrollix/json-match-lang.git"
   },
   "keywords": [],
-  "author": "",
+  "author": "Galbatrollix",
   "license": "Unlicense",
   "bugs": {
-    "url": "===========repoLink=============/issues"
+    "url": "https://github.com/Galbatrollix/json-match-lang/issues"
   },
-  "homepage": "===========repoLink=============#readme",
+  "homepage": "https://github.com/Galbatrollix/json-match-lang#readme",
   "devDependencies": {
     "typescript": "^7.0.2",
     "rimraf": "^6.0.1"

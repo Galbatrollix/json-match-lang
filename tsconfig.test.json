@@ -3,6 +3,9 @@
 	
  	"compilerOptions": {
 		
-    	"outDir": "./temp"
+    	"outDir": "./temp",
+		"noUnusedLocals": false,
+	    "noUnusedParameters": false
+
 	}
 }
