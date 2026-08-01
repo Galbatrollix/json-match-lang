@@ -7,9 +7,7 @@ export type PathToken = {
 };
 
 
-export function tokenizeJsonPathString(path: string): Array<PathToken> {
-	const characterList: Array<string> = Array.from(path);
-
+export function lexJsonPathString(characterList: Array<string>): Array<PathToken> {
 	let charactersConsumed = 0;
 	const charactersTotal = characterList.length;
 	// initializing result array with a head element to simplyfy algorithm
@@ -24,6 +22,13 @@ export function tokenizeJsonPathString(path: string): Array<PathToken> {
 	return result;
 } 
 
+// first return is count of consumed characters,
+// second return is true if lex succeeded false otherwise
+type LexFunction = (
+	charList: Array<string>,
+ 	current: number,
+	end: number
+) => [number, boolean];
 
 const LexFunctionsCollection: Array<{fn: LexFunction, kind: TokenKind}> = [
 	{fn: lexWhitespace,                 kind: TokenKind.WHITESPACE},
@@ -108,14 +113,6 @@ function nextToken(charList: Array<string>, current: number): PathToken {
 	
 }
 
-
-// first return is count of consumed characters,
-// second return is true if lex succeeded false otherwise
-type LexFunction = (
-	charList: Array<string>,
- 	current: number,
-	end: number
-) => [number, boolean];
 
 /*
 
