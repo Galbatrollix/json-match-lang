@@ -27,18 +27,27 @@ export function tokenizeJsonPathString(path: string): Array<PathToken> {
 
 const LexFunctionsCollection: Array<{fn: LexFunction, kind: TokenKind}> = [
 	{fn: lexWhitespace,                 kind: TokenKind.WHITESPACE},
+
 	{fn: lexOperatorChild,              kind: TokenKind.OPERATOR_CHILD},
 	{fn: lexOperatorParent,             kind: TokenKind.OPERATOR_PARENT},
+	
+	// must be before next and prev as they are superset of the latter
+	{fn: lexOperatorSiblingSubsequent,  kind: TokenKind.OPERATOR_SIBLING_SUBSEQUENT},
+	{fn: lexOperatorSiblingPreceding,   kind: TokenKind.OPERATOR_SIBLING_PRECEDING},
 
 	{fn: lexOperatorSiblingNext,        kind: TokenKind.OPERATOR_SIBLING_NEXT},
 	{fn: lexOperatorSiblingPrev,        kind: TokenKind.OPERATOR_SIBLING_PREV},
-	{fn: lexOperatorSiblingSubsequent,  kind: TokenKind.OPERATOR_SIBLING_SUBSEQUENT},
-	{fn: lexOperatorSiblingPreceding,   kind: TokenKind.OPERATOR_SIBLING_PRECEDING},
 	{fn: lexOperatorSiblingAny,         kind: TokenKind.OPERATOR_SIBLING_ANY},
-
+	
 	{fn: lexOperatorOr,                 kind: TokenKind.OPERATOR_OR},
 	{fn: lexOperatorAnd,                kind: TokenKind.OPERATOR_AND},
 	{fn: lexOperatorNot,                kind: TokenKind.OPERATOR_NOT},
+
+	{fn: lexMatchKey,                   kind: TokenKind.MATCH_KEY},
+	{fn: lexMatchKeyNaked,              kind: TokenKind.MATCH_KEY_NAKED},
+	{fn: lexMatchIndexAll,              kind: TokenKind.MATCH_INDEX_ALL},
+	{fn: lexMatchIndexArray,            kind: TokenKind.MATCH_INDEX_ARRAY},
+	{fn: lexMatchIndexObject,           kind: TokenKind.MATCH_INDEX_OBJECT},
 
 	{fn: lexMatchWildcardAll,           kind: TokenKind.MATCH_WILDCARD_ALL},
 	{fn: lexMatchWildcardArray,         kind: TokenKind.MATCH_WILDCARD_ARRAY},
@@ -52,18 +61,36 @@ const LexFunctionsCollection: Array<{fn: LexFunction, kind: TokenKind}> = [
 	{fn: lexPrimitiveNull,              kind: TokenKind.PRIMITIVE_NULL},
 	{fn: lexPrimitiveTrue,              kind: TokenKind.PRIMITIVE_TRUE},
 	{fn: lexPrimitiveFalse,             kind: TokenKind.PRIMITIVE_FALSE},
-	
-	{fn: lexMatchIndexAll,              kind: TokenKind.MATCH_INDEX_ALL},
-	{fn: lexMatchIndexArray,            kind: TokenKind.MATCH_INDEX_ARRAY},
-	{fn: lexMatchIndexObject,           kind: TokenKind.MATCH_INDEX_OBJECT},
-
-	{fn: lexMatchKey,                   kind: TokenKind.MATCH_KEY},
 	{fn: lexPrimitiveString,            kind: TokenKind.PRIMITIVE_STRING},
-	{fn: lexMatchKeyNaked,              kind: TokenKind.MATCH_KEY_NAKED},
-
+	{fn: lexPrimitiveNumber,            kind: TokenKind.PRIMITIVE_NUMBER},
+	
+	//must always be last
 	{fn: lexError,                      kind: TokenKind.ERROR},
 ]
 
+const OperatorsSyntax = {
+	CHILD:               ">",
+	PARENT:              "<",
+
+	SIBLING_NEXT:        "+",
+	SIBLING_PREV:        "-",
+	SIBLING_SUBSEQUENT:  "++",
+	SIBLING_PRECEDING:   "--",
+	SIBLING_ANY:         "~",
+
+	OR:                  "|",
+	AND:                 "&",
+	NOT:                 "!",
+	
+	// not operators but have special syntax so
+	L_BRACKET:           "[",
+	R_BRACKET:           "]",
+	L_BRACE:             "{",
+	R_BRACE:             "}",
+	WILDCARD:            "*",
+	PRIMITIVE:           "#",
+	STRING:              `"`,
+} as const;
 
 
 function nextToken(charList: Array<string>, current: number): PathToken {
@@ -97,83 +124,83 @@ type LexFunction = (
 */
 
 function lexOperatorChild(charList: Array<string>, current: number, end: number): [number, boolean] {
-	return helperMatchExact(">", charList, current, end);
+	return helperMatchExact(OperatorsSyntax.CHILD, charList, current, end);
 }
 
 function lexOperatorParent(charList: Array<string>, current: number, end: number): [number, boolean] {
-	return helperMatchExact("<", charList, current, end);
+	return helperMatchExact(OperatorsSyntax.PARENT, charList, current, end);
 }
 
 function lexOperatorSiblingNext(charList: Array<string>, current: number, end: number): [number, boolean] {
-	return helperMatchExact("+", charList, current, end);
+	return helperMatchExact(OperatorsSyntax.SIBLING_NEXT, charList, current, end);
 }
 
 function lexOperatorSiblingPrev(charList: Array<string>, current: number, end: number): [number, boolean] {
-	return helperMatchExact("-", charList, current, end);
+	return helperMatchExact(OperatorsSyntax.SIBLING_PREV, charList, current, end);
 }
 
 function lexOperatorSiblingSubsequent(charList: Array<string>, current: number, end: number): [number, boolean] {
-	return helperMatchExact("++", charList, current, end);
+	return helperMatchExact(OperatorsSyntax.SIBLING_SUBSEQUENT, charList, current, end);
 }
 
 function lexOperatorSiblingPreceding(charList: Array<string>, current: number, end: number): [number, boolean] {
-	return helperMatchExact("--", charList, current, end);
+	return helperMatchExact(OperatorsSyntax.SIBLING_PRECEDING, charList, current, end);
 }
 
 function lexOperatorSiblingAny(charList: Array<string>, current: number, end: number): [number, boolean] {
-	return helperMatchExact("~", charList, current, end);
+	return helperMatchExact(OperatorsSyntax.SIBLING_ANY, charList, current, end);
 }
 
 function lexOperatorOr(charList: Array<string>, current: number, end: number): [number, boolean] {
-	return helperMatchExact("|", charList, current, end);
+	return helperMatchExact(OperatorsSyntax.OR, charList, current, end);
 }
 
 function lexOperatorAnd(charList: Array<string>, current: number, end: number): [number, boolean] {
-	return helperMatchExact("&", charList, current, end);
+	return helperMatchExact(OperatorsSyntax.AND, charList, current, end);
 }
 
 function lexOperatorNot(charList: Array<string>, current: number, end: number): [number, boolean] {
-	return helperMatchExact("!", charList, current, end);
+	return helperMatchExact(OperatorsSyntax.NOT, charList, current, end);
 }
 
 function lexMatchWildcardAll(charList: Array<string>, current: number, end: number): [number, boolean] {
-	return helperMatchExact("*", charList, current, end);
+	return helperMatchExact(OperatorsSyntax.WILDCARD, charList, current, end);
 }
-
+const patternWildcardArray = OperatorsSyntax.L_BRACKET + OperatorsSyntax.WILDCARD + OperatorsSyntax.R_BRACKET;
 function lexMatchWildcardArray(charList: Array<string>, current: number, end: number): [number, boolean] {
-	return helperMatchExact("[*]", charList, current, end);
+	return helperMatchExact(patternWildcardArray, charList, current, end);
 }
-
+const patternWildcardObject = OperatorsSyntax.L_BRACE + OperatorsSyntax.WILDCARD + OperatorsSyntax.R_BRACE;
 function lexMatchWildcardObject(charList: Array<string>, current: number, end: number): [number, boolean] {
-	return helperMatchExact("{*}", charList, current, end);
+	return helperMatchExact(patternWildcardObject, charList, current, end);
 }
-
+const patternPrimitiveKindWildcard = OperatorsSyntax.PRIMITIVE + OperatorsSyntax.WILDCARD
 function lexPrimitiveKindWildcard(charList: Array<string>, current: number, end: number): [number, boolean] {
-	return helperMatchExact("#*", charList, current, end);
+	return helperMatchExact(patternPrimitiveKindWildcard, charList, current, end);
 }
 
 function lexPrimitiveKindString(charList: Array<string>, current: number, end: number): [number, boolean] {
-	return helperMatchExact("#string", charList, current, end);
+	return helperMatchExact(OperatorsSyntax.PRIMITIVE +"string", charList, current, end);
 }
 
 function lexPrimitiveKindNumber(charList: Array<string>, current: number, end: number): [number, boolean] {
-	return helperMatchExact("#number", charList, current, end);
+	return helperMatchExact(OperatorsSyntax.PRIMITIVE +"number", charList, current, end);
 }
 
 function lexPrimitiveKindBoolean(charList: Array<string>, current: number, end: number): [number, boolean] {
-	return helperMatchExact("#boolean", charList, current, end);
+	return helperMatchExact(OperatorsSyntax.PRIMITIVE +"boolean", charList, current, end);
 }
 
 function lexPrimitiveNull(charList: Array<string>, current: number, end: number): [number, boolean] {
-	return helperMatchExact("#null", charList, current, end);
+	return helperMatchExact(OperatorsSyntax.PRIMITIVE +"null", charList, current, end);
 }
 
 function lexPrimitiveTrue(charList: Array<string>, current: number, end: number): [number, boolean] {
-	return helperMatchExact("#true", charList, current, end);
+	return helperMatchExact(OperatorsSyntax.PRIMITIVE +"true", charList, current, end);
 }
 
 function lexPrimitiveFalse(charList: Array<string>, current: number, end: number): [number, boolean] {
-	return helperMatchExact("#false", charList, current, end);
+	return helperMatchExact(OperatorsSyntax.PRIMITIVE +"false", charList, current, end);
 }
 
 function lexWhitespace(charList: Array<string>, current: number, end: number): [number, boolean] {
@@ -190,24 +217,24 @@ function lexMatchIndexAll(charList: Array<string>, current: number, end: number)
 
 function lexMatchIndexArray(charList: Array<string>, current: number, end: number): [number, boolean] {
 	const matchOpenBracket = function(charList: Array<string>, current: number, end: number){
-		return helperMatchExact("[", charList, current, end);
+		return helperMatchExact(OperatorsSyntax.L_BRACKET, charList, current, end);
 	}
 	const matchClosedBracket = function(charList: Array<string>, current: number, end: number){
-		return helperMatchExact("]", charList, current, end);
+		return helperMatchExact(OperatorsSyntax.R_BRACKET, charList, current, end);
 	}
-	return helperLexChain([
+	return combinatorChain([
 		matchOpenBracket, helperMatchInteger, matchClosedBracket
 	])(charList, current, end);
 }
 
 function lexMatchIndexObject(charList: Array<string>, current: number, end: number): [number, boolean] {
 	const matchOpenBracket = function(charList: Array<string>, current: number, end: number){
-		return helperMatchExact("{", charList, current, end);
+		return helperMatchExact(OperatorsSyntax.L_BRACE, charList, current, end);
 	}
 	const matchClosedBracket = function(charList: Array<string>, current: number, end: number){
-		return helperMatchExact("}", charList, current, end);
+		return helperMatchExact(OperatorsSyntax.R_BRACE, charList, current, end);
 	}
-	return helperLexChain([
+	return combinatorChain([
 		matchOpenBracket, helperMatchInteger, matchClosedBracket
 	])(charList, current, end);
 }
@@ -218,19 +245,86 @@ function lexMatchKey(charList: Array<string>, current: number, end: number): [nu
 
 function lexPrimitiveString(charList: Array<string>, current: number, end: number): [number, boolean] {
 	const matchHash = function(charList: Array<string>, current: number, end: number){
+		return helperMatchExact(OperatorsSyntax.PRIMITIVE, charList, current, end);
+	}
+	return combinatorChain([matchHash, helperMatchString ])(charList, current, end);
+}
+
+/*
+	https://www.poppastring.com/blog/json-numbers-changed-with-leading-zeros
+	
+	Json number has 3 sections:
+	1: string of digits with no leading zeros and possible minus in front.
+	2: possibly: (a dot followed by string of digits)
+	3: possibly: e or E followed by possible minus/plus and strings of digits
+*/
+function lexPrimitiveNumber(charList: Array<string>, current: number, end: number): [number, boolean] {
+	const matchHash = function(charList: Array<string>, current: number, end: number){
 		return helperMatchExact("#", charList, current, end);
 	}
-	return helperLexChain([matchHash, helperMatchString ])(charList, current, end);
+	const matchMinus = function(charList: Array<string>, current: number, end: number){
+		return helperMatchExact("-", charList, current, end);
+	}
+	const matchPlus = function(charList: Array<string>, current: number, end: number){
+		return helperMatchExact("+", charList, current, end);
+	}
+	const matchDot = function(charList: Array<string>, current: number, end: number){
+		return helperMatchExact(".", charList, current, end);
+	}
+	const matchLowecaseE = function(charList: Array<string>, current: number, end: number){
+		return helperMatchExact("e", charList, current, end);
+	}
+	const matchUppercaseE = function(charList: Array<string>, current: number, end: number){
+		return helperMatchExact("E", charList, current, end);
+	}
+
+	const matchDigitString = function(charList: Array<string>, current: number, end: number){
+		return helperTestMatchSequence(isDigitChar, charList, current, end);
+	}
+	const matchPlusOrMinus = combinatorOr([matchPlus, matchMinus]);
+	const matchAnyE = combinatorOr([matchLowecaseE, matchUppercaseE])
+	const optionalMinus = combinatorOptional(matchMinus);
+	
+	const section1 = combinatorChain([
+		optionalMinus,
+		helperMatchInteger,
+	]);
+
+	const section2 = combinatorOptional(combinatorChain([
+		matchDot,
+		matchDigitString,
+	]));
+	
+	const section3 = combinatorOptional(combinatorChain([
+		matchAnyE,
+		combinatorOptional(matchPlusOrMinus),
+		matchDigitString,
+	]));
+	
+	const completeNumberLex = combinatorChain([matchHash, section1, section2, section3]);
+
+	return completeNumberLex(charList, current, end);
 }
 
-function lePrimitiveNumber(charList: Array<string>, current: number, end: number): [number, boolean] {
-	//TODO, NOT IMPLEMENTED YET
-	return [0, false];
-}
-
+/*
+	Always the last lex function to be called.
+	Runs forward looking until a whitespace or significant character is enountered.
+	Always consumes at least 1 character.
+*/
 function lexError(charList: Array<string>, current: number, end: number): [number, boolean] {
-
-	return [1, true];
+	const [consumed, matched] = helperTestMatchSequence(
+		isNonWhitespaceNonOperatorChar,
+		charList,
+		current + 1,
+		end,
+	);
+	
+	if (! matched){
+		return [1, true];
+	}else{
+		return [consumed + 1, true];
+	}
+	
 }
 /*
 
@@ -282,6 +376,18 @@ function isAsciiLetterChar(c: string): boolean {
 	const code = c.charCodeAt(0);
 	return ( code >= 65 && code <= 90 || code >= 97 && code <= 122 );
 }
+
+const allOperators = Object.values(OperatorsSyntax) as Array<string>;
+const allOperatorsJoined = allOperators.join("");
+// only for single characters
+function isOperatorChar(c: string): boolean {
+	return allOperatorsJoined.includes(c);
+}
+function isNonWhitespaceNonOperatorChar(c: string): boolean {
+	return !isOperatorChar(c) && !isWhitespaceChar(c);
+}
+
+
 /*
 	This function tries to match longest string 
 	containing only characters that pass the test
@@ -404,7 +510,7 @@ function helperMatchString(
 	Parser combinator that tranforms an array of lex functions into a single lex
 	function that matches if and only if all given functions match in provided order.
 */
-function helperLexChain(lexerList: Array<LexFunction> ): LexFunction {
+function combinatorChain(lexerList: Array<LexFunction> ): LexFunction {
 
 	const resultFunc = function(
 		charList: Array<string>,
@@ -424,14 +530,67 @@ function helperLexChain(lexerList: Array<LexFunction> ): LexFunction {
 			fnIndex += 1;
 		}
 
-		const consumedTotal = at - current;
+		const consumed = at - current;
 		const allFunctionsPassed: boolean = (fnIndex == fnCount);
 		if (allFunctionsPassed){
-			return [consumedTotal, true];
+			return [consumed, true];
 		}else{
 			return [0, false];
 		}
 	}
 
 	return resultFunc;
+}
+
+
+/*
+	Parser combinator that tranforms an array of lex functions into a single lex
+	function that matches if at least one of the given functions matches.
+
+	If multiple functions match , then:
+	resulting lex function will match the one encountered first
+
+*/
+function combinatorOr(lexerList: Array<LexFunction> ): LexFunction {
+
+	const resultFunc = function(
+		charList: Array<string>,
+		current: number,
+		end: number
+	): [number, boolean] {
+		for (const fn of lexerList){
+			const [consumed, matched] = fn(charList, current, end);
+			if (matched){
+				return [consumed, true];
+			}
+		}	
+		// not a single one matched
+		return [0, false]
+	}
+
+	return resultFunc;
+}
+
+/*
+	Parse combinator that tranforms a single lex function into a new one.
+	Returned function passes with identical results if provided function passes.
+	If provided function fails, returned function passes with 0 characters consumed.
+*/
+function combinatorOptional(lexerFunc: LexFunction): LexFunction {
+	const resultFunc = function(
+		charList: Array<string>,
+		current: number,
+		end: number
+	): [number, boolean] {
+		const [consumed, matched] = lexerFunc(charList, current, end);
+		
+		if (matched) {
+			return [consumed, matched];
+		}else{
+			return [0, true];	
+		}
+	}
+
+	return resultFunc;
+
 }

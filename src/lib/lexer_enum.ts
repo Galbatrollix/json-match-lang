@@ -4,8 +4,9 @@
 */
 export enum TokenKind {
 	HEAD,
-	WHITESPACE,
 	ERROR,
+	
+	WHITESPACE,
 
 	OPERATOR_CHILD,                // > 
 	OPERATOR_PARENT,               // <
