@@ -2,14 +2,48 @@ import { TokenKind } from "./lexer_enum.js";
 export function lexJsonPathString(characterList) {
     let charactersConsumed = 0;
     const charactersTotal = characterList.length;
-    // initializing result array with a head element to simplyfy algorithm
-    const result = [{ kind: TokenKind.HEAD, endIdx: 0 }];
+    // initializing result array with a dummy head element to simplify code 
+    const result = [{ kind: TokenKind.ERROR, endIdx: 0 }];
     while (charactersConsumed < charactersTotal) {
         const token = nextToken(characterList, charactersConsumed);
         result.push(token);
         charactersConsumed = token.endIdx;
     }
+    mergeErrorTokensInPlace(result);
     return result;
+}
+/*
+    Merges consecutive error tokens in the array of pathtokens.
+    Modifies input in place, leaves 1st dummy element unmodified.
+*/
+function mergeErrorTokensInPlace(tokens) {
+    const end = tokens.length;
+    let backPointer = 1;
+    let accumulatorActive = tokens[1].kind == TokenKind.ERROR;
+    for (let frontPointer = 1; frontPointer < end; frontPointer++) {
+        const isErr = tokens[frontPointer].kind == TokenKind.ERROR;
+        // if encountered normal element, move back pointer forward
+        // and overwrite back pointer value with front pointer value
+        if (!isErr) {
+            backPointer += 1;
+            tokens[backPointer] = tokens[frontPointer];
+            accumulatorActive = false;
+            continue;
+        }
+        // (isErr == true)
+        // if accumulating error tokens, just overwrite back position with front
+        // if not accumulating errors yet, move back pointer and enable accumulation
+        if (!accumulatorActive) {
+            backPointer += 1;
+            tokens[backPointer] = tokens[frontPointer];
+            accumulatorActive = true;
+        }
+        else {
+            tokens[backPointer] = tokens[frontPointer];
+        }
+    }
+    //shortening resulting array to remove excess elements
+    tokens.length = backPointer + 1;
 }
 const LexFunctionsCollection = [
     { fn: lexWhitespace, kind: TokenKind.WHITESPACE },
