@@ -15,10 +15,15 @@ export function tokenizeString(input) {
         resultKinds.push(kind);
         resultStrings.push(tokenString);
     }
+    // obtaining input string char ranges
+    const { resultStartIdx, resultEndIdx } = tokensToCharRanges(resultStrings);
+    // constructing output
     const result = {
-        length: lexed.length - 1,
-        tokenKinds: Object.freeze(resultKinds),
-        tokenStrings: Object.freeze(resultStrings),
+        tokenCount: lexed.length - 1,
+        tokenKind: Object.freeze(resultKinds),
+        tokenString: Object.freeze(resultStrings),
+        startIdx: Object.freeze(resultStartIdx),
+        endIdx: Object.freeze(resultEndIdx)
     };
     return Object.freeze(result);
 }
@@ -27,6 +32,19 @@ export function tokenizeString(input) {
 */
 export var tokenTapeUtils;
 (function (tokenTapeUtils) {
+    /**
+        Returns true if TokenTape has at least one error token.
+        Otherwise returns false.
+    */
+    function hasError(tape) {
+        for (let i = 0; i < tape.tokenCount; i++) {
+            if (tape.tokenKind[i] == TokenKind.ERROR) {
+                return true;
+            }
+        }
+        return false;
+    }
+    tokenTapeUtils.hasError = hasError;
     /**
         Contains functions for data presentation
         purposes only.
@@ -39,15 +57,15 @@ export var tokenTapeUtils;
         */
         function asArr(tape) {
             const result = [];
-            const numberPad = (tape.tokenKinds.length - 1).toString().length + 2;
+            const numberPad = (tape.tokenKind.length - 1).toString().length + 2;
             const kindPad = 23;
             const kindTruncate = 21;
             const totalPad = 60;
             const maxTokenChars = totalPad - kindPad - 13;
-            for (const i in tape.tokenKinds) {
-                const kind = tape.tokenKinds[i];
+            for (const i in tape.tokenKind) {
+                const kind = tape.tokenKind[i];
                 const kindString = TokenKind[kind];
-                let tokenString = tape.tokenStrings[i];
+                let tokenString = tape.tokenString[i];
                 if (kind == TokenKind.WHITESPACE) {
                     tokenString = "";
                 }
@@ -72,6 +90,26 @@ export var tokenTapeUtils;
         display.asStr = asStr;
     })(display = tokenTapeUtils.display || (tokenTapeUtils.display = {}));
 })(tokenTapeUtils || (tokenTapeUtils = {}));
+/**
+    Reconstructs index ranges of original input string from
+    stream of consecutive tokens string spat out by the tokenizer.
+    Returned as SOA {resultStartIdx[i], resultEndIdx[i]}
+*/
+function tokensToCharRanges(tokenStrings) {
+    if (tokenStrings.length == 0) {
+        return { resultStartIdx: [], resultEndIdx: [] };
+    }
+    let previous = tokenStrings[0].length;
+    const start = [0];
+    const end = [previous];
+    for (let i = 1; i < tokenStrings.length; i++) {
+        const current = tokenStrings[i].length + previous;
+        start.push(previous);
+        end.push(current);
+        previous = current;
+    }
+    return { resultStartIdx: start, resultEndIdx: end };
+}
 /*
     Print helpers
 */

@@ -25,6 +25,9 @@ function lexJsonPathString(characterList) {
         ERROR(dummy)/ERROR/T1/T2/ERROR/T3/ERROR/
 */
 function mergeErrorTokensInPlace(tokens) {
+    if (tokens.length == 1) {
+        return;
+    }
     const end = tokens.length;
     let backPointer = 1;
     let accumulatorActive = tokens[1].kind == lexer_enum_ts_1.TokenKind.ERROR;
