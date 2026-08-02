@@ -33,6 +33,10 @@ export declare namespace tokenTapeUtils {
     */
     function hasError(tape: TokenTape): boolean;
     /**
+        Returns true only if given token tapes are identical
+    */
+    function equals(t1: TokenTape, t2: TokenTape): boolean;
+    /**
         Contains functions for data presentation
         purposes only.
     */

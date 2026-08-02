@@ -10,8 +10,8 @@ export type PathToken = {
 export function lexJsonPathString(characterList: Array<string>): Array<PathToken> {
 	let charactersConsumed = 0;
 	const charactersTotal = characterList.length;
-	// initializing result array with a dummy error element to simplify code 
-	const result: Array<PathToken> = [{kind: TokenKind.ERROR, endIdx: 0}];
+	// initializing result array with a dummy whitespace element to simplify code 
+	const result: Array<PathToken> = [{kind: TokenKind.WHITESPACE, endIdx: 0}];
 	
 	while (charactersConsumed < charactersTotal) {
 		const token: PathToken = nextToken(characterList, charactersConsumed);
@@ -25,50 +25,38 @@ export function lexJsonPathString(characterList: Array<string>): Array<PathToken
 } 
 
 /*
-	Merges consecutive error tokens in the array of pathtokens.
-	Modifies input in place, leaves 1st dummy element unmodified.
-	
+	Merges consecutive error tokens in the array of pathtokens.	
 	sequence: 
-		ERROR(dummy)/ERROR/ERROR/T1/T2/ERROR/T3/ERROR/ERROR
+		(dummy)/ERROR/ERROR/T1/T2/ERROR/T3/ERROR/ERROR
 	transforms to: 
-		ERROR(dummy)/ERROR/T1/T2/ERROR/T3/ERROR/
+		(dummy)/ERROR/T1/T2/ERROR/T3/ERROR/
 */
 function mergeErrorTokensInPlace(tokens: Array<PathToken>): void {
-	if (tokens.length == 1) {
-		return;
-	}
-
 	const end = tokens.length;
 	
-	let backPointer = 1; 
-	let accumulatorActive = tokens[1].kind == TokenKind.ERROR;
-	for (let frontPointer = 1; frontPointer < end; frontPointer++){
+	let backPointer = 0;
+	let previousWasError = false;
+	for (let frontPointer = 0; frontPointer < end; frontPointer++) {
 		const isErr: boolean = tokens[frontPointer].kind == TokenKind.ERROR;
 		
-		// if encountered normal element, move back pointer forward
-		// and overwrite back pointer value with front pointer value
 		if (!isErr){
-			backPointer += 1;
 			tokens[backPointer] = tokens[frontPointer];
-			accumulatorActive = false;
+			backPointer += 1;
+			previousWasError = false;
 			continue;
 		}
-		
-		// (isErr == true)
-		// if accumulating error tokens, just overwrite back position with front
-		// if not accumulating errors yet, move back pointer and enable accumulation
-		if (! accumulatorActive) {
+		// is Error
+		if (! previousWasError){
+			tokens[backPointer] = tokens[frontPointer];
 			backPointer += 1;
-			tokens[backPointer] = tokens[frontPointer];
-			accumulatorActive = true;
 		}else{
-			tokens[backPointer] = tokens[frontPointer];
-			
-		}
+			tokens[backPointer - 1] = tokens[frontPointer];
+		}	
+		
+		previousWasError = true;
 	}
+	tokens.length = backPointer;
 
-	//shortening resulting array to remove excess elements
-	tokens.length = backPointer + 1;	
 	
 }
 

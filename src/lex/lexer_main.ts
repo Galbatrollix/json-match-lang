@@ -55,7 +55,7 @@ export function tokenizeString(input: string): TokenTape {
 		tokenKind: Object.freeze(resultKinds),
 		tokenString: Object.freeze(resultStrings),
 		startIdx: Object.freeze(resultStartIdx),
-		endIdx: Object.freeze(resultEndIdx)
+		endIdx: Object.freeze(resultEndIdx),
 	};
 	return Object.freeze(result);
 	
@@ -65,7 +65,6 @@ export function tokenizeString(input: string): TokenTape {
 	Bundle of utility functions for handling TokenTape values.
 */
 export namespace tokenTapeUtils {
-
 
 	/**
 		Returns true if TokenTape has at least one error token. 
@@ -79,7 +78,28 @@ export namespace tokenTapeUtils {
 		}
 		return false;
 	}
-
+	
+	/**
+		Returns true only if given token tapes are identical
+	*/
+	export function equals(t1: TokenTape, t2: TokenTape): boolean{
+        // its more practical to make a guard for potential new properties 
+		// than to try to make this function future-proof.
+		if (Object.keys(t1).length != 5){
+			throw new Error("THIS FUNCTION NEEDS TO BE UPDATED");
+		}
+		return (
+			t1.tokenCount == t2.tokenCount
+			&&
+			tapeArrayEquals(t1.tokenKind, t2.tokenKind)
+			&&
+			tapeArrayEquals(t1.tokenString, t2.tokenString)
+			&&
+			tapeArrayEquals(t1.startIdx, t2.startIdx)
+			&&
+			tapeArrayEquals(t1.endIdx, t2.endIdx)
+		);
+	}
 
 	/**
 		Contains functions for data presentation
@@ -188,3 +208,20 @@ function replaceWhitespaceWithSpaces(s: string): string {
 	return s.replace(/[\f\n\r\t\v\u00A0\u2028\u2029]/g, " ");
 }
 
+/*
+	A helper for comparing tape pararell arrays for equality. 
+	Returns true if both are equal
+*/
+function tapeArrayEquals<T>(arr1: Readonly<Array<T>>, arr2: Readonly<Array<T>>): boolean {
+	if (arr1.length != arr2.length){
+		return false;
+	}
+
+	for (let i = 0; i < arr1.length; i++){
+		if (arr1[i] != arr2[i]){
+			return false;
+		}
+	}
+
+	return true;
+}

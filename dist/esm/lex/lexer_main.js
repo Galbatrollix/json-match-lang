@@ -23,7 +23,7 @@ export function tokenizeString(input) {
         tokenKind: Object.freeze(resultKinds),
         tokenString: Object.freeze(resultStrings),
         startIdx: Object.freeze(resultStartIdx),
-        endIdx: Object.freeze(resultEndIdx)
+        endIdx: Object.freeze(resultEndIdx),
     };
     return Object.freeze(result);
 }
@@ -45,6 +45,26 @@ export var tokenTapeUtils;
         return false;
     }
     tokenTapeUtils.hasError = hasError;
+    /**
+        Returns true only if given token tapes are identical
+    */
+    function equals(t1, t2) {
+        // its more practical to make a guard for potential new properties 
+        // than to try to make this function future-proof.
+        if (Object.keys(t1).length != 5) {
+            throw new Error("THIS FUNCTION NEEDS TO BE UPDATED");
+        }
+        return (t1.tokenCount == t2.tokenCount
+            &&
+                tapeArrayEquals(t1.tokenKind, t2.tokenKind)
+            &&
+                tapeArrayEquals(t1.tokenString, t2.tokenString)
+            &&
+                tapeArrayEquals(t1.startIdx, t2.startIdx)
+            &&
+                tapeArrayEquals(t1.endIdx, t2.endIdx));
+    }
+    tokenTapeUtils.equals = equals;
     /**
         Contains functions for data presentation
         purposes only.
@@ -130,4 +150,19 @@ function truncateStrWithEllipsis(s, maxLength) {
 }
 function replaceWhitespaceWithSpaces(s) {
     return s.replace(/[\f\n\r\t\v\u00A0\u2028\u2029]/g, " ");
+}
+/*
+    A helper for comparing tape pararell arrays for equality.
+    Returns true if both are equal
+*/
+function tapeArrayEquals(arr1, arr2) {
+    if (arr1.length != arr2.length) {
+        return false;
+    }
+    for (let i = 0; i < arr1.length; i++) {
+        if (arr1[i] != arr2[i]) {
+            return false;
+        }
+    }
+    return true;
 }
