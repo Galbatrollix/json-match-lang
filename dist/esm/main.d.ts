@@ -1,8 +1,8 @@
-import { tokenizeJsonPathString as _tokenizeJsonPathString, type JsonPathTokenized as _JsonPathTokenized, tokenizedPrettyPrint as _tokenizedPrettyPrint } from "./lex/lexer_main.ts";
+import { tokenizeString as _tokenizeString, type TokenTape as _TokenTape, tokenTapeUtils as _tokenTapeUtils } from "./lex/lexer_main.ts";
 import { TokenKind as _TokenKind } from "./lex/lexer_enum.ts";
-export declare const tokenizedPrettyPrint: typeof _tokenizedPrettyPrint;
-export declare const tokenizeJsonPathString: typeof _tokenizeJsonPathString;
-export type JsonPathTokenized = _JsonPathTokenized;
+export declare const tokenTapeUtils: typeof _tokenTapeUtils;
+export declare const tokenizeString: typeof _tokenizeString;
+export type TokenTape = _TokenTape;
 export declare const TokenKind: typeof _TokenKind;
 export type TokenKind = _TokenKind;
 //# sourceMappingURL=main.d.ts.map

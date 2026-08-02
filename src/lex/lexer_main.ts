@@ -1,19 +1,38 @@
 import {TokenKind} from "./lexer_enum.ts"
 import {type PathToken, lexJsonPathString} from "./lexer_impl.ts"
 
+/**
+	Immutable output of json match string tokenizer.
+	SoA of 4 arrays with .length equal to TokenTape.tokenCount property:
+		tokenKind[i]:   TokenKind enum value representing i-th token type
+		tokenString[i]: String sliced from original input, that spans range of i-th token
+		startIdx[i]:     Char index of original input where i-th token starts
+		endIdx[i]:       Char index of original input where i-th token ends, plus one 
 
-export type JsonPathTokenized = {
-	tokenKinds: Readonly<Array<TokenKind>>;
-	tokenStrings: Readonly<Array<string>>;
-}
+	This always is true: with TokenTape as "tt":
+		originalInput.slice(tt.startIdx[i], tt.endIdx[i]) === tt.tokenString[i]
+		tt.tokenString.join("") === originalInput
+		0 <= tt.startIdx[i] <= originalInput.length
+		0 <= tt.endIdx[i]   <= originalInput.length
+		tt.startIdx[i] === tt.endIdx[i-1]  (for i > 0)
+	Char index refers to index in JS string not to code point in unicode sequence.
+*/
+export type TokenTape = Readonly <{
+	tokenCount:   Readonly<number>;
 
-export function tokenizeJsonPathString(input: string): Readonly<JsonPathTokenized> {
+	tokenKind:    Readonly<Array<TokenKind>>;
+	tokenString:  Readonly<Array<string>>;
+	startIdx:     Readonly<Array<number>>;
+	endIdx:       Readonly<Array<number>>;
+}>
+
+export function tokenizeString(input: string): TokenTape {
 	//codepoints are not always length one, cuz surrogate pairs!
 	const codepointList: Array<string> = Array.from(input);
 	const lexed: Array<PathToken> = lexJsonPathString(codepointList);
 		
 	const resultKinds: Array<TokenKind> = [];
-	const resultStrings: Array<string> = []; 
+	const resultStrings: Array<string> = [];
 	
 	for (let i = 1; i < lexed.length; i++){
 		const startIdx = lexed[i - 1].endIdx;
@@ -24,30 +43,148 @@ export function tokenizeJsonPathString(input: string): Readonly<JsonPathTokenize
 		const tokenString = tokenSlice.join("");
 		
 		resultKinds.push(kind);
-		resultStrings.push(tokenString);		
+		resultStrings.push(tokenString);
 	}
+	
+	// obtaining input string char ranges
+	const {resultStartIdx, resultEndIdx} = tokensToCharRanges(resultStrings);
 
-	const result: JsonPathTokenized  = {
-		tokenKinds: Object.freeze(resultKinds),
-		tokenStrings: Object.freeze(resultStrings),
+	// constructing output
+	const result: TokenTape = {
+		tokenCount: lexed.length - 1,
+		tokenKind: Object.freeze(resultKinds),
+		tokenString: Object.freeze(resultStrings),
+		startIdx: Object.freeze(resultStartIdx),
+		endIdx: Object.freeze(resultEndIdx)
 	};
 	return Object.freeze(result);
 	
 }
 
-export function tokenizedPrettyPrint(tokenized: Readonly<JsonPathTokenized>): string{
-	const toJoin: Array<string> = [];
-	
-	for(const i in tokenized.tokenKinds){
-		const kind = tokenized.tokenKinds[i];
-		const kindString = TokenKind[kind];
-		let tokenString = tokenized.tokenStrings[i];
-		if (kind == TokenKind.WHITESPACE){
-			tokenString = "";
-		}
+/**
+	Bundle of utility functions for handling TokenTape values.
+*/
+export namespace tokenTapeUtils {
 
-		toJoin.push(`${i.toString().padEnd(5, " ")} kind: ${kindString.padEnd(28, " ")}token: ${tokenString}`);
+
+	/**
+		Returns true if TokenTape has at least one error token. 
+		Otherwise returns false.
+	*/
+	export function hasError(tape: TokenTape): boolean {
+		for (let i = 0; i< tape.tokenCount; i++){
+			if (tape.tokenKind[i] == TokenKind.ERROR){
+				return true;
+			}
+		}
+		return false;
+	}
+
+
+	/**
+		Contains functions for data presentation
+		purposes only. 
+	*/
+	export namespace display {
+		/**
+			Returns token tape encoded as array of strings, with each
+			string corresponding to one tokentape entry.
+		*/
+		export function asArr(tape: TokenTape): Array<string> {
+			const result: Array<string> = [];
+
+			const numberPad = (tape.tokenKind.length - 1).toString().length + 2;
+			const kindPad = 23;
+			const kindTruncate = 21;
+			const totalPad = 60;
+
+			const maxTokenChars = totalPad - kindPad - 13;
+		
+			for(const i in tape.tokenKind){
+				const kind = tape.tokenKind[i];
+				const kindString = TokenKind[kind]
+				let tokenString = tape.tokenString[i];
+				if (kind == TokenKind.WHITESPACE){
+					tokenString = "";
+				}
+				
+
+				const processedTokenString = truncateStrWithEllipsis(tokenString, maxTokenChars);
+			
+				
+				const entry = `${
+					i.toString().padEnd(numberPad, " ")
+				}kind: ${
+					truncateStr(kindString, kindTruncate).padEnd(kindPad, " ")
+				}token: ${processedTokenString}`.padEnd(totalPad, " ");
+			
+				result.push(entry);
+			}
+			
+			return result;
+		}
+		
+		/**
+			Returns token tape encoded as a single string with line
+			separators. Mainly for printing in console.
+		*/
+		export function asStr(tape: TokenTape): string {
+			const entries: Array<string> = asArr(tape);
+			for(const i in entries){
+				entries[i] = replaceWhitespaceWithSpaces(entries[i]);
+			}
+			return entries.join("\n");
+		}
+	}
+}
+
+
+/**
+	Reconstructs index ranges of original input string from
+	stream of consecutive tokens string spat out by the tokenizer.
+	Returned as SOA {resultStartIdx[i], resultEndIdx[i]}
+*/
+function tokensToCharRanges(tokenStrings: Array<string>): {
+	resultStartIdx: Array<number>, resultEndIdx: Array<number>
+}{
+	if (tokenStrings.length == 0){
+		return {resultStartIdx: [], resultEndIdx: []};
 	}
 	
-	return toJoin.join("\n");
+ 	let previous = tokenStrings[0].length;
+	const start: Array<number> = [0];
+	const end: Array<number> = [previous];
+	for (let i = 1; i < tokenStrings.length; i++){
+		const current = tokenStrings[i].length + previous;
+		start.push(previous);
+		end.push(current);
+		previous = current;
+	}
+	return {resultStartIdx: start, resultEndIdx: end};
 }
+
+/*
+	Print helpers
+*/
+
+function truncateStr(s: string, maxLength: number): string {
+		return s.slice(0, maxLength);
+	}
+
+// max length must be at least 7.
+function truncateStrWithEllipsis( s: string, maxLength: number): string {
+	if (maxLength < 7){
+		return s;
+	}
+	if (s.length <= maxLength){
+		return s;
+	}
+	// s is too long
+	const sliced = s.slice(0, maxLength - 5);
+	return sliced + "(...)";
+}
+	
+function replaceWhitespaceWithSpaces(s: string): string {
+	return s.replace(/[\f\n\r\t\v\u00A0\u2028\u2029]/g, " ");
+}
+

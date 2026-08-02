@@ -5,7 +5,7 @@ const lexer_enum_ts_1 = require("./lexer_enum.js");
 function lexJsonPathString(characterList) {
     let charactersConsumed = 0;
     const charactersTotal = characterList.length;
-    // initializing result array with a dummy head element to simplify code 
+    // initializing result array with a dummy error element to simplify code 
     const result = [{ kind: lexer_enum_ts_1.TokenKind.ERROR, endIdx: 0 }];
     while (charactersConsumed < charactersTotal) {
         const token = nextToken(characterList, charactersConsumed);
@@ -18,6 +18,11 @@ function lexJsonPathString(characterList) {
 /*
     Merges consecutive error tokens in the array of pathtokens.
     Modifies input in place, leaves 1st dummy element unmodified.
+    
+    sequence:
+        ERROR(dummy)/ERROR/ERROR/T1/T2/ERROR/T3/ERROR/ERROR
+    transforms to:
+        ERROR(dummy)/ERROR/T1/T2/ERROR/T3/ERROR/
 */
 function mergeErrorTokensInPlace(tokens) {
     const end = tokens.length;

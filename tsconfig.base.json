@@ -33,7 +33,7 @@
 
     "noFallthroughCasesInSwitch": false,
     "noUncheckedIndexedAccess": false,
-    "exactOptionalPropertyTypes": false,
+    "exactOptionalPropertyTypes": true,
 
     
     // File Layout
