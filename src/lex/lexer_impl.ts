@@ -565,7 +565,9 @@ function combinatorChain(lexerList: Array<LexFunction> ): LexFunction {
 		const fnCount = lexerList.length;
 		let at = current;		
 
-		while (at < end && fnIndex < fnCount) {
+		// doesnt perform bound checks as some lex functions
+		// can return true with 0 tokens consumed (optionals)
+		while (fnIndex < fnCount) {
 			const [consumed, matched] = lexerList[fnIndex](charList, at, end);
 			if (! matched){
 				return [0, false];

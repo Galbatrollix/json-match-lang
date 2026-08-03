@@ -1,8 +1,18 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.lexJsonPathString = lexJsonPathString;
+exports.lexJsonMatchCodepoints = lexJsonMatchCodepoints;
 const lexer_enum_ts_1 = require("./lexer_enum.js");
-function lexJsonPathString(characterList) {
+/**
+    Takes json match string split into sequence of codepoints as an argument
+    Returns a array of MatchTokens corresponding to the given sequence.
+    Cannot fail, an exception or returning anything else than a (possibly empty)
+    array means that there was a bug.
+
+    Result is always at least 1 item long, as the function
+    prepends a dummy element to the result.
+    Dummy element is of kind WHITESPACE and its endIdx is always 0.
+*/
+function lexJsonMatchCodepoints(characterList) {
     let charactersConsumed = 0;
     const charactersTotal = characterList.length;
     // initializing result array with a dummy whitespace element to simplify code 
@@ -16,7 +26,7 @@ function lexJsonPathString(characterList) {
     return result;
 }
 /*
-    Merges consecutive error tokens in the array of pathtokens.
+    Merges consecutive error tokens in the array of MatchTokens.
     sequence:
         (dummy)/ERROR/ERROR/T1/T2/ERROR/T3/ERROR/ERROR
     transforms to:
@@ -432,7 +442,7 @@ function combinatorChain(lexerList) {
         let fnIndex = 0;
         const fnCount = lexerList.length;
         let at = current;
-        while (at < end && fnIndex < fnCount) {
+        while (fnIndex < fnCount) {
             const [consumed, matched] = lexerList[fnIndex](charList, at, end);
             if (!matched) {
                 return [0, false];

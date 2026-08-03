@@ -1,104 +1,100 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.debug = void 0;
-const lexer_main_ts_1 = require("./lexer_main.js");
+exports.integrityCheckBasic = integrityCheckBasic;
+exports.integrityCheckDeep = integrityCheckDeep;
+exports.integrityCheckFull = integrityCheckFull;
+exports.soaOk = soaOk;
+exports.noDupeErrors = noDupeErrors;
+exports.stringsOk = stringsOk;
+exports.recursiveOk = recursiveOk;
+exports.stringSumOk = stringSumOk;
+exports.tokenizeAgainOk = tokenizeAgainOk;
+const lexer_tape_ts_1 = require("./lexer_tape.js");
 const lexer_enum_ts_1 = require("./lexer_enum.js");
-var debug;
-(function (debug) {
-    function integrityCheckBasic(tape) {
-        return soaOk(tape) && stringsOk(tape) && noDupeErrors(tape);
-    }
-    debug.integrityCheckBasic = integrityCheckBasic;
-    function integrityCheckDeep(tape) {
-        return integrityCheckBasic(tape) && recursiveOk(tape);
-    }
-    debug.integrityCheckDeep = integrityCheckDeep;
-    function integrityCheckFull(tape, originalInput) {
-        return (integrityCheckDeep(tape)
-            &&
-                stringSumOk(tape, originalInput)
-            &&
-                tokenizeAgainOk(tape, originalInput));
-    }
-    debug.integrityCheckFull = integrityCheckFull;
-    /**
-        Returns true only if TokenTape SoA structure is consistent.
-    */
-    function soaOk(tape) {
-        return (tape.tokenCount == tape.tokenKind.length
-            &&
-                tape.tokenCount == tape.tokenString.length
-            &&
-                tape.tokenCount == tape.startIdx.length
-            &&
-                tape.tokenCount == tape.endIdx.length);
-    }
-    debug.soaOk = soaOk;
-    /**
-        Returns true only if no error tokens exist within the tape
-        in neighborhood of other error tokens.
-    */
-    function noDupeErrors(tape) {
-        if (tape.tokenCount < 2)
-            return true;
-        for (let i = 1; i < tape.tokenCount; i++) {
-            const left = tape.tokenKind[i - 1];
-            const right = tape.tokenKind[i];
-            if (left == lexer_enum_ts_1.TokenKind.ERROR && right == lexer_enum_ts_1.TokenKind.ERROR) {
-                return false;
-            }
-        }
+function integrityCheckBasic(tape) {
+    return soaOk(tape) && stringsOk(tape) && noDupeErrors(tape);
+}
+function integrityCheckDeep(tape) {
+    return integrityCheckBasic(tape) && recursiveOk(tape);
+}
+function integrityCheckFull(tape, originalInput) {
+    return (integrityCheckDeep(tape)
+        &&
+            stringSumOk(tape, originalInput)
+        &&
+            tokenizeAgainOk(tape, originalInput));
+}
+/**
+    Returns true only if TokenTape SoA structure is consistent.
+*/
+function soaOk(tape) {
+    return (tape.tokenCount == tape.tokenKind.length
+        &&
+            tape.tokenCount == tape.tokenString.length
+        &&
+            tape.tokenCount == tape.startIdx.length
+        &&
+            tape.tokenCount == tape.endIdx.length);
+}
+/**
+    Returns true only if no error tokens exist within the tape
+    in neighborhood of other error tokens.
+*/
+function noDupeErrors(tape) {
+    if (tape.tokenCount < 2)
         return true;
-    }
-    debug.noDupeErrors = noDupeErrors;
-    /**
-        Returns true only if contents of string and indexes arrays are consistent.
-    */
-    function stringsOk(tape) {
-        let accumulatedLength = 0;
-        for (let i = 0; i < tape.tokenCount; i++) {
-            const strlen = tape.tokenString[i].length;
-            const expectedStart = accumulatedLength;
-            const expectedEnd = accumulatedLength + strlen;
-            if (expectedStart != tape.startIdx[i] || expectedEnd != tape.endIdx[i]) {
-                return false;
-            }
-            accumulatedLength += strlen;
+    for (let i = 1; i < tape.tokenCount; i++) {
+        const left = tape.tokenKind[i - 1];
+        const right = tape.tokenKind[i];
+        if (left == lexer_enum_ts_1.TokenKind.ERROR && right == lexer_enum_ts_1.TokenKind.ERROR) {
+            return false;
         }
-        return true;
     }
-    debug.stringsOk = stringsOk;
-    /**
-        Returns true only if all tokens of the tape
-        parse into themselves when fed to the tokenizer.
-    */
-    function recursiveOk(tape) {
-        for (let i = 0; i < tape.tokenCount; i++) {
-            const s = tape.tokenString[i];
-            const recursiveTape = (0, lexer_main_ts_1.tokenizeString)(s);
-            if (recursiveTape.tokenCount != 1 || recursiveTape.tokenString[0] != s) {
-                // console.log(`FAILED AT STRING: ${i}: ${s}`);
-                // console.log("GOT: ", recursiveTape);
-                return false;
-            }
+    return true;
+}
+/**
+    Returns true only if contents of string and indexes arrays are consistent.
+*/
+function stringsOk(tape) {
+    let accumulatedLength = 0;
+    for (let i = 0; i < tape.tokenCount; i++) {
+        const strlen = tape.tokenString[i].length;
+        const expectedStart = accumulatedLength;
+        const expectedEnd = accumulatedLength + strlen;
+        if (expectedStart != tape.startIdx[i] || expectedEnd != tape.endIdx[i]) {
+            return false;
         }
-        return true;
+        accumulatedLength += strlen;
     }
-    debug.recursiveOk = recursiveOk;
-    /**
-        Returns true only if contents of tape strings sum up to the original input string.
-    */
-    function stringSumOk(tape, originalInput) {
-        return tape.tokenString.join("") == originalInput;
+    return true;
+}
+/**
+    Returns true only if all tokens of the tape
+    parse into themselves when fed to the tokenizer.
+*/
+function recursiveOk(tape) {
+    for (let i = 0; i < tape.tokenCount; i++) {
+        const s = tape.tokenString[i];
+        const recursiveTape = (0, lexer_tape_ts_1.tokenizeMatchString)(s);
+        if (recursiveTape.tokenCount != 1 || recursiveTape.tokenString[0] != s) {
+            // console.log(`FAILED AT STRING: ${i}: ${s}`);
+            // console.log("GOT: ", recursiveTape);
+            return false;
+        }
     }
-    debug.stringSumOk = stringSumOk;
-    /**
-        Returns true only if original input yields
-        exactly the same tape when tokenized again
-    */
-    function tokenizeAgainOk(tape, originalInput) {
-        const tokenizedAgain = (0, lexer_main_ts_1.tokenizeString)(originalInput);
-        return lexer_main_ts_1.tokenTapeUtils.equals(tape, tokenizedAgain);
-    }
-    debug.tokenizeAgainOk = tokenizeAgainOk;
-})(debug || (exports.debug = debug = {}));
+    return true;
+}
+/**
+    Returns true only if contents of tape strings sum up to the original input string.
+*/
+function stringSumOk(tape, originalInput) {
+    return tape.tokenString.join("") == originalInput;
+}
+/**
+    Returns true only if original input yields
+    exactly the same tape when tokenized again
+*/
+function tokenizeAgainOk(tape, originalInput) {
+    const tokenizedAgain = (0, lexer_tape_ts_1.tokenizeMatchString)(originalInput);
+    return lexer_tape_ts_1.utils.misc.equals(tape, tokenizedAgain);
+}

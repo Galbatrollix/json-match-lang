@@ -29,7 +29,7 @@ export declare enum TokenKind {
     PRIMITIVE_NUMBER = 27,// #124.2    (...)
     PRIMITIVE_STRING = 28
 }
-export declare namespace TokenKind {
+export declare namespace enumUtils {
     function isOperator(t: TokenKind): boolean;
     function isOperatorLogical(t: TokenKind): boolean;
     function isOperatorSibling(t: TokenKind): boolean;

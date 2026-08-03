@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.TokenKind = void 0;
+exports.enumUtils = exports.TokenKind = void 0;
 /*
     All them types of tokens that lexing json path can possibly output.
     (...) means this is an example not the only possible value of the token
@@ -44,29 +44,30 @@ var TokenKind;
     Bunch of helpers attached to the enum for easier work
     with the monstrous enum.
 */
-(function (TokenKind) {
+var enumUtils;
+(function (enumUtils) {
     function isOperator(t) {
         return (TokenKind.OPERATOR_CHILD <= t && t <= TokenKind.OPERATOR_NOT);
     }
-    TokenKind.isOperator = isOperator;
+    enumUtils.isOperator = isOperator;
     function isOperatorLogical(t) {
         return (TokenKind.OPERATOR_OR <= t && t <= TokenKind.OPERATOR_NOT);
     }
-    TokenKind.isOperatorLogical = isOperatorLogical;
+    enumUtils.isOperatorLogical = isOperatorLogical;
     function isOperatorSibling(t) {
         return (TokenKind.OPERATOR_SIBLING_NEXT <= t && t <= TokenKind.OPERATOR_SIBLING_ANY);
     }
-    TokenKind.isOperatorSibling = isOperatorSibling;
+    enumUtils.isOperatorSibling = isOperatorSibling;
     function isOperatorParentChild(t) {
         return (TokenKind.OPERATOR_CHILD <= t && t <= TokenKind.OPERATOR_PARENT);
     }
-    TokenKind.isOperatorParentChild = isOperatorParentChild;
+    enumUtils.isOperatorParentChild = isOperatorParentChild;
     function isMatch(t) {
         return (TokenKind.MATCH_KEY <= t && t <= TokenKind.MATCH_WILDCARD_OBJECT);
     }
-    TokenKind.isMatch = isMatch;
+    enumUtils.isMatch = isMatch;
     function isPrimitive(t) {
         return (TokenKind.PRIMITIVE_KIND_WILDCARD <= t && t <= TokenKind.PRIMITIVE_STRING);
     }
-    TokenKind.isPrimitive = isPrimitive;
-})(TokenKind || (exports.TokenKind = TokenKind = {}));
+    enumUtils.isPrimitive = isPrimitive;
+})(enumUtils || (exports.enumUtils = enumUtils = {}));

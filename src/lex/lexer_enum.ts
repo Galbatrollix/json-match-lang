@@ -49,7 +49,7 @@ export enum TokenKind {
 	Bunch of helpers attached to the enum for easier work
 	with the monstrous enum.	
 */
-export namespace TokenKind {
+export namespace enumUtils {
 	export function isOperator(t: TokenKind): boolean{
 		return (TokenKind.OPERATOR_CHILD <= t && t <= TokenKind.OPERATOR_NOT);
 	}
