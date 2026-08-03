@@ -26,7 +26,8 @@ export declare namespace debug {
     */
     function stringSumOk(tape: TokenTape, originalInput: string): boolean;
     /**
-        Returns true only if original input yields exactly tape when tokenized again
+        Returns true only if original input yields
+        exactly the same tape when tokenized again
     */
     function tokenizeAgainOk(tape: TokenTape, originalInput: string): boolean;
 }

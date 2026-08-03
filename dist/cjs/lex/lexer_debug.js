@@ -3,17 +3,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.debug = void 0;
 const lexer_main_ts_1 = require("./lexer_main.js");
 const lexer_enum_ts_1 = require("./lexer_enum.js");
-/*
-export type TokenTape = Readonly <{
-    tokenCount:   Readonly<number>;
-
-    tokenKind:    Readonly<Array<TokenKind>>;
-    tokenString:  Readonly<Array<string>>;
-    startIdx:     Readonly<Array<number>>;
-    endIdx:       Readonly<Array<number>>;
-}>
-
-*/
 var debug;
 (function (debug) {
     function integrityCheckBasic(tape) {
@@ -104,7 +93,8 @@ var debug;
     }
     debug.stringSumOk = stringSumOk;
     /**
-        Returns true only if original input yields exactly tape when tokenized again
+        Returns true only if original input yields
+        exactly the same tape when tokenized again
     */
     function tokenizeAgainOk(tape, originalInput) {
         const tokenizedAgain = (0, lexer_main_ts_1.tokenizeString)(originalInput);

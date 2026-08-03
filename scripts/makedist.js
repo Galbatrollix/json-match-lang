@@ -26,9 +26,6 @@ const CJS_JSON_PATH = CJS_SUBFOLDER + "/package.json";
 const ESM_JSON_PATH = ESM_SUBFOLDER + "/package.json";
 
 // write jsons
-fs.writeFile(CJS_JSON_PATH, CJS_JSON, function(err) {
+fs.writeFileSync(CJS_JSON_PATH, CJS_JSON);
 
-});
-
-fs.writeFile(ESM_JSON_PATH, ESM_JSON, function(err) {
-});
+fs.writeFileSync(ESM_JSON_PATH, ESM_JSON);

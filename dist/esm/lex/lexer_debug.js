@@ -1,16 +1,5 @@
 import { tokenizeString, tokenTapeUtils } from "./lexer_main.js";
 import { TokenKind } from "./lexer_enum.js";
-/*
-export type TokenTape = Readonly <{
-    tokenCount:   Readonly<number>;
-
-    tokenKind:    Readonly<Array<TokenKind>>;
-    tokenString:  Readonly<Array<string>>;
-    startIdx:     Readonly<Array<number>>;
-    endIdx:       Readonly<Array<number>>;
-}>
-
-*/
 export var debug;
 (function (debug) {
     function integrityCheckBasic(tape) {
@@ -101,7 +90,8 @@ export var debug;
     }
     debug.stringSumOk = stringSumOk;
     /**
-        Returns true only if original input yields exactly tape when tokenized again
+        Returns true only if original input yields
+        exactly the same tape when tokenized again
     */
     function tokenizeAgainOk(tape, originalInput) {
         const tokenizedAgain = tokenizeString(originalInput);
