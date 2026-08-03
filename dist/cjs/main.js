@@ -1,8 +1,10 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.TokenKind = exports.tokenizeString = exports.tokenTapeUtils = void 0;
-const lexer_main_ts_1 = require("./lex/lexer_main.js");
-const lexer_enum_ts_1 = require("./lex/lexer_enum.js");
-exports.tokenTapeUtils = lexer_main_ts_1.tokenTapeUtils;
-exports.tokenizeString = lexer_main_ts_1.tokenizeString;
-exports.TokenKind = lexer_enum_ts_1.TokenKind;
+exports.TokenKind = exports.tokenTapeUtils = exports.tokenizeString = void 0;
+var lexer_main_ts_1 = require("./lex/lexer_main.js");
+Object.defineProperty(exports, "tokenizeString", { enumerable: true, get: function () { return lexer_main_ts_1.tokenizeString; } });
+Object.defineProperty(exports, "tokenTapeUtils", { enumerable: true, get: function () { return lexer_main_ts_1.tokenTapeUtils; } });
+var lexer_enum_ts_1 = require("./lex/lexer_enum.js");
+Object.defineProperty(exports, "TokenKind", { enumerable: true, get: function () { return lexer_enum_ts_1.TokenKind; } });
+// export const TokenKind = _TokenKind;
+// export type TokenKind = _TokenKind;
