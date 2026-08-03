@@ -1,20 +1,29 @@
 import {TokenKind} from "./lexer_enum.ts"
 
 
-export type PathToken = {
+export type MatchToken = {
 	kind: TokenKind,
 	endIdx: number,
 };
 
+/**
+	Takes json match string split into sequence of codepoints as an argument
+	Returns a array of MatchTokens corresponding to the given sequence.
+	Cannot fail, an exception or returning anything else than a (possibly empty)
+	array means that there was a bug.
 
-export function lexJsonPathString(characterList: Array<string>): Array<PathToken> {
+	Result is always at least 1 item long, as the function
+	prepends a dummy element to the result.
+	Dummy element is of kind WHITESPACE and its endIdx is always 0.
+*/
+export function lexJsonMatchCodepoints(characterList: Array<string>): Array<MatchToken> {
 	let charactersConsumed = 0;
 	const charactersTotal = characterList.length;
 	// initializing result array with a dummy whitespace element to simplify code 
-	const result: Array<PathToken> = [{kind: TokenKind.WHITESPACE, endIdx: 0}];
+	const result: Array<MatchToken> = [{kind: TokenKind.WHITESPACE, endIdx: 0}];
 	
 	while (charactersConsumed < charactersTotal) {
-		const token: PathToken = nextToken(characterList, charactersConsumed);
+		const token: MatchToken = nextToken(characterList, charactersConsumed);
 		result.push(token);
 		charactersConsumed = token.endIdx;	
 	}	
@@ -25,13 +34,13 @@ export function lexJsonPathString(characterList: Array<string>): Array<PathToken
 } 
 
 /*
-	Merges consecutive error tokens in the array of pathtokens.	
+	Merges consecutive error tokens in the array of MatchTokens.	
 	sequence: 
 		(dummy)/ERROR/ERROR/T1/T2/ERROR/T3/ERROR/ERROR
 	transforms to: 
 		(dummy)/ERROR/T1/T2/ERROR/T3/ERROR/
 */
-function mergeErrorTokensInPlace(tokens: Array<PathToken>): void {
+function mergeErrorTokensInPlace(tokens: Array<MatchToken>): void {
 	const end = tokens.length;
 	
 	let backPointer = 0;
@@ -136,7 +145,7 @@ const OperatorsSyntax = {
 } as const;
 
 
-function nextToken(charList: Array<string>, current: number): PathToken {
+function nextToken(charList: Array<string>, current: number): MatchToken {
 	const end = charList.length;
 	for (const {fn, kind} of LexFunctionsCollection) {
 		const [consumed, success] = fn(charList, current, end);

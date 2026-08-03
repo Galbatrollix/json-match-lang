@@ -1,5 +1,5 @@
 import {TokenKind} from "./lexer_enum.ts"
-import {type PathToken, lexJsonPathString} from "./lexer_impl.ts"
+import {type MatchToken, lexJsonMatchCodepoints} from "./lexer_impl.ts"
 
 /**
 	Immutable output of json match string tokenizer.
@@ -25,40 +25,16 @@ export type TokenTape = Readonly <{
 	startIdx:     Readonly<Array<number>>;
 	endIdx:       Readonly<Array<number>>;
 }>
+// autocomplete could behave more sanely if this structure is replaced 
+// with interface or with hacks such as, neither is particularly appealing lol
+// type NamedAlias<t> = t & { _?: never }
 
-export function tokenizeString(input: string): TokenTape {
+export function tokenizeMatchString(input: string): TokenTape {
 	//codepoints are not always length one, cuz surrogate pairs!
 	const codepointList: Array<string> = Array.from(input);
-	const lexed: Array<PathToken> = lexJsonPathString(codepointList);
-		
-	const resultKinds: Array<TokenKind> = [];
-	const resultStrings: Array<string> = [];
-	
-	for (let i = 1; i < lexed.length; i++){
-		const startIdx = lexed[i - 1].endIdx;
-		const endIdx = lexed[i].endIdx;
-		const kind = lexed[i].kind;
-		
-		const tokenSlice = codepointList.slice(startIdx, endIdx);
-		const tokenString = tokenSlice.join("");
-		
-		resultKinds.push(kind);
-		resultStrings.push(tokenString);
-	}
-	
-	// obtaining input string char ranges
-	const {resultStartIdx, resultEndIdx} = tokensToCharRanges(resultStrings);
-
-	// constructing output
-	const result: TokenTape = {
-		tokenCount: lexed.length - 1,
-		tokenKind: Object.freeze(resultKinds),
-		tokenString: Object.freeze(resultStrings),
-		startIdx: Object.freeze(resultStartIdx),
-		endIdx: Object.freeze(resultEndIdx),
-	};
-	return Object.freeze(result);
-	
+	const lexerOutput: Array<MatchToken> = lexJsonMatchCodepoints(codepointList);
+	const tape: TokenTape = assembleTokenTable(lexerOutput, codepointList);
+	return tape;
 }
 
 /**
@@ -158,6 +134,38 @@ export namespace tokenTapeUtils {
 	}
 }
 
+
+function assembleTokenTable(
+	lexerOutput: Array<MatchToken>, codepointList: Array<string>
+): TokenTape {
+	const resultKinds: Array<TokenKind> = [];
+	const resultStrings: Array<string> = [];
+	
+	for (let i = 1; i < lexerOutput.length; i++){
+		const startIdx = lexerOutput[i - 1].endIdx;
+		const endIdx = lexerOutput[i].endIdx;
+		const kind = lexerOutput[i].kind;
+		
+		const tokenSlice = codepointList.slice(startIdx, endIdx);
+		const tokenString = tokenSlice.join("");
+		
+		resultKinds.push(kind);
+		resultStrings.push(tokenString);
+	}
+	
+	// obtaining input string char ranges
+	const {resultStartIdx, resultEndIdx} = tokensToCharRanges(resultStrings);
+
+	// constructing output
+	const result: TokenTape = {
+		tokenCount: lexerOutput.length - 1,
+		tokenKind: Object.freeze(resultKinds),
+		tokenString: Object.freeze(resultStrings),
+		startIdx: Object.freeze(resultStartIdx),
+		endIdx: Object.freeze(resultEndIdx),
+	};
+	return Object.freeze(result);
+}
 
 /**
 	Reconstructs index ranges of original input string from

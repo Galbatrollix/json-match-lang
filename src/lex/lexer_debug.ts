@@ -1,4 +1,4 @@
-import {type TokenTape, tokenizeString, tokenTapeUtils} from "./lexer_main.ts"
+import {type TokenTape, tokenizeMatchString, tokenTapeUtils} from "./lexer_main.ts"
 import {TokenKind} from "./lexer_enum.ts"
 
 
@@ -82,7 +82,7 @@ export namespace debug {
 	export function recursiveOk(tape: TokenTape): boolean {
 		for (let i = 0; i<tape.tokenCount ;i++) {
 			const s = tape.tokenString[i];
-			const recursiveTape = tokenizeString(s);
+			const recursiveTape = tokenizeMatchString(s);
 			if (recursiveTape.tokenCount != 1 || recursiveTape.tokenString[0] != s){
 				// console.log(`FAILED AT STRING: ${i}: ${s}`);
 				// console.log("GOT: ", recursiveTape);
@@ -105,7 +105,7 @@ export namespace debug {
 		exactly the same tape when tokenized again
 	*/
 	export function tokenizeAgainOk(tape: TokenTape, originalInput: string): boolean {
-		const tokenizedAgain = tokenizeString(originalInput);
+		const tokenizedAgain = tokenizeMatchString(originalInput);
 
 		return tokenTapeUtils.equals(tape, tokenizedAgain);
 		
