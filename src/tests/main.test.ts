@@ -4,7 +4,9 @@ import {runAllUnitTests} from "./unit/unit_main.test.ts"
 import {lexer} from "./../main.ts"
 
 runAllUnitTests();
+const test_emtpy = '""';
 
+console.log(lexer.tokenizeMatchString(test_emtpy));
 
 //const testt = "𝒳 12345 01 || + 😂+😂";
 //const testt = `}}}}}}}"\\\\" #"\\"du\npa\\"" "\\""00 aBBa dupa kupa213 ++ --- 1000 333  0 {000} {0} {1334} [313] [0] [000] #-0.312341E+0000123 #0 #123.0 #0E123 |`

@@ -412,6 +412,10 @@ function isDigitChar(c: string): boolean {
 	return (c >= '0' && c <= '9');
 }
 // only for single characters
+// potential for improvement here
+// https://en.wikipedia.org/wiki/Whitespace_character
+// https://langdev.stackexchange.com/questions/1/which-horizontal-whitespace-should-be-supported
+// https://www.unicode.org/reports/tr14/
 function isWhitespaceChar(c: string): boolean {
 	return " \f\n\r\t\v\u00A0\u2028\u2029".includes(c);
 }
@@ -506,7 +510,7 @@ function helperMatchInteger(
 		return [0, false];	
 	}
 }
-
+//todo https://stackoverflow.com/questions/58916957/is-an-empty-string-a-valid-json-key
 /*
 	Will match an arbitrary string starting and ending with " character
 	Handles backslash escapes in manner compatible with json
