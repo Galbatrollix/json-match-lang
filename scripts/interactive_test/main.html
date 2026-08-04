@@ -1,0 +1,31 @@
+ <!DOCTYPE html>
+<html lang="en-US">
+<head>
+	<meta charset="utf-8" />
+	<meta name="description" content="This is a long description of this webpage"/>
+
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+	<title>Test Website</title>
+	<link rel="stylesheet" href="styles.css">
+
+</head>
+
+<body>
+	<textarea placeholder="Put Expression here" name="path" rows="5" cols="33" oninput="echo_to_div()"></textarea>
+	<div></div>
+</body>
+<!-- <script type="module" src="./esm/main.js"></script> -->
+<script type=module >
+	import {lexer} from "./../../dist/esm/main.js"
+	function echo_to_div() {
+  		let content = document.getElementsByTagName("textarea")[0].value;
+		const tape = lexer.tokenizeMatchString(content);
+		console.log(tape)
+		const asHtml = lexer.tapeUtils.display.asHtml(tape);
+		console.log(asHtml)
+		document.getElementsByTagName("div")[0].innerHTML = asHtml;
+	}
+	window.echo_to_div = echo_to_div;
+</script>
+</html>

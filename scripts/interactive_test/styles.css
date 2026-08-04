@@ -1,0 +1,59 @@
+div  {
+	font-size: 25px;
+	font-family: monospace;
+	
+	& .WHITESPACE {
+		
+	}
+	& .ERROR {
+		text-decoration: wavy underline red;
+	}
+
+	& .OPERATOR_CHILD,                
+	& .OPERATOR_PARENT {
+		color: red;
+	}              
+
+	& .OPERATOR_SIBLING_NEXT,         
+	& .OPERATOR_SIBLING_PREV,         
+	& .OPERATOR_SIBLING_SUBSEQUENT,   
+	& .OPERATOR_SIBLING_PRECEDING,   
+	& .OPERATOR_SIBLING_ANY {
+		color: red;
+	}
+
+	& .OPERATOR_OR,                   
+	& .OPERATOR_AND,                  
+	& .OPERATOR_NOT {
+		color: orange;	
+	}
+	
+    & .PRIMITIVE_KIND_WILDCARD,       
+	& .PRIMITIVE_KIND_STRING,         
+	& .PRIMITIVE_KIND_NUMBER,         
+	& .PRIMITIVE_KIND_BOOLEAN,        
+    & .PRIMITIVE_NULL,                
+	& .PRIMITIVE_TRUE,               
+	& .PRIMITIVE_FALSE,               
+	& .PRIMITIVE_NUMBER,              
+	& .PRIMITIVE_STRING {
+		color: purple;
+	}
+	
+	& .MATCH_INDEX_ALL,               
+	& .MATCH_INDEX_ARRAY,             
+	& .MATCH_INDEX_OBJECT,
+	& .MATCH_WILDCARD_ALL,            
+	& .MATCH_WILDCARD_ARRAY,          
+	& .MATCH_WILDCARD_OBJECT {
+		color: blue;
+	}
+
+	& .MATCH_KEY {
+		color: #006400;
+	}
+
+	& .MATCH_KEY_NAKED {
+		color: #70C070;
+	}
+}
