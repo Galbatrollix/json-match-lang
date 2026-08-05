@@ -40,9 +40,9 @@ export function runAllUnitTests(): number {
 	
 	}
 	if (failedTests){
-		console.log(`In total ${failedTests} tests for lexer failed.`)	
+		console.log(`In total ${failedTests} tests for lexer failed.`);
 	}else{
-		console.log(`All tests for lexer passed.`)
+		console.log(`All ${lexTests.length} tests for lexer passed.`);
 	}
 	
 	return failedTests;
