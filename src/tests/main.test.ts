@@ -43,5 +43,9 @@ console.log(lexer.tokenizeMatchString(test_emtpy));
 // console.log("Deep check: ", lexer.tapeUtils.debug.integrityCheckFull(result, testt));
 // console.log("Deep check: ", lexer.tapeUtils.debug.integrityCheckFull(schizoTape, schizo));
 
+const s1 = '\u0085';
+const s2 = '\n';
 
-
+console.log(s1.charCodeAt(0))
+console.log(s2.charCodeAt(0))
+// console.log( s1 == s2);

@@ -565,25 +565,22 @@ function combinatorChain(lexerList: Array<LexFunction> ): LexFunction {
 		current: number,
 		end: number
 	): [number, boolean] {
-		let fnIndex = 0;
-		const fnCount = lexerList.length;
 		let at = current;		
-
-		// doesnt perform bound checks as some lex functions
+		// loop doesnt perform bound checks on charList as some lex functions
 		// can return true with 0 tokens consumed (optionals)
-		while (fnIndex < fnCount) {
+		let fnIndex = 0;
+		for (;fnIndex < lexerList.length; fnIndex++) {
 			const [consumed, matched] = lexerList[fnIndex](charList, at, end);
 			if (! matched){
 				return [0, false];
 			}
 			at += consumed;
-			fnIndex += 1;
 		}
 
-		const consumed = at - current;
-		const allFunctionsPassed: boolean = (fnIndex == fnCount);
+		const consumedTotal = at - current;
+		const allFunctionsPassed: boolean = (fnIndex == lexerList.length);
 		if (allFunctionsPassed){
-			return [consumed, true];
+			return [consumedTotal, true];
 		}else{
 			return [0, false];
 		}
