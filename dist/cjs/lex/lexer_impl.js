@@ -46,6 +46,8 @@ const LexFunctionsCollection = [
     { fn: lexer_functions_ts_1.funcs.lexOperatorOr, kind: lexer_enum_ts_1.TokenKind.OPERATOR_OR },
     { fn: lexer_functions_ts_1.funcs.lexOperatorAnd, kind: lexer_enum_ts_1.TokenKind.OPERATOR_AND },
     { fn: lexer_functions_ts_1.funcs.lexOperatorNot, kind: lexer_enum_ts_1.TokenKind.OPERATOR_NOT },
+    { fn: lexer_functions_ts_1.funcs.lexParenthesisLeft, kind: lexer_enum_ts_1.TokenKind.PARENTHESIS_LEFT },
+    { fn: lexer_functions_ts_1.funcs.lexParenthesisRight, kind: lexer_enum_ts_1.TokenKind.PARENTHESIS_RIGHT },
     { fn: lexer_functions_ts_1.funcs.lexMatchKey, kind: lexer_enum_ts_1.TokenKind.MATCH_KEY },
     { fn: lexer_functions_ts_1.funcs.lexMatchKeyNaked, kind: lexer_enum_ts_1.TokenKind.MATCH_KEY_NAKED },
     { fn: lexer_functions_ts_1.funcs.lexMatchIndexAll, kind: lexer_enum_ts_1.TokenKind.MATCH_INDEX_ALL },

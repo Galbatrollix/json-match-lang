@@ -45,6 +45,8 @@ const OperatorsSyntax = {
 	R_BRACKET:           "]",
 	L_BRACE:             "{",
 	R_BRACE:             "}",
+	L_PARENTHESIS:       "(",
+	R_PARENTHESIS:       ")",
 	WILDCARD:            "*",
 	PRIMITIVE:           "#",
 	STRING:              `"`,
@@ -197,49 +199,49 @@ function combinatorChain(lexerList: Array<LexFunction> ): LexFunction {
 	resulting lex function will match the one encountered first
 
 */
-function combinatorOr(lexerList: Array<LexFunction> ): LexFunction {
+// function combinatorOr(lexerList: Array<LexFunction> ): LexFunction {
 
-	const resultFunc = function(
-		charList: Array<string>,
-		start: number,
-		end: number
-	): [number, boolean] {
-		for (const fn of lexerList){
-			const [consumed, matched] = fn(charList, start, end);
-			if (matched){
-				return [consumed, true];
-			}
-		}	
-		// not a single one matched
-		return [0, false]
-	}
+// 	const resultFunc = function(
+// 		charList: Array<string>,
+// 		start: number,
+// 		end: number
+// 	): [number, boolean] {
+// 		for (const fn of lexerList){
+// 			const [consumed, matched] = fn(charList, start, end);
+// 			if (matched){
+// 				return [consumed, true];
+// 			}
+// 		}	
+// 		// not a single one matched
+// 		return [0, false]
+// 	}
 
-	return resultFunc;
-}
+// 	return resultFunc;
+// }
 
 /*
 	Parse combinator that tranforms a single lex function into a new one.
 	Returned function passes with identical results if provided function passes.
 	If provided function fails, returned function passes with 0 characters consumed.
 */
-function combinatorOptional(lexerFunc: LexFunction): LexFunction {
-	const resultFunc = function(
-		charList: Array<string>,
-		start: number,
-		end: number
-	): [number, boolean] {
-		const [consumed, matched] = lexerFunc(charList, start, end);
+// function combinatorOptional(lexerFunc: LexFunction): LexFunction {
+// 	const resultFunc = function(
+// 		charList: Array<string>,
+// 		start: number,
+// 		end: number
+// 	): [number, boolean] {
+// 		const [consumed, matched] = lexerFunc(charList, start, end);
 		
-		if (matched) {
-			return [consumed, matched];
-		}else{
-			return [0, true];	
-		}
-	}
+// 		if (matched) {
+// 			return [consumed, matched];
+// 		}else{
+// 			return [0, true];	
+// 		}
+// 	}
 
-	return resultFunc;
+// 	return resultFunc;
 
-}
+// }
 
 /*
 
@@ -325,6 +327,170 @@ const matchClosedBracket = createMatchExact(OperatorsSyntax.R_BRACKET);
 const matchOpenBrace = createMatchExact(OperatorsSyntax.L_BRACE);
 const matchClosedBrace = createMatchExact(OperatorsSyntax.R_BRACE);
 const matchPrimitivePrefix = createMatchExact(OperatorsSyntax.PRIMITIVE);
+
+
+/**
+	A bunch of things that together represent a finite state machine
+	designed to parse valid JSON numbers, designed to be also usable
+	for determining partial number matches.
+*/
+namespace numberFSM {
+	/*
+		https://www.poppastring.com/blog/json-numbers-changed-with-leading-zeros
+		https://www.json.org/json-en.html
+		https://ecma-international.org/wp-content/uploads/ECMA-404_2nd_edition_december_2017.pdf
+		
+		Json number has 3 sections:
+		1: string of digits with no leading zeros and possible minus in front.
+		2: possibly: (a dot followed by string of digits)
+		3: possibly: e or E followed by possible minus/plus and string of digits
+	*/
+	
+	export const states = {
+		START: 0,
+		AFTER_LEADING_ZERO: 1,
+		DIGIT_SECTION_ONE: 2,
+		AFTER_DOT: 3,
+		DIGIT_SECTION_TWO: 4,
+		AFTER_E: 5,
+		DIGIT_SECTION_THREE: 6,
+
+		FINISHED: 999,
+		FAILED: 1000,
+	} as const;
+	type state = typeof states[keyof typeof states];
+
+	
+	export type FSM = {
+		mainState: state,
+		optionalMinusDone: boolean,
+		plusMinusDone: boolean,
+	}
+	
+	export function init(): FSM {
+		return {
+			mainState: states.START,
+			optionalMinusDone: false,
+			plusMinusDone: false,
+		}
+	}
+
+	export function progress(fsm: FSM, char: string): void {
+		const isDigit: boolean = isDigitChar(char);
+
+		switch (fsm.mainState){
+			case states.START: {
+				if (char == '-' && ! fsm.optionalMinusDone){
+					fsm.optionalMinusDone = true;
+					// continues in state start
+				}else if (char == '0'){
+					fsm.mainState = states.AFTER_LEADING_ZERO;
+				}else if (isDigit){
+					fsm.mainState = states.DIGIT_SECTION_ONE;
+				}else{
+					fsm.mainState = states.FAILED;
+				}
+			}
+			return;
+			case states.AFTER_LEADING_ZERO: {
+				if (char == "."){
+					fsm.mainState = states.AFTER_DOT;
+				}else if (char == 'e' || char == 'E'){
+					fsm.mainState = states.AFTER_E;
+				}else{
+					fsm.mainState = states.FINISHED;
+				}		
+			}
+			return;
+			case states.DIGIT_SECTION_ONE: {
+				if (char == "."){
+					fsm.mainState = states.AFTER_DOT;
+				}else if (char == 'e' || char == 'E'){
+					fsm.mainState = states.AFTER_E;
+				}else if (isDigit){
+					// continues in state DIGIT_SECTION_ONE
+				}else{
+					fsm.mainState = states.FINISHED;
+				}		
+			}
+			return;
+			case states.AFTER_DOT:{
+				if (isDigit){
+					fsm.mainState = states.DIGIT_SECTION_TWO;
+				}else{
+					fsm.mainState = states.FAILED;
+				}
+			}
+			return;
+			case states.DIGIT_SECTION_TWO: {
+				if (char == 'e' || char == 'E'){
+					fsm.mainState = states.AFTER_E;
+				}else if (isDigit){
+					// continues in state DIGIT_SECTION_TWO
+				}else{
+					fsm.mainState = states.FINISHED;
+				}		
+			}
+			return;
+			case states.AFTER_E: {
+				if ((char == '-' || char == '+') && ! fsm.plusMinusDone){
+					fsm.plusMinusDone = true;
+					// continues in state AFTER_E
+				}else if (isDigit){
+					fsm.mainState = states.DIGIT_SECTION_THREE;
+				}else {
+					fsm.mainState = states.FAILED;
+				}
+			}
+			return;
+			case states.DIGIT_SECTION_THREE: {
+				if (isDigit){
+					// continues in state DIGIT_SECTION_THREE
+				}else{
+					fsm.mainState = states.FINISHED;
+				}		
+			}
+			return;
+			case states.FAILED:
+			case states.FINISHED: {
+				throw new Error("Fatal error, number state machine called after finishing");
+			}
+			default: fsm.mainState satisfies never;				
+		}
+	}
+}
+
+/**
+	Lex function that matches any JSON conformant number, 
+	trying to go as far as possible when matching.
+*/
+function matchJsonNumber(
+	charList: Array<string>,
+ 	start: number,
+	end: number
+): [number, boolean] {
+
+	const fsm: numberFSM.FSM = numberFSM.init();
+	for (let at = start; at < end; at++){
+		const c = charList[at];
+		
+		numberFSM.progress(fsm, c);
+		if(fsm.mainState == numberFSM.states.FINISHED){
+			return [at - start, true];
+		}else if (fsm.mainState == numberFSM.states.FAILED){
+			return [0, false];
+		}
+		
+	}
+	// ran out of characters, so push a terminating char and read result.
+	numberFSM.progress(fsm, " ");	
+	if(fsm.mainState == numberFSM.states.FINISHED){
+		return [end - start, true];
+	}else{
+		return [0, false];
+	}	
+}
+
 /*
 
 	MAIN LEX FUNCTIONS
@@ -352,6 +518,10 @@ export namespace funcs {
 	export const lexOperatorNot: LexFunction = createMatchExact(OperatorsSyntax.NOT);
 
 	export const lexMatchWildcardAll: LexFunction = createMatchExact(OperatorsSyntax.WILDCARD);
+
+	export const lexParenthesisLeft: LexFunction = createMatchExact(OperatorsSyntax.L_PARENTHESIS);
+	
+	export const lexParenthesisRight: LexFunction = createMatchExact(OperatorsSyntax.R_PARENTHESIS);
 	
 	export const lexMatchWildcardArray: LexFunction = createMatchExact(
 		OperatorsSyntax.L_BRACKET + OperatorsSyntax.WILDCARD + OperatorsSyntax.R_BRACKET
@@ -409,53 +579,13 @@ export namespace funcs {
 		[matchPrimitivePrefix, matchString]
 	);
 	
-
-	/*
-		https://www.poppastring.com/blog/json-numbers-changed-with-leading-zeros
-		
-		Json number has 3 sections:
-		1: string of digits with no leading zeros and possible minus in front.
-		2: possibly: (a dot followed by string of digits)
-		3: possibly: e or E followed by possible minus/plus and strings of digits
-	*/
-	export function lexPrimitiveNumber(charList: Array<string>, start: number, end: number): [number, boolean] {
-
-		const matchMinus = createMatchExact("-");
-		const matchPlus = createMatchExact("+");
-		const matchDot = createMatchExact(".");
-		const matchLowecaseE = createMatchExact("e");
-		const matchUppercaseE = createMatchExact("E");
-
-		const matchPlusOrMinus = combinatorOr([matchPlus, matchMinus]);
-		const matchAnyE = combinatorOr([matchLowecaseE, matchUppercaseE])
-		const optionalMinus = combinatorOptional(matchMinus);
-		
-		const section1 = combinatorChain([
-			optionalMinus,
-			matchInteger,
-		]);
-
-		const section2 = combinatorOptional(combinatorChain([
-			matchDot,
-			matchDigitSequence,
-		]));
-		
-		const section3 = combinatorOptional(combinatorChain([
-			matchAnyE,
-			combinatorOptional(matchPlusOrMinus),
-			matchDigitSequence,
-		]));
-		
-		const completeNumberLex = combinatorChain(
-			[matchPrimitivePrefix, section1, section2, section3]
-		);
-
-		return completeNumberLex(charList, start, end);
-	}
+	export const lexPrimitiveNumber = combinatorChain(
+		[matchPrimitivePrefix, matchJsonNumber]
+	);
 
 	/*
 		Always the last lex function to be called.
-		Runs forward looking until a whitespace or significant character is enountered.
+		Runs forward looking until a whitespace or significant character is enocuntered.
 		Always consumes at least 1 character.
 	*/
 	export function lexError(charList: Array<string>, start: number, end: number): [number, boolean] {

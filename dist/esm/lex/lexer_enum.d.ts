@@ -11,23 +11,25 @@ export declare enum TokenKind {
     OPERATOR_OR = 9,// |
     OPERATOR_AND = 10,// &
     OPERATOR_NOT = 11,// !
-    MATCH_KEY = 12,// "dupa" (...)
-    MATCH_KEY_NAKED = 13,// dupa   (...)
-    MATCH_INDEX_ALL = 14,// 1234   (...)
-    MATCH_INDEX_ARRAY = 15,// [1234] (...)
-    MATCH_INDEX_OBJECT = 16,// {1234} (...)
-    MATCH_WILDCARD_ALL = 17,// *
-    MATCH_WILDCARD_ARRAY = 18,// [*]
-    MATCH_WILDCARD_OBJECT = 19,// {*}
-    PRIMITIVE_KIND_WILDCARD = 20,// #*
-    PRIMITIVE_KIND_STRING = 21,// #string
-    PRIMITIVE_KIND_NUMBER = 22,// #number
-    PRIMITIVE_KIND_BOOLEAN = 23,// #boolean
-    PRIMITIVE_NULL = 24,// #null
-    PRIMITIVE_TRUE = 25,// #true
-    PRIMITIVE_FALSE = 26,// #false
-    PRIMITIVE_NUMBER = 27,// #124.2    (...)
-    PRIMITIVE_STRING = 28
+    PARENTHESIS_LEFT = 12,// (
+    PARENTHESIS_RIGHT = 13,// )
+    MATCH_KEY = 14,// "dupa" (...)
+    MATCH_KEY_NAKED = 15,// dupa   (...)
+    MATCH_INDEX_ALL = 16,// 1234   (...)
+    MATCH_INDEX_ARRAY = 17,// [1234] (...)
+    MATCH_INDEX_OBJECT = 18,// {1234} (...)
+    MATCH_WILDCARD_ALL = 19,// *
+    MATCH_WILDCARD_ARRAY = 20,// [*]
+    MATCH_WILDCARD_OBJECT = 21,// {*}
+    PRIMITIVE_KIND_WILDCARD = 22,// #*
+    PRIMITIVE_KIND_STRING = 23,// #string
+    PRIMITIVE_KIND_NUMBER = 24,// #number
+    PRIMITIVE_KIND_BOOLEAN = 25,// #boolean
+    PRIMITIVE_NULL = 26,// #null
+    PRIMITIVE_TRUE = 27,// #true
+    PRIMITIVE_FALSE = 28,// #false
+    PRIMITIVE_NUMBER = 29,// #124.2    (...)
+    PRIMITIVE_STRING = 30
 }
 export declare namespace enumUtils {
     function isOperator(t: TokenKind): boolean;

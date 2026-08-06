@@ -45,6 +45,9 @@ const atomCollection: Record<lexer.TokenKind, Array<string> > = {
 	[lexer.TokenKind.OPERATOR_AND]: ['&'],
 	[lexer.TokenKind.OPERATOR_NOT]: ['!'],
 
+	[lexer.TokenKind.PARENTHESIS_LEFT]: ['('],
+	[lexer.TokenKind.PARENTHESIS_RIGHT]: [')'],
+
 	[lexer.TokenKind.MATCH_WILDCARD_ALL]: ['*'],
 	[lexer.TokenKind.MATCH_WILDCARD_ARRAY]: ['[*]'],
 	[lexer.TokenKind.MATCH_WILDCARD_OBJECT]: ['{*}'],
@@ -200,6 +203,8 @@ const disjointAtoms: Array<lexer.TokenKind> = [
 	lexer.TokenKind.OPERATOR_OR,
 	lexer.TokenKind.OPERATOR_AND,
 	lexer.TokenKind.OPERATOR_NOT,
+	lexer.TokenKind.PARENTHESIS_LEFT,
+	lexer.TokenKind.PARENTHESIS_RIGHT,
 	lexer.TokenKind.MATCH_KEY,
 	lexer.TokenKind.MATCH_INDEX_ARRAY,
 	lexer.TokenKind.MATCH_INDEX_OBJECT,

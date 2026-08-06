@@ -29,6 +29,8 @@ export declare namespace funcs {
     const lexOperatorAnd: LexFunction;
     const lexOperatorNot: LexFunction;
     const lexMatchWildcardAll: LexFunction;
+    const lexParenthesisLeft: LexFunction;
+    const lexParenthesisRight: LexFunction;
     const lexMatchWildcardArray: LexFunction;
     const lexMatchWildcardObject: LexFunction;
     const lexPrimitiveKindWildcard: LexFunction;
@@ -38,14 +40,14 @@ export declare namespace funcs {
     const lexPrimitiveNull: LexFunction;
     const lexPrimitiveTrue: LexFunction;
     const lexPrimitiveFalse: LexFunction;
-    function lexWhitespace(charList: Array<string>, start: number, end: number): [number, boolean];
-    function lexMatchKeyNaked(charList: Array<string>, start: number, end: number): [number, boolean];
-    function lexMatchIndexAll(charList: Array<string>, start: number, end: number): [number, boolean];
-    function lexMatchIndexArray(charList: Array<string>, start: number, end: number): [number, boolean];
-    function lexMatchIndexObject(charList: Array<string>, start: number, end: number): [number, boolean];
-    function lexMatchKey(charList: Array<string>, start: number, end: number): [number, boolean];
-    function lexPrimitiveString(charList: Array<string>, start: number, end: number): [number, boolean];
-    function lexPrimitiveNumber(charList: Array<string>, start: number, end: number): [number, boolean];
+    const lexWhitespace: LexFunction;
+    const lexMatchKeyNaked: LexFunction;
+    const lexMatchIndexAll: LexFunction;
+    const lexMatchIndexArray: LexFunction;
+    const lexMatchIndexObject: LexFunction;
+    const lexMatchKey: LexFunction;
+    const lexPrimitiveString: LexFunction;
+    const lexPrimitiveNumber: LexFunction;
     function lexError(charList: Array<string>, start: number, end: number): [number, boolean];
 }
 //# sourceMappingURL=lexer_functions.d.ts.map

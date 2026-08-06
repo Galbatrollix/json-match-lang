@@ -19,6 +19,9 @@ export enum TokenKind {
 	OPERATOR_OR,                   // |
 	OPERATOR_AND,                  // &
 	OPERATOR_NOT,                  // !
+
+	PARENTHESIS_LEFT,              // (
+	PARENTHESIS_RIGHT,             // )
 	
 	// they match array indexes or object keys
 	MATCH_KEY,                     // "dupa" (...)

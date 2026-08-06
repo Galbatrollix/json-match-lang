@@ -10,7 +10,9 @@ div  {
 	}
 
 	& .OPERATOR_CHILD,                
-	& .OPERATOR_PARENT {
+	& .OPERATOR_PARENT,
+	& .PARENTHESIS_LEFT,
+	& .PARENTHESIS_RIGHT {
 		color: red;
 	}              
 

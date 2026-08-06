@@ -16,26 +16,28 @@ export var TokenKind;
     TokenKind[TokenKind["OPERATOR_OR"] = 9] = "OPERATOR_OR";
     TokenKind[TokenKind["OPERATOR_AND"] = 10] = "OPERATOR_AND";
     TokenKind[TokenKind["OPERATOR_NOT"] = 11] = "OPERATOR_NOT";
+    TokenKind[TokenKind["PARENTHESIS_LEFT"] = 12] = "PARENTHESIS_LEFT";
+    TokenKind[TokenKind["PARENTHESIS_RIGHT"] = 13] = "PARENTHESIS_RIGHT";
     // they match array indexes or object keys
-    TokenKind[TokenKind["MATCH_KEY"] = 12] = "MATCH_KEY";
-    TokenKind[TokenKind["MATCH_KEY_NAKED"] = 13] = "MATCH_KEY_NAKED";
-    TokenKind[TokenKind["MATCH_INDEX_ALL"] = 14] = "MATCH_INDEX_ALL";
-    TokenKind[TokenKind["MATCH_INDEX_ARRAY"] = 15] = "MATCH_INDEX_ARRAY";
-    TokenKind[TokenKind["MATCH_INDEX_OBJECT"] = 16] = "MATCH_INDEX_OBJECT";
-    TokenKind[TokenKind["MATCH_WILDCARD_ALL"] = 17] = "MATCH_WILDCARD_ALL";
-    TokenKind[TokenKind["MATCH_WILDCARD_ARRAY"] = 18] = "MATCH_WILDCARD_ARRAY";
-    TokenKind[TokenKind["MATCH_WILDCARD_OBJECT"] = 19] = "MATCH_WILDCARD_OBJECT";
+    TokenKind[TokenKind["MATCH_KEY"] = 14] = "MATCH_KEY";
+    TokenKind[TokenKind["MATCH_KEY_NAKED"] = 15] = "MATCH_KEY_NAKED";
+    TokenKind[TokenKind["MATCH_INDEX_ALL"] = 16] = "MATCH_INDEX_ALL";
+    TokenKind[TokenKind["MATCH_INDEX_ARRAY"] = 17] = "MATCH_INDEX_ARRAY";
+    TokenKind[TokenKind["MATCH_INDEX_OBJECT"] = 18] = "MATCH_INDEX_OBJECT";
+    TokenKind[TokenKind["MATCH_WILDCARD_ALL"] = 19] = "MATCH_WILDCARD_ALL";
+    TokenKind[TokenKind["MATCH_WILDCARD_ARRAY"] = 20] = "MATCH_WILDCARD_ARRAY";
+    TokenKind[TokenKind["MATCH_WILDCARD_OBJECT"] = 21] = "MATCH_WILDCARD_OBJECT";
     // they match type of primitives
-    TokenKind[TokenKind["PRIMITIVE_KIND_WILDCARD"] = 20] = "PRIMITIVE_KIND_WILDCARD";
-    TokenKind[TokenKind["PRIMITIVE_KIND_STRING"] = 21] = "PRIMITIVE_KIND_STRING";
-    TokenKind[TokenKind["PRIMITIVE_KIND_NUMBER"] = 22] = "PRIMITIVE_KIND_NUMBER";
-    TokenKind[TokenKind["PRIMITIVE_KIND_BOOLEAN"] = 23] = "PRIMITIVE_KIND_BOOLEAN";
+    TokenKind[TokenKind["PRIMITIVE_KIND_WILDCARD"] = 22] = "PRIMITIVE_KIND_WILDCARD";
+    TokenKind[TokenKind["PRIMITIVE_KIND_STRING"] = 23] = "PRIMITIVE_KIND_STRING";
+    TokenKind[TokenKind["PRIMITIVE_KIND_NUMBER"] = 24] = "PRIMITIVE_KIND_NUMBER";
+    TokenKind[TokenKind["PRIMITIVE_KIND_BOOLEAN"] = 25] = "PRIMITIVE_KIND_BOOLEAN";
     // they match exact values of primitives
-    TokenKind[TokenKind["PRIMITIVE_NULL"] = 24] = "PRIMITIVE_NULL";
-    TokenKind[TokenKind["PRIMITIVE_TRUE"] = 25] = "PRIMITIVE_TRUE";
-    TokenKind[TokenKind["PRIMITIVE_FALSE"] = 26] = "PRIMITIVE_FALSE";
-    TokenKind[TokenKind["PRIMITIVE_NUMBER"] = 27] = "PRIMITIVE_NUMBER";
-    TokenKind[TokenKind["PRIMITIVE_STRING"] = 28] = "PRIMITIVE_STRING";
+    TokenKind[TokenKind["PRIMITIVE_NULL"] = 26] = "PRIMITIVE_NULL";
+    TokenKind[TokenKind["PRIMITIVE_TRUE"] = 27] = "PRIMITIVE_TRUE";
+    TokenKind[TokenKind["PRIMITIVE_FALSE"] = 28] = "PRIMITIVE_FALSE";
+    TokenKind[TokenKind["PRIMITIVE_NUMBER"] = 29] = "PRIMITIVE_NUMBER";
+    TokenKind[TokenKind["PRIMITIVE_STRING"] = 30] = "PRIMITIVE_STRING";
 })(TokenKind || (TokenKind = {}));
 /*
     Bunch of helpers attached to the enum for easier work

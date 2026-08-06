@@ -58,6 +58,9 @@ const LexFunctionsCollection: Array<{fn: LexFunction, kind: TokenKind}> = [
 	{fn: funcs.lexOperatorAnd,                kind: TokenKind.OPERATOR_AND},
 	{fn: funcs.lexOperatorNot,                kind: TokenKind.OPERATOR_NOT},
 
+	{fn: funcs.lexParenthesisLeft,            kind: TokenKind.PARENTHESIS_LEFT},
+	{fn: funcs.lexParenthesisRight,           kind: TokenKind.PARENTHESIS_RIGHT},
+
 	{fn: funcs.lexMatchKey,                   kind: TokenKind.MATCH_KEY},
 	{fn: funcs.lexMatchKeyNaked,              kind: TokenKind.MATCH_KEY_NAKED},
 	{fn: funcs.lexMatchIndexAll,              kind: TokenKind.MATCH_INDEX_ALL},
