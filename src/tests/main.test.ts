@@ -44,3 +44,12 @@ runAllUnitTests();
 // console.log("Deep check: ", lexer.tapeUtils.debug.integrityCheckFull(tempResult, temp));
 // console.log("Deep check: ", lexer.tapeUtils.debug.integrityCheckFull(result, testt));
 // console.log("Deep check: ", lexer.tapeUtils.debug.integrityCheckFull(schizoTape, schizo));
+
+const expr = `> THIS >> "is" > "a" > Pretty | Long > "expression" > string <<<> Long > is > a > good #-3.1415E0#-3.1415E0#-3.1415E0#-3.1415E0#-3.1415E0#-3.1415E0#-3.1415E0#-3.1415E0#-3.1415E0#-3.1415E0#-3.1415E0#-3.1415E0#-3.1415E0#-3.1415E0 > way > to > say > that & AND By The Way, there is some numbers for ya ey: #-3.1415E0, 1234124, #0.000000000000000000000000000001E00000000000000000000000000000000000000000001`;
+const startTime = performance.now()
+
+lexer.tokenizeMatchString(expr);
+    
+const endTime = performance.now()
+
+console.log(`Call to doSomething took ${endTime - startTime} milliseconds`)

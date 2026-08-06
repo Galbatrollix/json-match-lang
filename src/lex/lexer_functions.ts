@@ -320,7 +320,11 @@ function matchString(
 	return [0, false];
 }
 
-
+const matchOpenBracket = createMatchExact(OperatorsSyntax.L_BRACKET);
+const matchClosedBracket = createMatchExact(OperatorsSyntax.R_BRACKET);
+const matchOpenBrace = createMatchExact(OperatorsSyntax.L_BRACE);
+const matchClosedBrace = createMatchExact(OperatorsSyntax.R_BRACE);
+const matchPrimitivePrefix = createMatchExact(OperatorsSyntax.PRIMITIVE);
 /*
 
 	MAIN LEX FUNCTIONS
@@ -391,35 +395,20 @@ export namespace funcs {
 	
 	export const lexMatchIndexAll: LexFunction = matchInteger;
 
+	export const lexMatchIndexArray: LexFunction = combinatorChain(
+		[matchOpenBracket, matchInteger, matchClosedBracket]
+	);
 
-	export function lexMatchIndexArray(charList: Array<string>, start: number, end: number): [number, boolean] {
-
-		const matchOpenBracket = createMatchExact(OperatorsSyntax.L_BRACKET);
-		const matchClosedBracket = createMatchExact(OperatorsSyntax.R_BRACKET);
-
-		return combinatorChain([
-			matchOpenBracket, matchInteger, matchClosedBracket
-		])(charList, start, end);
-	}
-
-	export function lexMatchIndexObject(charList: Array<string>, start: number, end: number): [number, boolean] {
-
-		const matchOpenBrace = createMatchExact(OperatorsSyntax.L_BRACE);
-		const matchClosedBrace = createMatchExact(OperatorsSyntax.R_BRACE);
-
-		return combinatorChain([
-			matchOpenBrace, matchInteger, matchClosedBrace
-		])(charList, start, end);
-	}
+	export const lexMatchIndexObject: LexFunction = combinatorChain(
+		[matchOpenBrace, matchInteger, matchClosedBrace]
+	);
 
 	export const lexMatchKey: LexFunction = matchString;
-
-	export function lexPrimitiveString(charList: Array<string>, start: number, end: number): [number, boolean] {
-
-		const matchPrimitivePrefix = createMatchExact(OperatorsSyntax.PRIMITIVE);
-
-		return combinatorChain([matchPrimitivePrefix, matchString ])(charList, start, end);
-	}
+	
+	export const lexPrimitiveString: LexFunction = combinatorChain(
+		[matchPrimitivePrefix, matchString]
+	);
+	
 
 	/*
 		https://www.poppastring.com/blog/json-numbers-changed-with-leading-zeros
@@ -430,7 +419,7 @@ export namespace funcs {
 		3: possibly: e or E followed by possible minus/plus and strings of digits
 	*/
 	export function lexPrimitiveNumber(charList: Array<string>, start: number, end: number): [number, boolean] {
-		const matchPrimitivePrefix = createMatchExact(OperatorsSyntax.PRIMITIVE);
+
 		const matchMinus = createMatchExact("-");
 		const matchPlus = createMatchExact("+");
 		const matchDot = createMatchExact(".");
