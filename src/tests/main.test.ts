@@ -4,6 +4,7 @@ import {runAllUnitTests} from "./unit/unit_main.test.ts"
 import {lexer} from "./../main.ts"
 
 runAllUnitTests();
+
 // const test_emtpy = '""';
 
 // console.log(lexer.tokenizeMatchString(test_emtpy));
