@@ -33,42 +33,13 @@ export function lexJsonMatchCodepoints(characterList: Array<string>): Array<Matc
 	return result;
 } 
 
-/*
-	Merges consecutive error tokens in the array of MatchTokens.	
-	sequence: 
-		(dummy)/ERROR/ERROR/T1/T2/ERROR/T3/ERROR/ERROR
-	transforms to: 
-		(dummy)/ERROR/T1/T2/ERROR/T3/ERROR/
+/**
+	Collection of lexer functions and their assigned token kind values.
+	If a function matches, resulting token is given assigned tokenKind.
+	
+	Warning: ordering of these functions matters greatly, error must be the last
+	, partials must be at least after the full matches and so on (...)
 */
-function mergeErrorTokensInPlace(tokens: Array<MatchToken>): void {
-	const end = tokens.length;
-	
-	let backPointer = 0;
-	let previousWasError = false;
-	for (let frontPointer = 0; frontPointer < end; frontPointer++) {
-		const isErr: boolean = tokens[frontPointer].kind == TokenKind.ERROR;
-		
-		if (!isErr){
-			tokens[backPointer] = tokens[frontPointer];
-			backPointer += 1;
-			previousWasError = false;
-			continue;
-		}
-		// is Error
-		if (! previousWasError){
-			tokens[backPointer] = tokens[frontPointer];
-			backPointer += 1;
-		}else{
-			tokens[backPointer - 1] = tokens[frontPointer];
-		}	
-		
-		previousWasError = true;
-	}
-	tokens.length = backPointer;
-
-	
-}
-
 const LexFunctionsCollection: Array<{fn: LexFunction, kind: TokenKind}> = [
 	{fn: funcs.lexWhitespace,                 kind: TokenKind.WHITESPACE},
 
@@ -112,6 +83,15 @@ const LexFunctionsCollection: Array<{fn: LexFunction, kind: TokenKind}> = [
 	{fn: funcs.lexError,                      kind: TokenKind.ERROR},
 ]
 
+/**
+	Uses lex functions collection to match next token, starting from 
+	given "current" position in charList. Sequentially traverses
+	lex functions from lowest to highest index and returns results and
+	assigned token kind of the first function that matched. 
+
+	At least one of the functions must match (error token). 
+	If that doesnt happen, error gets thrown.
+*/
 function nextToken(charList: Array<string>, current: number): MatchToken {
 	const end = charList.length;
 	for (const {fn, kind} of LexFunctionsCollection) {
@@ -125,4 +105,39 @@ function nextToken(charList: Array<string>, current: number): MatchToken {
 	throw new Error("Lexer encountered a fatal internal error."+
 		" End of nextToken function reached");
 	
+}
+
+/*
+	Function performing postprocessing of token stream.
+	Merges consecutive error tokens in the array of MatchTokens.	
+	sequence: 
+		(dummy)/ERROR/ERROR/T1/T2/ERROR/T3/ERROR/ERROR
+	transforms to: 
+		(dummy)/ERROR/T1/T2/ERROR/T3/ERROR/
+*/
+function mergeErrorTokensInPlace(tokens: Array<MatchToken>): void {
+	const end = tokens.length;
+	
+	let backPointer = 0;
+	let previousWasError = false;
+	for (let frontPointer = 0; frontPointer < end; frontPointer++) {
+		const isErr: boolean = tokens[frontPointer].kind == TokenKind.ERROR;
+		
+		if (!isErr){
+			tokens[backPointer] = tokens[frontPointer];
+			backPointer += 1;
+			previousWasError = false;
+			continue;
+		}
+		// is Error
+		if (! previousWasError){
+			tokens[backPointer] = tokens[frontPointer];
+			backPointer += 1;
+		}else{
+			tokens[backPointer - 1] = tokens[frontPointer];
+		}	
+		
+		previousWasError = true;
+	}
+	tokens.length = backPointer;	
 }
