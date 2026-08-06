@@ -51,40 +51,6 @@ const OperatorsSyntax = {
 } as const;
 
 
-/**
-	Produces a lex function that will either exactly
-	match pattern string by consuming pattern.length characters
-	or will fail and return [0, false]
-*/
-function createMatchExact(pattern: string): LexFunction {
-	const patternCodepoints: Array<string> = Array.from(pattern);
-
-	const resultFunc = function(
-		charList: Array<string>,
-		start: number,
-		end: number
-	): [number, boolean] {
-		const remaining = end - start;
-
-		// cannot possibly match if there is not enough available characters
-		if (remaining < patternCodepoints.length){
-			return [0, false];
-		}
-		
-		for (let i = 0; i < patternCodepoints.length; i++){
-			const at = i + start;
-			if (patternCodepoints[i] != charList[at]){
-				return [0, false];
-			}
-		}
-		
-		return [patternCodepoints.length, true];
-	}
-
-	return resultFunc;
-	
-}
-
 
 // only for single characters 
 function isDigitChar(c: string): boolean {
@@ -116,126 +82,78 @@ function isNonWhitespaceNonOperatorChar(c: string): boolean {
 
 
 /*
-	This function tries to match longest string 
-	containing only characters that pass the test
-	provided via test function parameter.
+
+	PARSER GENERATORS AND COMBINATORS
+
 */
-function helperTestMatchSequence(
-	test: (c: string) => boolean,
-	charList: Array<string>,
-	start: number,
-	end: number,
-): [number, boolean] {
-	let at = start;
-	for (;at < end; at++) {
-		const c = charList[at];	
-		if (! test(c)){
-			break;
+
+
+/**
+	Parser generator that produces a lex function that:
+		tries to match longest string containing only characters
+		that pass the test provided via test function parameter.
+		If first character doesn't pass th test, function will return [0, false]
+*/
+function createMatchTestSequence(test: (c: string) => boolean): LexFunction {
+	const resultFunc = function(
+		charList: Array<string>,
+		start: number,
+		end: number
+	): [number, boolean] {
+		let at = start;
+		for (;at < end; at++) {
+			const c = charList[at];	
+			if (! test(c)){
+				break;
+			}
 		}
-	}
-	const consumed = at - start;
+		const consumed = at - start;
 
-	if (consumed){
-		return [consumed, true];
-	}else{
-		return [0, false];
-	}
-
-}
-
-/*
-	Expected to call on digit-only sequences
-	Will return true only if: 
-		1st character is not zero.
-	OR
-		end - start == 1 && charList[start] == '0'
-	Assumes end - start >= 1
-	
-*/
-function helperNoLeadingZeroes(
-	charList: Array<string>,
-	start: number,
-	end: number,
-): boolean {
-	const first = charList[start];
-	if (first != '0'){
-		return true;
-	}
-	// first is zero
-	if (end - start == 1){
-		return true;
-	}
-	return false;
-	
-}	
-
-/*
-	Matches sequence of consecutive digits if it has no leading zeros.
-	A single zero will match if followed by non-digit character.
-*/
-function matchAtomInteger(
-	charList: Array<string>,
-	start: number,
-	end: number
-): [number, boolean] {
-	const [consumed, success] = helperTestMatchSequence(isDigitChar, charList, start, end);
-	if (!success){
-		return [0, false];	
-	}
-	const leadingZerosOk = helperNoLeadingZeroes(charList, start, start + consumed);
-	if (leadingZerosOk) {
-		return [consumed, true];
-	}else{
-		return [0, false];	
-	}
-}
-
-/*
-	Will match an arbitrary string starting and ending with " character
-	Handles backslash escapes in manner compatible with json.
-	Does not validate json-conformance fully, which is left for later
-	in processing pipeline. 
-*/
-function matchAtomString(
-	charList: Array<string>,
-	start: number,
-	end: number
-): [number, boolean] {
-	
-	// must at least have room for 2 " characters
-	const remaining = end - start;
-	if (remaining < 2){
-		return [0, false];
-	}
-	// must start with a " character.
-	if (charList[start] != '"'){
-		return [0, false];
-	}
-	//moving pointer past first doublequote
-	let at = start + 1;
-
-	let precedingBackslashes = 0;
-	for (;at < end; at++) {
-		const c = charList[at];	
-
-		let escaped: boolean = precedingBackslashes % 2 == 1
-		if (c == '"' && !escaped ){
-			const consumed = at - start + 1;
+		if (consumed){
 			return [consumed, true];
-		}
-
-		if (c == '\\'){
-			precedingBackslashes += 1;	
 		}else{
-			precedingBackslashes = 0;
+			return [0, false];
 		}
 	}
-	
-	//charList ran out of characters without matching the string, match failed
-	return [0, false];
+	return  resultFunc;
 }
 
-/*
+
+/**
+	Parser generator that produces a lex function that:
+		will either exactly match pattern string by consuming pattern.length 
+		characters or will fail and return [0, false]
+*/
+function createMatchExact(pattern: string): LexFunction {
+	const patternCodepoints: Array<string> = Array.from(pattern);
+
+	const resultFunc = function(
+		charList: Array<string>,
+		start: number,
+		end: number
+	): [number, boolean] {
+		const remaining = end - start;
+
+		// cannot possibly match if there is not enough available characters
+		if (remaining < patternCodepoints.length){
+			return [0, false];
+		}
+		
+		for (let i = 0; i < patternCodepoints.length; i++){
+			const at = i + start;
+			if (patternCodepoints[i] != charList[at]){
+				return [0, false];
+			}
+		}
+		
+		return [patternCodepoints.length, true];
+	}
+
+	return resultFunc;
+	
+}
+
+/**
 	Parser combinator that tranforms an array of lex functions into a single lex
 	function that matches if and only if all given functions match in provided order.
 */
@@ -323,6 +241,85 @@ function combinatorOptional(lexerFunc: LexFunction): LexFunction {
 
 }
 
+/*
+
+	PARSER PRIMITIVES
+
+*/
+
+
+/**
+	Matches a sequence of at least 1 consecutive digits.
+*/
+const matchDigitSequence: LexFunction = createMatchTestSequence(isDigitChar);
+
+/*
+	Matches sequence of consecutive digits if it has no leading zeros.
+	A single zero will match if followed by non-digit character.
+*/
+function matchInteger(
+	charList: Array<string>,
+	start: number,
+	end: number
+): [number, boolean] {
+	const [consumed, success] = matchDigitSequence(charList, start, end);
+	if (!success){
+		return [0, false];	
+	}
+	const firstIsZero: boolean = charList[start] == '0';
+
+	if (firstIsZero && consumed != 1){
+		return [0, false];
+	}else {
+		return [consumed, true];
+	}
+}
+
+/*
+	Will match an arbitrary string starting and ending with " character
+	Handles backslash escapes in manner compatible with json.
+	Does not validate json-conformance fully, which is left for later
+	in processing pipeline. 
+*/
+function matchString(
+	charList: Array<string>,
+	start: number,
+	end: number
+): [number, boolean] {
+	
+	// must at least have room for 2 " characters
+	const remaining = end - start;
+	if (remaining < 2){
+		return [0, false];
+	}
+	// must start with a " character.
+	if (charList[start] != '"'){
+		return [0, false];
+	}
+	//moving pointer past first doublequote
+	let at = start + 1;
+
+	let precedingBackslashes = 0;
+	for (;at < end; at++) {
+		const c = charList[at];	
+
+		let escaped: boolean = precedingBackslashes % 2 == 1
+		if (c == '"' && !escaped ){
+			const consumed = at - start + 1;
+			return [consumed, true];
+		}
+
+		if (c == '\\'){
+			precedingBackslashes += 1;	
+		}else{
+			precedingBackslashes = 0;
+		}
+	}
+	
+	//charList ran out of characters without matching the string, match failed
+	return [0, false];
+}
+
 
 /*
 
@@ -388,18 +385,12 @@ export namespace funcs {
 		OperatorsSyntax.PRIMITIVE + "false"
 	);
 
+	export const lexWhitespace: LexFunction = createMatchTestSequence(isWhitespaceChar);
+	
+	export const lexMatchKeyNaked: LexFunction = createMatchTestSequence(isAsciiLetterChar);
+	
+	export const lexMatchIndexAll: LexFunction = matchInteger;
 
-	export function lexWhitespace(charList: Array<string>, start: number, end: number): [number, boolean] {
-		return helperTestMatchSequence(isWhitespaceChar, charList, start, end);
-	}
-
-	export function lexMatchKeyNaked(charList: Array<string>, start: number, end: number): [number, boolean] {
-		return helperTestMatchSequence(isAsciiLetterChar, charList, start, end);
-	}
-
-	export function lexMatchIndexAll(charList: Array<string>, start: number, end: number): [number, boolean] {
-		return matchAtomInteger(charList, start, end);
-	}
 
 	export function lexMatchIndexArray(charList: Array<string>, start: number, end: number): [number, boolean] {
 
@@ -407,7 +398,7 @@ export namespace funcs {
 		const matchClosedBracket = createMatchExact(OperatorsSyntax.R_BRACKET);
 
 		return combinatorChain([
-			matchOpenBracket, matchAtomInteger, matchClosedBracket
+			matchOpenBracket, matchInteger, matchClosedBracket
 		])(charList, start, end);
 	}
 
@@ -417,19 +408,17 @@ export namespace funcs {
 		const matchClosedBrace = createMatchExact(OperatorsSyntax.R_BRACE);
 
 		return combinatorChain([
-			matchOpenBrace, matchAtomInteger, matchClosedBrace
+			matchOpenBrace, matchInteger, matchClosedBrace
 		])(charList, start, end);
 	}
 
-	export function lexMatchKey(charList: Array<string>, start: number, end: number): [number, boolean] {
-		return matchAtomString(charList, start, end);
-	}
+	export const lexMatchKey: LexFunction = matchString;
 
 	export function lexPrimitiveString(charList: Array<string>, start: number, end: number): [number, boolean] {
 
 		const matchPrimitivePrefix = createMatchExact(OperatorsSyntax.PRIMITIVE);
 
-		return combinatorChain([matchPrimitivePrefix, matchAtomString ])(charList, start, end);
+		return combinatorChain([matchPrimitivePrefix, matchString ])(charList, start, end);
 	}
 
 	/*
@@ -448,27 +437,24 @@ export namespace funcs {
 		const matchLowecaseE = createMatchExact("e");
 		const matchUppercaseE = createMatchExact("E");
 
-		const matchDigitString = function(charList: Array<string>, start: number, end: number){
-			return helperTestMatchSequence(isDigitChar, charList, start, end);
-		}
 		const matchPlusOrMinus = combinatorOr([matchPlus, matchMinus]);
 		const matchAnyE = combinatorOr([matchLowecaseE, matchUppercaseE])
 		const optionalMinus = combinatorOptional(matchMinus);
 		
 		const section1 = combinatorChain([
 			optionalMinus,
-			matchAtomInteger,
+			matchInteger,
 		]);
 
 		const section2 = combinatorOptional(combinatorChain([
 			matchDot,
-			matchDigitString,
+			matchDigitSequence,
 		]));
 		
 		const section3 = combinatorOptional(combinatorChain([
 			matchAnyE,
 			combinatorOptional(matchPlusOrMinus),
-			matchDigitString,
+			matchDigitSequence,
 		]));
 		
 		const completeNumberLex = combinatorChain(
@@ -484,8 +470,9 @@ export namespace funcs {
 		Always consumes at least 1 character.
 	*/
 	export function lexError(charList: Array<string>, start: number, end: number): [number, boolean] {
-		const [consumed, matched] = helperTestMatchSequence(
-			isNonWhitespaceNonOperatorChar,
+		const matchUntilReset = createMatchTestSequence(isNonWhitespaceNonOperatorChar);
+
+		const [consumed, matched] = matchUntilReset(
 			charList,
 			start + 1,
 			end,
