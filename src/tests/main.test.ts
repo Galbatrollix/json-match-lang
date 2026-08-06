@@ -4,12 +4,12 @@ import {runAllUnitTests} from "./unit/unit_main.test.ts"
 import {lexer} from "./../main.ts"
 
 runAllUnitTests();
-const test_emtpy = '""';
+// const test_emtpy = '""';
 
-console.log(lexer.tokenizeMatchString(test_emtpy));
+// console.log(lexer.tokenizeMatchString(test_emtpy));
 
-//const testt = "𝒳 12345 01 || + 😂+😂";
-//const testt = `}}}}}}}"\\\\" #"\\"du\npa\\"" "\\""00 aBBa dupa kupa213 ++ --- 1000 333  0 {000} {0} {1334} [313] [0] [000] #-0.312341E+0000123 #0 #123.0 #0E123 |`
+// const testt = "𝒳 12345 01 || + 😂+😂";
+// const testt = `}}}}}}}"\\\\" #"\\"du\npa\\"" "\\""00 aBBa dupa kupa213 ++ --- 1000 333  0 {000} {0} {1334} [313] [0] [000] #-0.312341E+0000123 #0 #123.0 #0E123 |`
 
 // const testt = "dupa > kupa > {*} > [*] > #3154";
 // console.log(testt);
@@ -18,6 +18,7 @@ console.log(lexer.tokenizeMatchString(test_emtpy));
 // console.log(result);
 // console.log(lexer.tapeUtils.display.asArr(result));
 // console.log(lexer.tapeUtils.display.asStr(result));
+// console.log(lexer.tapeUtils.display.toReadableKinds(result.tokenKind));
 
 // const schizo = "x" +"😂😂".slice(1,3) + "y";
 // let dupa = ""
@@ -42,10 +43,3 @@ console.log(lexer.tokenizeMatchString(test_emtpy));
 // console.log("Deep check: ", lexer.tapeUtils.debug.integrityCheckFull(tempResult, temp));
 // console.log("Deep check: ", lexer.tapeUtils.debug.integrityCheckFull(result, testt));
 // console.log("Deep check: ", lexer.tapeUtils.debug.integrityCheckFull(schizoTape, schizo));
-
-const s1 = '\u0085';
-const s2 = '\n';
-
-console.log(s1.charCodeAt(0))
-console.log(s2.charCodeAt(0))
-// console.log( s1 == s2);

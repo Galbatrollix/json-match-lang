@@ -89,6 +89,18 @@ const LexFunctionsCollection = [
     //must always be last
     { fn: lexError, kind: lexer_enum_ts_1.TokenKind.ERROR },
 ];
+function nextToken(charList, current) {
+    const end = charList.length;
+    for (const { fn, kind } of LexFunctionsCollection) {
+        const [consumed, success] = fn(charList, current, end);
+        if (success) {
+            return { kind: kind, endIdx: current + consumed };
+        }
+    }
+    // unreachable once functions are finished 	
+    throw new Error("Lexer encountered a fatal internal error." +
+        " End of nextToken function reached");
+}
 const OperatorsSyntax = {
     CHILD: ">",
     PARENT: "<",
@@ -109,18 +121,6 @@ const OperatorsSyntax = {
     PRIMITIVE: "#",
     STRING: `"`,
 };
-function nextToken(charList, current) {
-    const end = charList.length;
-    for (const { fn, kind } of LexFunctionsCollection) {
-        const [consumed, success] = fn(charList, current, end);
-        if (success) {
-            return { kind: kind, endIdx: current + consumed };
-        }
-    }
-    // unreachable once functions are finished 	
-    // return {kind: TokenKind.ERROR, endIdx: current + 1};
-    throw new Error("Lexer encountered a fatal internal error");
-}
 /*
 
     MAIN LEX FUNCTIONS
@@ -324,6 +324,10 @@ function isDigitChar(c) {
     return (c >= '0' && c <= '9');
 }
 // only for single characters
+// potential for improvement here
+// https://en.wikipedia.org/wiki/Whitespace_character
+// https://langdev.stackexchange.com/questions/1/which-horizontal-whitespace-should-be-supported
+// https://www.unicode.org/reports/tr14/
 function isWhitespaceChar(c) {
     return " \f\n\r\t\v\u00A0\u2028\u2029".includes(c);
 }
@@ -399,6 +403,7 @@ function helperMatchInteger(charList, current, end) {
         return [0, false];
     }
 }
+//todo https://stackoverflow.com/questions/58916957/is-an-empty-string-a-valid-json-key
 /*
     Will match an arbitrary string starting and ending with " character
     Handles backslash escapes in manner compatible with json
@@ -439,23 +444,21 @@ function helperMatchString(charList, current, end) {
 */
 function combinatorChain(lexerList) {
     const resultFunc = function (charList, current, end) {
-        let fnIndex = 0;
-        const fnCount = lexerList.length;
         let at = current;
-        // doesnt perform bound checks as some lex functions
+        // loop doesnt perform bound checks on charList as some lex functions
         // can return true with 0 tokens consumed (optionals)
-        while (fnIndex < fnCount) {
+        let fnIndex = 0;
+        for (; fnIndex < lexerList.length; fnIndex++) {
             const [consumed, matched] = lexerList[fnIndex](charList, at, end);
             if (!matched) {
                 return [0, false];
             }
             at += consumed;
-            fnIndex += 1;
         }
-        const consumed = at - current;
-        const allFunctionsPassed = (fnIndex == fnCount);
+        const consumedTotal = at - current;
+        const allFunctionsPassed = (fnIndex == lexerList.length);
         if (allFunctionsPassed) {
-            return [consumed, true];
+            return [consumedTotal, true];
         }
         else {
             return [0, false];

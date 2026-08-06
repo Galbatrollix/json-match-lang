@@ -120,6 +120,22 @@ const LexFunctionsCollection: Array<{fn: LexFunction, kind: TokenKind}> = [
 	{fn: lexError,                      kind: TokenKind.ERROR},
 ]
 
+function nextToken(charList: Array<string>, current: number): MatchToken {
+	const end = charList.length;
+	for (const {fn, kind} of LexFunctionsCollection) {
+		const [consumed, success] = fn(charList, current, end);
+		if (success){
+			return {kind: kind, endIdx: current + consumed};
+		}
+	}
+	
+	// unreachable once functions are finished 	
+	throw new Error("Lexer encountered a fatal internal error."+
+		" End of nextToken function reached");
+	
+}
+
+
 const OperatorsSyntax = {
 	CHILD:               ">",
 	PARENT:              "<",
@@ -143,23 +159,6 @@ const OperatorsSyntax = {
 	PRIMITIVE:           "#",
 	STRING:              `"`,
 } as const;
-
-
-function nextToken(charList: Array<string>, current: number): MatchToken {
-	const end = charList.length;
-	for (const {fn, kind} of LexFunctionsCollection) {
-		const [consumed, success] = fn(charList, current, end);
-		if (success){
-			return {kind: kind, endIdx: current + consumed};
-		}
-	}
-	
-	// unreachable once functions are finished 	
-	// return {kind: TokenKind.ERROR, endIdx: current + 1};
-	throw new Error("Lexer encountered a fatal internal error");
-	
-}
-
 
 /*
 

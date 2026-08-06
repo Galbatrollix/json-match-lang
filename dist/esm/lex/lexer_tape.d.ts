@@ -67,6 +67,14 @@ export declare namespace utils {
             Span items are joined with no whitespace inbetween.
         */
         function asHtml(tape: TokenTape): string;
+        /**
+            Exports tokenkinds of TokenTape as a string that represents
+            JS array that could be plucked directly into code. Each tokenkind
+            string identifier is prepended with "tk."
+        
+            Example output : "[tk.WHITESPACE, tk.ERROR, tk.OPERATOR_AND, ]"
+        */
+        function toReadableKinds(kinds: Readonly<Array<TokenKind>>): string;
     }
 }
 //# sourceMappingURL=lexer_tape.d.ts.map

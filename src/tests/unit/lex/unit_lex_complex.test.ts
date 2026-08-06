@@ -65,3 +65,129 @@ export function lexTestCrazyStrings(): boolean {
 	}
 	return true;
 }
+
+
+type expressionEntry = {
+	expr: string,
+	tokens: Array<lexer.TokenKind>,
+};
+const tk = lexer.TokenKind;
+/**
+	Full json match expressions and their corresponding 
+	expected token sequences
+*/
+const fullExpressions: Array<expressionEntry> = [
+	{
+		expr: `dupa > kupa`,
+		tokens: [
+			tk.MATCH_KEY_NAKED, tk.WHITESPACE, tk.OPERATOR_CHILD,
+		 	tk.WHITESPACE, tk.MATCH_KEY_NAKED,
+		],
+	},
+	{
+		expr: `> "a9re13"&0 > *`,
+		tokens: [
+			tk.OPERATOR_CHILD, tk.WHITESPACE, tk.MATCH_KEY,
+		 	tk.OPERATOR_AND, tk.MATCH_INDEX_ALL, tk.WHITESPACE,
+			tk.OPERATOR_CHILD, tk.WHITESPACE, tk.MATCH_WILDCARD_ALL,
+		],
+	},
+	{
+		expr: `* > styles <`,
+		tokens: [
+			tk.MATCH_WILDCARD_ALL, tk.WHITESPACE, tk.OPERATOR_CHILD,
+			tk.WHITESPACE, tk.MATCH_KEY_NAKED, tk.WHITESPACE, 
+			tk.OPERATOR_PARENT, 
+		],
+	},
+	{
+		expr: `|||||||||||||||||||`,
+		tokens: [tk.OPERATOR_OR, tk.OPERATOR_OR, tk.OPERATOR_OR, tk.OPERATOR_OR, tk.OPERATOR_OR, tk.OPERATOR_OR, tk.OPERATOR_OR, tk.OPERATOR_OR, tk.OPERATOR_OR, tk.OPERATOR_OR, tk.OPERATOR_OR, tk.OPERATOR_OR, tk.OPERATOR_OR, tk.OPERATOR_OR, tk.OPERATOR_OR, tk.OPERATOR_OR, tk.OPERATOR_OR, tk.OPERATOR_OR, tk.OPERATOR_OR, ],
+	},
+	{
+		expr: `+++++++++++++++`,
+		tokens: [tk.OPERATOR_SIBLING_SUBSEQUENT, tk.OPERATOR_SIBLING_SUBSEQUENT, tk.OPERATOR_SIBLING_SUBSEQUENT, tk.OPERATOR_SIBLING_SUBSEQUENT, tk.OPERATOR_SIBLING_SUBSEQUENT, tk.OPERATOR_SIBLING_SUBSEQUENT, tk.OPERATOR_SIBLING_SUBSEQUENT, tk.OPERATOR_SIBLING_NEXT, ],
+	},
+
+	{
+		expr: `<<>><<#-3.124E55~XD`,
+		tokens: [tk.OPERATOR_PARENT, tk.OPERATOR_PARENT, tk.OPERATOR_CHILD, tk.OPERATOR_CHILD, tk.OPERATOR_PARENT, tk.OPERATOR_PARENT, tk.PRIMITIVE_NUMBER, tk.OPERATOR_SIBLING_ANY, tk.MATCH_KEY_NAKED, ],
+	},
+
+	{
+		expr: `{*} >> dupa | DUPA  ~ kupa | KUPA`,
+		tokens: [tk.MATCH_WILDCARD_OBJECT, tk.WHITESPACE, tk.OPERATOR_CHILD, tk.OPERATOR_CHILD, tk.WHITESPACE, tk.MATCH_KEY_NAKED, tk.WHITESPACE, tk.OPERATOR_OR, tk.WHITESPACE, tk.MATCH_KEY_NAKED, tk.WHITESPACE, tk.OPERATOR_SIBLING_ANY, tk.WHITESPACE, tk.MATCH_KEY_NAKED, tk.WHITESPACE, tk.OPERATOR_OR, tk.WHITESPACE, tk.MATCH_KEY_NAKED, ],
+	},
+	{
+		expr: `0|1|2|3|4 > #true`,
+		tokens: [tk.MATCH_INDEX_ALL, tk.OPERATOR_OR, tk.MATCH_INDEX_ALL, tk.OPERATOR_OR, tk.MATCH_INDEX_ALL, tk.OPERATOR_OR, tk.MATCH_INDEX_ALL, tk.OPERATOR_OR, tk.MATCH_INDEX_ALL, tk.WHITESPACE, tk.OPERATOR_CHILD, tk.WHITESPACE, tk.PRIMITIVE_TRUE, ],
+	},
+	{
+		expr: `"one""two""three""four"-five`,
+		tokens: [tk.MATCH_KEY, tk.MATCH_KEY, tk.MATCH_KEY, tk.MATCH_KEY, tk.OPERATOR_SIBLING_PREV, tk.MATCH_KEY_NAKED, ],
+	},
+	{
+		expr: `"one"two"three"four-five`,
+		tokens: [tk.MATCH_KEY, tk.MATCH_KEY_NAKED, tk.MATCH_KEY, tk.MATCH_KEY_NAKED, tk.OPERATOR_SIBLING_PREV, tk.MATCH_KEY_NAKED, ],
+	},
+	{
+		expr: String.raw`\\\\\\\\\\\\dddad\\d+{{errormuch?}}`,
+		tokens: [tk.ERROR, tk.OPERATOR_SIBLING_NEXT, tk.ERROR, ],
+	},
+	{
+		expr: `> THIS >> "is" > "a" > Pretty | Long > "expression" > string <<<> Long > is > a > good > way > to > say > that`,
+		tokens: [tk.OPERATOR_CHILD, tk.WHITESPACE, tk.MATCH_KEY_NAKED, tk.WHITESPACE, tk.OPERATOR_CHILD, tk.OPERATOR_CHILD, tk.WHITESPACE, tk.MATCH_KEY, tk.WHITESPACE, tk.OPERATOR_CHILD, tk.WHITESPACE, tk.MATCH_KEY, tk.WHITESPACE, tk.OPERATOR_CHILD, tk.WHITESPACE, tk.MATCH_KEY_NAKED, tk.WHITESPACE, tk.OPERATOR_OR, tk.WHITESPACE, tk.MATCH_KEY_NAKED, tk.WHITESPACE, tk.OPERATOR_CHILD, tk.WHITESPACE, tk.MATCH_KEY, tk.WHITESPACE, tk.OPERATOR_CHILD, tk.WHITESPACE, tk.MATCH_KEY_NAKED, tk.WHITESPACE, tk.OPERATOR_PARENT, tk.OPERATOR_PARENT, tk.OPERATOR_PARENT, tk.OPERATOR_CHILD, tk.WHITESPACE, tk.MATCH_KEY_NAKED, tk.WHITESPACE, tk.OPERATOR_CHILD, tk.WHITESPACE, tk.MATCH_KEY_NAKED, tk.WHITESPACE, tk.OPERATOR_CHILD, tk.WHITESPACE, tk.MATCH_KEY_NAKED, tk.WHITESPACE, tk.OPERATOR_CHILD, tk.WHITESPACE, tk.MATCH_KEY_NAKED, tk.WHITESPACE, tk.OPERATOR_CHILD, tk.WHITESPACE, tk.MATCH_KEY_NAKED, tk.WHITESPACE, tk.OPERATOR_CHILD, tk.WHITESPACE, tk.MATCH_KEY_NAKED, tk.WHITESPACE, tk.OPERATOR_CHILD, tk.WHITESPACE, tk.MATCH_KEY_NAKED, tk.WHITESPACE, tk.OPERATOR_CHILD, tk.WHITESPACE, tk.MATCH_KEY_NAKED, ],
+	},
+	{
+		expr: `|++&*<+><!!#null+-~!&|`,
+		tokens: [tk.OPERATOR_OR, tk.OPERATOR_SIBLING_SUBSEQUENT, tk.OPERATOR_AND, tk.MATCH_WILDCARD_ALL, tk.OPERATOR_PARENT, tk.OPERATOR_SIBLING_NEXT, tk.OPERATOR_CHILD, tk.OPERATOR_PARENT, tk.OPERATOR_NOT, tk.OPERATOR_NOT, tk.PRIMITIVE_NULL, tk.OPERATOR_SIBLING_NEXT, tk.OPERATOR_SIBLING_PREV, tk.OPERATOR_SIBLING_ANY, tk.OPERATOR_NOT, tk.OPERATOR_AND, tk.OPERATOR_OR, ],
+	},
+	{
+		expr: ``,
+		tokens: [],
+	},
+	{
+		expr: ``,
+		tokens: [],
+	},
+
+];
+
+/**
+	Tests integrity of results from fullExpressions
+	collection and whether produced token kinds match
+	the expectation.
+*/
+export function lexTestFullExpressions(): boolean {
+	for (const {expr, tokens} of fullExpressions ){
+		const tape: lexer.TokenTape = lexer.tokenizeMatchString(expr);
+		const valid: boolean = lexer.tapeUtils.debug.integrityCheckFull(tape, expr);
+		if (! valid ){
+			return false;
+		}
+
+		const kindsOk: boolean = tokenKindsEqual(tape.tokenKind, tokens);
+		if (! kindsOk){
+			return false;
+		}
+	}
+	return true;
+}
+
+/** returns true if two tokenKind arrays are identical, otherwise false*/
+function tokenKindsEqual(
+	fromTape: Readonly<Array<lexer.TokenKind>>,
+    expected: Array<lexer.TokenKind>,
+): boolean {
+	if (fromTape.length != expected.length){
+		return false;	
+	}
+	
+	for (let i = 0; i < fromTape.length; i++){
+		if(fromTape[i] != expected[i]){
+			return false;
+		}
+	}
+
+	return true;
+}

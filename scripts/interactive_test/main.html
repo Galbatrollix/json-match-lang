@@ -21,9 +21,10 @@
 	function echo_to_div() {
   		let content = document.getElementsByTagName("textarea")[0].value;
 		const tape = lexer.tokenizeMatchString(content);
-		console.log(tape)
+		//console.log(tape)
 		const asHtml = lexer.tapeUtils.display.asHtml(tape);
-		console.log(asHtml)
+		const readableKinds = lexer.tapeUtils.display.toReadableKinds(tape.tokenKind);
+		console.log(readableKinds);
 		document.getElementsByTagName("div")[0].innerHTML = asHtml;
 	}
 	window.echo_to_div = echo_to_div;
