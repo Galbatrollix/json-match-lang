@@ -5,7 +5,9 @@ div  {
 	& .WHITESPACE {
 		
 	}
-	& .ERROR {
+	& .ERROR,
+	& .ERROR_INCOMPLETE_KEY,
+	& .ERROR_INCOMPLETE_PRIMITIVE{
 		text-decoration: wavy underline red;
 	}
 
@@ -38,7 +40,8 @@ div  {
 	& .PRIMITIVE_TRUE,               
 	& .PRIMITIVE_FALSE,               
 	& .PRIMITIVE_NUMBER,              
-	& .PRIMITIVE_STRING {
+	& .PRIMITIVE_STRING,
+	& .ERROR_INCOMPLETE_PRIMITIVE {
 		color: purple;
 	}
 	
@@ -51,7 +54,8 @@ div  {
 		color: blue;
 	}
 
-	& .MATCH_KEY {
+	& .MATCH_KEY,
+	& .ERROR_INCOMPLETE_KEY {
 		color: #006400;
 	}
 

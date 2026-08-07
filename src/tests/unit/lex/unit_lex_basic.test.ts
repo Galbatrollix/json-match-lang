@@ -32,6 +32,9 @@ export function lexTestEmptyString(): boolean {
 */
 const atomCollection: Record<lexer.TokenKind, Array<string> > = {
 	[lexer.TokenKind.ERROR]: [",,,", "...", "\\//"],
+	[lexer.TokenKind.ERROR_INCOMPLETE_KEY]: [`"d`, `"`, `"duuuuuu\\"pa`],
+	[lexer.TokenKind.ERROR_INCOMPLETE_PRIMITIVE]: ['#tr', "#s", "#", "#3.14e"],
+	
 	[lexer.TokenKind.WHITESPACE]: [' ', '  ', "\n\r\t", "       ", "\t\t\t"],
 
 	[lexer.TokenKind.OPERATOR_CHILD]: ['>'],
@@ -252,7 +255,7 @@ export function lexTestDisjointAtoms(): boolean {
 	return true;
 }
 
-
+// TODO: DO ONLY ON NON_ERROR ATOMS
 /**
 	Ensures that two non-whitespace atoms separated by whitespace
 	parse properly.

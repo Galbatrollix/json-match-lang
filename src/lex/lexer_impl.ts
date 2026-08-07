@@ -82,6 +82,9 @@ const LexFunctionsCollection: Array<{fn: LexFunction, kind: TokenKind}> = [
 	{fn: funcs.lexPrimitiveString,            kind: TokenKind.PRIMITIVE_STRING},
 	{fn: funcs.lexPrimitiveNumber,            kind: TokenKind.PRIMITIVE_NUMBER},
 	
+	//must always be after their respective complete matches
+	{fn: funcs.lexErrorIncompleteKey,         kind: TokenKind.ERROR_INCOMPLETE_KEY},
+	{fn: funcs.lexErrorIncompletePrimitive,   kind: TokenKind.ERROR_INCOMPLETE_PRIMITIVE},
 	//must always be last
 	{fn: funcs.lexError,                      kind: TokenKind.ERROR},
 ]

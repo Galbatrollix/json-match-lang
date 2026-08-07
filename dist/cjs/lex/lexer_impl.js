@@ -65,6 +65,9 @@ const LexFunctionsCollection = [
     { fn: lexer_functions_ts_1.funcs.lexPrimitiveFalse, kind: lexer_enum_ts_1.TokenKind.PRIMITIVE_FALSE },
     { fn: lexer_functions_ts_1.funcs.lexPrimitiveString, kind: lexer_enum_ts_1.TokenKind.PRIMITIVE_STRING },
     { fn: lexer_functions_ts_1.funcs.lexPrimitiveNumber, kind: lexer_enum_ts_1.TokenKind.PRIMITIVE_NUMBER },
+    //must always be after their respective complete matches
+    { fn: lexer_functions_ts_1.funcs.lexErrorIncompleteKey, kind: lexer_enum_ts_1.TokenKind.ERROR_INCOMPLETE_KEY },
+    { fn: lexer_functions_ts_1.funcs.lexErrorIncompletePrimitive, kind: lexer_enum_ts_1.TokenKind.ERROR_INCOMPLETE_PRIMITIVE },
     //must always be last
     { fn: lexer_functions_ts_1.funcs.lexError, kind: lexer_enum_ts_1.TokenKind.ERROR },
 ];
