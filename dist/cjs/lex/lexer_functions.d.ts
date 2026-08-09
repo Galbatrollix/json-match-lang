@@ -57,8 +57,21 @@ export declare namespace funcs {
     const lexMatchKey: LexFunction;
     const lexPrimitiveString: LexFunction;
     const lexPrimitiveNumber: LexFunction;
+    /**
+        Incomplete error functions currently utilize a hacky approach
+        which kind-of hardcodes end of string into alternative imeplementations
+        of lex functions. It is correct but revolves around code repetition.
+
+        Best solution would most likely be: each function when failing
+        returns how many characters it reached before determining it doesnt match.
+        This can be easily chained and can be decoded at the end to check whether
+        function hit end of file or not. That would require modifying all lexers
+        and combinators to work though.
+    */
     const lexErrorIncompleteKey: typeof matchIncompleteString;
     const lexErrorIncompletePrimitive: LexFunction;
+    const lexErrorIncompleteArray: LexFunction;
+    const lexErrorIncompleteObject: LexFunction;
     function lexError(charList: Array<string>, start: number, end: number): [number, boolean];
 }
 export {};

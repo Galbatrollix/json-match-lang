@@ -107,7 +107,7 @@ function createMatchExact(pattern) {
 /**
     Parser generator that produces a lex function that:
         will either  match a non-empty and non-full prefix of pattern string
-        by consuming <1, pattern.length - 1> characters until character in charList
+        by consuming <1, pattern.length - 1> characters until characters in charList
         are exhausted.
         
         If the entire pattern string can match, function will throw an error.
@@ -216,6 +216,19 @@ function combinatorOr(lexerList) {
     PARSER PRIMITIVES
 
 */
+/**
+    Matches if and only if end == start, consumes 0 characters
+*/
+function matchEndOfStream(charList, start, end) {
+    // @ts-ignore
+    const _unused = charList;
+    if (end == start) {
+        return [0, true];
+    }
+    else {
+        return [0, false];
+    }
+}
 /**
     Matches a sequence of at least 1 consecutive digits.
 */
@@ -556,6 +569,17 @@ export var funcs;
     funcs.lexMatchKey = matchString;
     funcs.lexPrimitiveString = combinatorChain([matchPrimitivePrefix, matchString]);
     funcs.lexPrimitiveNumber = combinatorChain([matchPrimitivePrefix, matchJsonNumber]);
+    /**
+        Incomplete error functions currently utilize a hacky approach
+        which kind-of hardcodes end of string into alternative imeplementations
+        of lex functions. It is correct but revolves around code repetition.
+
+        Best solution would most likely be: each function when failing
+        returns how many characters it reached before determining it doesnt match.
+        This can be easily chained and can be decoded at the end to check whether
+        function hit end of file or not. That would require modifying all lexers
+        and combinators to work though.
+    */
     funcs.lexErrorIncompleteKey = matchIncompleteString;
     funcs.lexErrorIncompletePrimitive = combinatorOr([
         createMatchIncompleteExact(OperatorsSyntax.PRIMITIVE + "string"),
@@ -566,6 +590,26 @@ export var funcs;
         createMatchIncompleteExact(OperatorsSyntax.PRIMITIVE + "false"),
         combinatorChain([matchPrimitivePrefix, matchIncompleteString]),
         combinatorChain([matchPrimitivePrefix, matchIncompleteJsonNumber]),
+    ]);
+    funcs.lexErrorIncompleteArray = combinatorOr([
+        createMatchIncompleteExact(OperatorsSyntax.L_BRACKET
+            + OperatorsSyntax.WILDCARD
+            + OperatorsSyntax.R_BRACKET),
+        combinatorChain([
+            createMatchExact(OperatorsSyntax.L_BRACKET),
+            matchInteger,
+            matchEndOfStream,
+        ]),
+    ]);
+    funcs.lexErrorIncompleteObject = combinatorOr([
+        createMatchIncompleteExact(OperatorsSyntax.L_BRACE
+            + OperatorsSyntax.WILDCARD
+            + OperatorsSyntax.R_BRACE),
+        combinatorChain([
+            createMatchExact(OperatorsSyntax.L_BRACE),
+            matchInteger,
+            matchEndOfStream,
+        ]),
     ]);
     /*
         Always the last lex function to be called.

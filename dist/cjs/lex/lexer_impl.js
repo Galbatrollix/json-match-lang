@@ -68,6 +68,8 @@ const LexFunctionsCollection = [
     //must always be after their respective complete matches
     { fn: lexer_functions_ts_1.funcs.lexErrorIncompleteKey, kind: lexer_enum_ts_1.TokenKind.ERROR_INCOMPLETE_KEY },
     { fn: lexer_functions_ts_1.funcs.lexErrorIncompletePrimitive, kind: lexer_enum_ts_1.TokenKind.ERROR_INCOMPLETE_PRIMITIVE },
+    { fn: lexer_functions_ts_1.funcs.lexErrorIncompleteArray, kind: lexer_enum_ts_1.TokenKind.ERROR_INCOMPLETE_ARRAY },
+    { fn: lexer_functions_ts_1.funcs.lexErrorIncompleteObject, kind: lexer_enum_ts_1.TokenKind.ERROR_INCOMPLETE_OBJECT },
     //must always be last
     { fn: lexer_functions_ts_1.funcs.lexError, kind: lexer_enum_ts_1.TokenKind.ERROR },
 ];

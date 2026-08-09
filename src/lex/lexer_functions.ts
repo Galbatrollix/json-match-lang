@@ -299,6 +299,22 @@ function combinatorOr(lexerList: Array<LexFunction> ): LexFunction {
 
 */
 
+/** 
+	Matches if and only if end == start, consumes 0 characters
+*/
+function matchEndOfStream(
+	charList: Array<string>,
+	start: number,
+	end: number
+): [number, boolean] {
+	// @ts-ignore
+	const _unused = charList;
+	if (end == start){
+		return [0, true];
+	}else{
+		return [0, false];
+	}
+}
 
 /**
 	Matches a sequence of at least 1 consecutive digits.
@@ -732,6 +748,18 @@ export namespace funcs {
 		[matchPrimitivePrefix, matchJsonNumber]
 	);
 	
+
+	/**
+		Incomplete error functions currently utilize a hacky approach
+		which kind-of hardcodes end of string into alternative imeplementations
+		of lex functions. It is correct but revolves around code repetition.
+
+		Best solution would most likely be: each function when failing
+		returns how many characters it reached before determining it doesnt match.
+		This can be easily chained and can be decoded at the end to check whether
+		function hit end of file or not. That would require modifying all lexers
+		and combinators to work though.
+	*/
 	export const lexErrorIncompleteKey = matchIncompleteString;
 	
 	export const lexErrorIncompletePrimitive = combinatorOr([
@@ -749,9 +777,31 @@ export namespace funcs {
 		),
 	]);
 	
-	export const lexErrorIncompleteArray = combinatorOr([]);
+	export const lexErrorIncompleteArray = combinatorOr([
+		createMatchIncompleteExact(
+			OperatorsSyntax.L_BRACKET 
+			+ OperatorsSyntax.WILDCARD 
+			+ OperatorsSyntax.R_BRACKET
+		),
+		combinatorChain([
+			createMatchExact(OperatorsSyntax.L_BRACKET), 
+			matchInteger, 
+			matchEndOfStream,
+		]),
+	]);
 	
-	export const lexErrorIncompleteObject = combinatorOr([]);
+	export const lexErrorIncompleteObject = combinatorOr([
+		createMatchIncompleteExact(
+			OperatorsSyntax.L_BRACE 
+			+ OperatorsSyntax.WILDCARD 
+			+ OperatorsSyntax.R_BRACE
+		),
+		combinatorChain([
+			createMatchExact(OperatorsSyntax.L_BRACE), 
+			matchInteger, 
+			matchEndOfStream,
+		]),
+	]);
 	
 	/*
 		Always the last lex function to be called.
