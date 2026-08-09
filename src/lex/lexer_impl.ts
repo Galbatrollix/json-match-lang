@@ -122,6 +122,7 @@ function nextToken(charList: Array<string>, current: number): MatchToken {
 		(dummy)/ERROR/ERROR/T1/T2/ERROR/T3/ERROR/ERROR
 	transforms to: 
 		(dummy)/ERROR/T1/T2/ERROR/T3/ERROR/
+	Operates only on plain error tokens - disregards errors-incomplete tokens.
 */
 function mergeErrorTokensInPlace(tokens: Array<MatchToken>): void {
 	const end = tokens.length;

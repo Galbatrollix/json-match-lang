@@ -23,7 +23,9 @@
 		const tape = lexer.tokenizeMatchString(content);
 		//console.log(tape)
 		const asHtml = lexer.tapeUtils.display.asHtml(tape);
-		const readableKinds = lexer.tapeUtils.display.toReadableKinds(tape.tokenKind);
+		const readableKinds = lexer.tapeUtils.display.toReadableKinds(
+			tape.tokenKind, "tk."
+		);
 		console.log(readableKinds);
 		document.getElementsByTagName("div")[0].innerHTML = asHtml;
 	}

@@ -101,6 +101,7 @@ function nextToken(charList, current) {
         (dummy)/ERROR/ERROR/T1/T2/ERROR/T3/ERROR/ERROR
     transforms to:
         (dummy)/ERROR/T1/T2/ERROR/T3/ERROR/
+    Operates only on plain error tokens - disregards errors-incomplete tokens.
 */
 function mergeErrorTokensInPlace(tokens) {
     const end = tokens.length;

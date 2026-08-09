@@ -7,7 +7,6 @@
 
 	This function never returns and must be halted by outside means. 
 */
-// for now returns void but will run forever and return never once implemented properlhy
 export function runAllFuzzTests(batchSize: number, logDirPath: string): void {
 	// for(;;);
 }

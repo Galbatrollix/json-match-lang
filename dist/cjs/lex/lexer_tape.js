@@ -133,15 +133,16 @@ var utils;
         /**
             Exports tokenkinds of TokenTape as a string that represents
             JS array that could be plucked directly into code. Each tokenkind
-            string identifier is prepended with "tk."
+            string identifier is prepended with value of prefix parameter.
+            If prefix is not specified, prepends nothing.
         
             Example output : "[tk.WHITESPACE, tk.ERROR, tk.OPERATOR_AND, ]"
         */
-        function toReadableKinds(kinds) {
+        function toReadableKinds(kinds, prefix = "") {
             const toJoin = ['['];
             for (let i = 0; i < kinds.length; i++) {
                 const kindIdentifier = lexer_enum_ts_1.TokenKind[kinds[i]];
-                toJoin.push("tk.");
+                toJoin.push(prefix);
                 toJoin.push(kindIdentifier);
                 toJoin.push(", ");
             }

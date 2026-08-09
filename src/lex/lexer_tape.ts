@@ -167,16 +167,22 @@ export namespace utils {
 		}
 		/**
 		 	Exports tokenkinds of TokenTape as a string that represents 
-			JS array that could be plucked directly into code. Each tokenkind
-			string identifier is prepended with "tk."
+			JS array that could be plucked directly into code. 
+
+			Each tokenkind string identifier is prepended with value of prefix parameter.
+			If prefix is not specified, prepends nothing.
 		
-			Example output : "[tk.WHITESPACE, tk.ERROR, tk.OPERATOR_AND, ]"
+			Example output with "tk." prefix :
+				 "[tk.WHITESPACE, tk.ERROR, tk.OPERATOR_AND, ]"
 		*/
-		export function toReadableKinds(kinds: Readonly<Array<TokenKind>>): string {
+		export function toReadableKinds(
+			kinds: Readonly<Array<TokenKind>>,
+			prefix: string = "",
+		): string {
 			const toJoin: Array<string> = ['['];
 			for (let i = 0; i < kinds.length; i++){
 				const kindIdentifier: string = TokenKind[kinds[i]];
-				toJoin.push("tk.");
+				toJoin.push(prefix);
 				toJoin.push(kindIdentifier);
 				toJoin.push(", ");
 			}	
