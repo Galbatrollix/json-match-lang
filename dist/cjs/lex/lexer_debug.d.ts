@@ -8,9 +8,15 @@ export declare function integrityCheckFull(tape: TokenTape, originalInput: strin
 export declare function soaOk(tape: TokenTape): boolean;
 /**
     Returns true only if no error tokens exist within the tape
-    in neighborhood of other error tokens.
+    in neighborhood of other error tokens. Only considers plain
+    error tokens. Ignores incomplete-error tokens.
 */
 export declare function noDupeErrors(tape: TokenTape): boolean;
+/**
+    Returns true only if no incomplete-error token
+    is at the list position other than last.
+*/
+export declare function allIncompletesInLastSlot(tape: TokenTape): boolean;
 /**
     Returns true only if contents of string and indexes arrays are consistent.
 */

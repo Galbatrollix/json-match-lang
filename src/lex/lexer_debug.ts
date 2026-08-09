@@ -1,11 +1,19 @@
 import {type TokenTape, tokenizeMatchString, utils} from "./lexer_tape.ts"
-import {TokenKind} from "./lexer_enum.ts"
+import {TokenKind, enumUtils} from "./lexer_enum.ts"
 
 
 
 
 export function integrityCheckBasic(tape: TokenTape): boolean {
-	return soaOk(tape) && stringsOk(tape) && noDupeErrors(tape);
+	return (
+		soaOk(tape) 
+		&& 
+		stringsOk(tape) 
+		&& 
+		noDupeErrors(tape)
+		&&
+		allIncompletesInLastSlot(tape)
+	);
 }	
 
 export function integrityCheckDeep(tape: TokenTape): boolean {
@@ -39,7 +47,8 @@ export function soaOk(tape: TokenTape): boolean {
 
 /**
 	Returns true only if no error tokens exist within the tape
-	in neighborhood of other error tokens.
+	in neighborhood of other error tokens. Only considers plain
+	error tokens. Ignores incomplete-error tokens.
 */
 export function noDupeErrors(tape: TokenTape): boolean {
 	if (tape.tokenCount < 2) return true;
@@ -54,6 +63,21 @@ export function noDupeErrors(tape: TokenTape): boolean {
 
 	return true;
 }
+
+/**
+	Returns true only if no incomplete-error token
+	is at the list position other than last. 
+*/
+export function allIncompletesInLastSlot(tape: TokenTape): boolean {
+	for (let i = 0; i < tape.tokenCount - 1; i++){
+		const kind: TokenKind = tape.tokenKind[i];
+		if (enumUtils.isErrorIncomplete(kind)){
+			return false;
+		}
+	}
+	return true;
+}
+
 
 /**
 	Returns true only if contents of string and indexes arrays are consistent.

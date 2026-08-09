@@ -5,6 +5,7 @@ exports.integrityCheckDeep = integrityCheckDeep;
 exports.integrityCheckFull = integrityCheckFull;
 exports.soaOk = soaOk;
 exports.noDupeErrors = noDupeErrors;
+exports.allIncompletesInLastSlot = allIncompletesInLastSlot;
 exports.stringsOk = stringsOk;
 exports.recursiveOk = recursiveOk;
 exports.stringSumOk = stringSumOk;
@@ -12,7 +13,13 @@ exports.tokenizeAgainOk = tokenizeAgainOk;
 const lexer_tape_ts_1 = require("./lexer_tape.js");
 const lexer_enum_ts_1 = require("./lexer_enum.js");
 function integrityCheckBasic(tape) {
-    return soaOk(tape) && stringsOk(tape) && noDupeErrors(tape);
+    return (soaOk(tape)
+        &&
+            stringsOk(tape)
+        &&
+            noDupeErrors(tape)
+        &&
+            allIncompletesInLastSlot(tape));
 }
 function integrityCheckDeep(tape) {
     return integrityCheckBasic(tape) && recursiveOk(tape);
@@ -38,7 +45,8 @@ function soaOk(tape) {
 }
 /**
     Returns true only if no error tokens exist within the tape
-    in neighborhood of other error tokens.
+    in neighborhood of other error tokens. Only considers plain
+    error tokens. Ignores incomplete-error tokens.
 */
 function noDupeErrors(tape) {
     if (tape.tokenCount < 2)
@@ -47,6 +55,19 @@ function noDupeErrors(tape) {
         const left = tape.tokenKind[i - 1];
         const right = tape.tokenKind[i];
         if (left == lexer_enum_ts_1.TokenKind.ERROR && right == lexer_enum_ts_1.TokenKind.ERROR) {
+            return false;
+        }
+    }
+    return true;
+}
+/**
+    Returns true only if no incomplete-error token
+    is at the list position other than last.
+*/
+function allIncompletesInLastSlot(tape) {
+    for (let i = 0; i < tape.tokenCount - 1; i++) {
+        const kind = tape.tokenKind[i];
+        if (lexer_enum_ts_1.enumUtils.isErrorIncomplete(kind)) {
             return false;
         }
     }

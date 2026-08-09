@@ -32,10 +32,14 @@ export function lexTestEmptyString(): boolean {
 */
 const atomCollection: Record<lexer.TokenKind, Array<string> > = {
 	[lexer.TokenKind.ERROR]: [",,,", "...", "\\//"],
-	[lexer.TokenKind.ERROR_INCOMPLETE_KEY]: [`"d`, `"`, `"duuuuuu\\"pa`],
+	// auto-generated from match-key
+	[lexer.TokenKind.ERROR_INCOMPLETE_KEY]: [],
 	[lexer.TokenKind.ERROR_INCOMPLETE_PRIMITIVE]: ['#tr', "#s", "#", "#3.14e"],
-	[lexer.TokenKind.ERROR_INCOMPLETE_OBJECT]: ["{", "{0", "{1233"],
-	[lexer.TokenKind.ERROR_INCOMPLETE_ARRAY]: ["[", "[0", "[1233"],
+
+	// auto-extended from index-all
+	[lexer.TokenKind.ERROR_INCOMPLETE_OBJECT]: ["{", "{*"],
+	// auto-extended from index-all
+	[lexer.TokenKind.ERROR_INCOMPLETE_ARRAY]: ["[", "[*"],
 	
 	[lexer.TokenKind.WHITESPACE]: [' ', '  ', "\n\r\t", "       ", "\t\t\t"],
 
@@ -82,6 +86,7 @@ const atomCollection: Record<lexer.TokenKind, Array<string> > = {
 		`"ᄀᄀᄀ각ᆨᆨ"`,`"ᄀᄀᄀ각ᆨᆨ"`,`"ᄀᄀᄀ각ᆨᆨ   ᄀᄀᄀ각ᆨᆨ"`,
 		`"𝒳 12345 01 || + 😂+😂"`,`"😂"`,`"𝒳"`,`"🇺🇸"`,`"👍🏿"`,`"\\👍🏿"`,
 		`"<span>"`,`"</span>"`,'"``````````"',`"&|?+-~"`,`"<>"`,`"*"`,
+		`"duuuuuu\\"pa"`,`"d"`
 	],
 	
 	// auto-generated from index_all
@@ -92,17 +97,42 @@ const atomCollection: Record<lexer.TokenKind, Array<string> > = {
 	[lexer.TokenKind.PRIMITIVE_STRING]: [],
 };
 
+/*
+	Block of auto-generation and auto-extension of atom collections.
+*/
+
+// forming index array matches by wrapping generic index match with []
 atomCollection[lexer.TokenKind.MATCH_INDEX_ARRAY].push(
 	...atomCollection[lexer.TokenKind.MATCH_INDEX_ALL].map((x) => '['+x+']')
 );
 
+// forming index object matches by wrapping generic index match with {}
 atomCollection[lexer.TokenKind.MATCH_INDEX_OBJECT].push(
 	...atomCollection[lexer.TokenKind.MATCH_INDEX_ALL].map((x) => '{'+x+'}')
 );
 
+// forming string primitives by prepending # to well formed keys
 atomCollection[lexer.TokenKind.PRIMITIVE_STRING].push(
 	...atomCollection[lexer.TokenKind.MATCH_KEY].map((x) => '#'+x)
 );
+
+// forming incomplete keys by stripping last " char from well formed keys
+atomCollection[lexer.TokenKind.ERROR_INCOMPLETE_KEY].push(
+	...atomCollection[lexer.TokenKind.MATCH_KEY].map((x) => x.slice(0, x.length - 1))
+);
+
+// forming incomplete object matches by stripping last } char from well formed 
+// index object matches
+atomCollection[lexer.TokenKind.ERROR_INCOMPLETE_OBJECT].push(
+	...atomCollection[lexer.TokenKind.MATCH_INDEX_OBJECT].map((x) => x.slice(0, x.length - 1))
+);
+
+// forming incomplete array matches by stripping last } char from well formed 
+// index array matches
+atomCollection[lexer.TokenKind.ERROR_INCOMPLETE_ARRAY].push(
+	...atomCollection[lexer.TokenKind.MATCH_INDEX_ARRAY].map((x) => x.slice(0, x.length - 1))
+);
+
 
 /**
 	Ensures each atom string produces a tape that has length 1
@@ -257,10 +287,10 @@ export function lexTestDisjointAtoms(): boolean {
 	return true;
 }
 
-// TODO: DO ONLY ON NON_ERROR ATOMS
+
 /**
-	Ensures that two non-whitespace atoms separated by whitespace
-	parse properly.
+	Ensures that two non-whitespace and non-error 
+	atoms separated by whitespace parse properly.
 */
 export function lextTestWhitespaceBetweenAtoms(): boolean {
 	// pararell arrays
@@ -268,10 +298,15 @@ export function lextTestWhitespaceBetweenAtoms(): boolean {
 	const nonWhitespaceKinds: Array<lexer.TokenKind> = [];
 
 	for (const [kind, atomStrings] of Object.entries(atomCollection)){
-		
+		// filtering out whitespace
 		if (Number(kind) == lexer.TokenKind.WHITESPACE){
 			continue;
 		}
+		// filtering out errors
+		if (lexer.enumUtils.isError(Number(kind))){
+			continue;
+		}
+		
 		for (const atom of atomStrings){
 			nonWhitespaceAtoms.push(atom);
 			nonWhitespaceKinds.push(Number(kind));

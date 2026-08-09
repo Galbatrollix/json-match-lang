@@ -1,7 +1,13 @@
 import { tokenizeMatchString, utils } from "./lexer_tape.js";
-import { TokenKind } from "./lexer_enum.js";
+import { TokenKind, enumUtils } from "./lexer_enum.js";
 export function integrityCheckBasic(tape) {
-    return soaOk(tape) && stringsOk(tape) && noDupeErrors(tape);
+    return (soaOk(tape)
+        &&
+            stringsOk(tape)
+        &&
+            noDupeErrors(tape)
+        &&
+            allIncompletesInLastSlot(tape));
 }
 export function integrityCheckDeep(tape) {
     return integrityCheckBasic(tape) && recursiveOk(tape);
@@ -27,7 +33,8 @@ export function soaOk(tape) {
 }
 /**
     Returns true only if no error tokens exist within the tape
-    in neighborhood of other error tokens.
+    in neighborhood of other error tokens. Only considers plain
+    error tokens. Ignores incomplete-error tokens.
 */
 export function noDupeErrors(tape) {
     if (tape.tokenCount < 2)
@@ -36,6 +43,19 @@ export function noDupeErrors(tape) {
         const left = tape.tokenKind[i - 1];
         const right = tape.tokenKind[i];
         if (left == TokenKind.ERROR && right == TokenKind.ERROR) {
+            return false;
+        }
+    }
+    return true;
+}
+/**
+    Returns true only if no incomplete-error token
+    is at the list position other than last.
+*/
+export function allIncompletesInLastSlot(tape) {
+    for (let i = 0; i < tape.tokenCount - 1; i++) {
+        const kind = tape.tokenKind[i];
+        if (enumUtils.isErrorIncomplete(kind)) {
             return false;
         }
     }

@@ -147,6 +147,46 @@ const fullExpressions: Array<expressionEntry> = [
 		tokens: [tk.PARENTHESIS_LEFT, tk.WHITESPACE, tk.MATCH_KEY, tk.WHITESPACE, tk.OPERATOR_OR, tk.WHITESPACE, tk.MATCH_KEY, tk.PARENTHESIS_RIGHT, tk.WHITESPACE, tk.OPERATOR_AND, tk.WHITESPACE, tk.OPERATOR_NOT, tk.MATCH_INDEX_OBJECT, ],
 	},
 	{
+		expr: `6754[76]{1`,
+		tokens: [tk.MATCH_INDEX_ALL, tk.MATCH_INDEX_ARRAY, tk.ERROR_INCOMPLETE_OBJECT, ],
+	},
+	{
+		expr: `1 >> "dupa"&!{9} > #3.134541e`,
+		tokens: [tk.MATCH_INDEX_ALL, tk.WHITESPACE, tk.OPERATOR_CHILD, tk.OPERATOR_CHILD, tk.WHITESPACE, tk.MATCH_KEY, tk.OPERATOR_AND, tk.OPERATOR_NOT, tk.MATCH_INDEX_OBJECT, tk.WHITESPACE, tk.OPERATOR_CHILD, tk.WHITESPACE, tk.ERROR_INCOMPLETE_PRIMITIVE, ],
+	},
+	{
+		expr: ``,
+		tokens: [],
+	},
+	{
+		expr: ``,
+		tokens: [],
+	},
+	{
+		expr: ``,
+		tokens: [],
+	},
+	{
+		expr: ``,
+		tokens: [],
+	},
+	{
+		expr: ``,
+		tokens: [],
+	},
+	{
+		expr: ``,
+		tokens: [],
+	},
+	{
+		expr: ``,
+		tokens: [],
+	},
+	{
+		expr: ``,
+		tokens: [],
+	},
+	{
 		expr: ``,
 		tokens: [],
 	},
