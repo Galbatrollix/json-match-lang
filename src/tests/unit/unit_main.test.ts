@@ -27,7 +27,7 @@ function runUnitTestsFor(tests: Array<unitTestFunc>, categoryName: string): numb
 	let failedTests = 0;
 	let crashedTests = 0;
 
-	console.log(`Running unit tests for ${categoryName}...`)
+	console.log(`Running unit tests for ${categoryName}...`);
 	for(const testFunc of tests){
 		const testName = testFunc.name;
 		

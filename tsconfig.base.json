@@ -12,7 +12,7 @@
     "esModuleInterop": true,
     "rewriteRelativeImportExtensions": true,
 
-    "types": [],
+    "types": ["node"],
 
     // Other Outputs
     "sourceMap": true,

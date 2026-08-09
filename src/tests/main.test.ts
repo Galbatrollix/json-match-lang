@@ -1,5 +1,6 @@
-// import {runAllFuzzTests} from "./fuzz/fuzz_main.test.ts"
+import {runAllFuzzTests} from "./fuzz/fuzz_main.test.ts"
 import {runAllUnitTests} from "./unit/unit_main.test.ts"
+// import {randomString, dumpStringToUniqueFile} from "./fuzz/fuzz_helpers.test.ts"
 
 import {lexer} from "./../main.ts"
 
@@ -53,3 +54,7 @@ lexer.tokenizeMatchString(expr);
 const endTime = performance.now()
 
 console.log(`Call to doSomething took ${endTime - startTime} milliseconds`)
+
+
+
+runAllFuzzTests();

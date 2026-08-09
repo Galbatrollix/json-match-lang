@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "description": "Parser for a language designed to match items in json files.",
   "exports": {
-     ".": {
+    ".": {
       "import": {
         "types": "./dist/esm/main.d.ts",
         "default": "./dist/esm/main.js"
@@ -37,7 +37,8 @@
   },
   "homepage": "https://github.com/Galbatrollix/json-match-lang#readme",
   "devDependencies": {
-    "typescript": "^7.0.2",
-    "rimraf": "^6.0.1"
+    "@types/node": "^26.2.0",
+    "rimraf": "^6.0.1",
+    "typescript": "^7.0.2"
   }
 }
