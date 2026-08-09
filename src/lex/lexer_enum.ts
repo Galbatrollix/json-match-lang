@@ -1,13 +1,14 @@
-/*
+/**
 	All them types of tokens that lexing json path can possibly output.
 	(...) means this is an example not the only possible value of the token
+	<EOF> means end of string
 */
 export enum TokenKind {
 	ERROR,
-	ERROR_INCOMPLETE_KEY,
-	//ERROR_INCOMPLETE_OBJECT
-	//ERROR_INCOMPLETE_ARRAY
-	ERROR_INCOMPLETE_PRIMITIVE,
+	ERROR_INCOMPLETE_KEY,          // "dupa<EOF>  (...)
+	ERROR_INCOMPLETE_OBJECT,       // {3<EOF> (...)
+	ERROR_INCOMPLETE_ARRAY,        // [5<EOF> (...)
+	ERROR_INCOMPLETE_PRIMITIVE,    // #strin<EOF> (...)
 	
 	WHITESPACE,
 
@@ -52,11 +53,16 @@ export enum TokenKind {
 }
 
 
-/* 
-	Bunch of helpers attached to the enum for easier work
-	with the monstrous enum.	
+/**
+	Bunch of helpers for easier work with the monstrous enum.	
 */
 export namespace enumUtils {
+	export function isError(t: TokenKind): boolean{
+		return (TokenKind.ERROR <= t && t <= TokenKind.ERROR_INCOMPLETE_PRIMITIVE);
+	}
+	export function isErrorIncomplete(t: TokenKind): boolean{
+		return (TokenKind.ERROR_INCOMPLETE_KEY <= t && t <= TokenKind.ERROR_INCOMPLETE_PRIMITIVE);
+	}
 	export function isOperator(t: TokenKind): boolean{
 		return (TokenKind.OPERATOR_CHILD <= t && t <= TokenKind.OPERATOR_NOT);
 	}

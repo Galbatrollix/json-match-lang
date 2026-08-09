@@ -34,6 +34,8 @@ const atomCollection: Record<lexer.TokenKind, Array<string> > = {
 	[lexer.TokenKind.ERROR]: [",,,", "...", "\\//"],
 	[lexer.TokenKind.ERROR_INCOMPLETE_KEY]: [`"d`, `"`, `"duuuuuu\\"pa`],
 	[lexer.TokenKind.ERROR_INCOMPLETE_PRIMITIVE]: ['#tr', "#s", "#", "#3.14e"],
+	[lexer.TokenKind.ERROR_INCOMPLETE_OBJECT]: ["{", "{0", "{1233"],
+	[lexer.TokenKind.ERROR_INCOMPLETE_ARRAY]: ["[", "[0", "[1233"],
 	
 	[lexer.TokenKind.WHITESPACE]: [' ', '  ', "\n\r\t", "       ", "\t\t\t"],
 

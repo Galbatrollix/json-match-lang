@@ -157,7 +157,7 @@ function createMatchExact(pattern: string): LexFunction {
 /**
 	Parser generator that produces a lex function that:
 		will either  match a non-empty and non-full prefix of pattern string 
-		by consuming <1, pattern.length - 1> characters until character in charList
+		by consuming <1, pattern.length - 1> characters until characters in charList
 		are exhausted.
 		
 		If the entire pattern string can match, function will throw an error.
@@ -748,6 +748,10 @@ export namespace funcs {
 			[matchPrimitivePrefix, matchIncompleteJsonNumber],
 		),
 	]);
+	
+	export const lexErrorIncompleteArray = combinatorOr([]);
+	
+	export const lexErrorIncompleteObject = combinatorOr([]);
 	
 	/*
 		Always the last lex function to be called.
