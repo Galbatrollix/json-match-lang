@@ -9,7 +9,7 @@ export var TokenKind;
     TokenKind[TokenKind["ERROR_INCOMPLETE_KEY"] = 1] = "ERROR_INCOMPLETE_KEY";
     TokenKind[TokenKind["ERROR_INCOMPLETE_OBJECT"] = 2] = "ERROR_INCOMPLETE_OBJECT";
     TokenKind[TokenKind["ERROR_INCOMPLETE_ARRAY"] = 3] = "ERROR_INCOMPLETE_ARRAY";
-    TokenKind[TokenKind["ERROR_INCOMPLETE_PRIMITIVE"] = 4] = "ERROR_INCOMPLETE_PRIMITIVE";
+    TokenKind[TokenKind["ERROR_INCOMPLETE_VALUE"] = 4] = "ERROR_INCOMPLETE_VALUE";
     TokenKind[TokenKind["WHITESPACE"] = 5] = "WHITESPACE";
     TokenKind[TokenKind["OPERATOR_CHILD"] = 6] = "OPERATOR_CHILD";
     TokenKind[TokenKind["OPERATOR_PARENT"] = 7] = "OPERATOR_PARENT";
@@ -24,25 +24,27 @@ export var TokenKind;
     TokenKind[TokenKind["PARENTHESIS_LEFT"] = 16] = "PARENTHESIS_LEFT";
     TokenKind[TokenKind["PARENTHESIS_RIGHT"] = 17] = "PARENTHESIS_RIGHT";
     // they match array indexes or object keys
-    TokenKind[TokenKind["MATCH_KEY"] = 18] = "MATCH_KEY";
-    TokenKind[TokenKind["MATCH_KEY_NAKED"] = 19] = "MATCH_KEY_NAKED";
-    TokenKind[TokenKind["MATCH_INDEX_ALL"] = 20] = "MATCH_INDEX_ALL";
-    TokenKind[TokenKind["MATCH_INDEX_ARRAY"] = 21] = "MATCH_INDEX_ARRAY";
-    TokenKind[TokenKind["MATCH_INDEX_OBJECT"] = 22] = "MATCH_INDEX_OBJECT";
-    TokenKind[TokenKind["MATCH_WILDCARD_ALL"] = 23] = "MATCH_WILDCARD_ALL";
-    TokenKind[TokenKind["MATCH_WILDCARD_ARRAY"] = 24] = "MATCH_WILDCARD_ARRAY";
-    TokenKind[TokenKind["MATCH_WILDCARD_OBJECT"] = 25] = "MATCH_WILDCARD_OBJECT";
+    TokenKind[TokenKind["KEY_QUOTED"] = 18] = "KEY_QUOTED";
+    TokenKind[TokenKind["KEY_NAKED"] = 19] = "KEY_NAKED";
+    TokenKind[TokenKind["INDEX_ALL"] = 20] = "INDEX_ALL";
+    TokenKind[TokenKind["INDEX_ARRAY"] = 21] = "INDEX_ARRAY";
+    TokenKind[TokenKind["INDEX_OBJECT"] = 22] = "INDEX_OBJECT";
+    TokenKind[TokenKind["WILDCARD_ALL"] = 23] = "WILDCARD_ALL";
+    TokenKind[TokenKind["WILDCARD_ARRAY"] = 24] = "WILDCARD_ARRAY";
+    TokenKind[TokenKind["WILDCARD_OBJECT"] = 25] = "WILDCARD_OBJECT";
     // they match type of primitives
-    TokenKind[TokenKind["PRIMITIVE_KIND_WILDCARD"] = 26] = "PRIMITIVE_KIND_WILDCARD";
-    TokenKind[TokenKind["PRIMITIVE_KIND_STRING"] = 27] = "PRIMITIVE_KIND_STRING";
-    TokenKind[TokenKind["PRIMITIVE_KIND_NUMBER"] = 28] = "PRIMITIVE_KIND_NUMBER";
-    TokenKind[TokenKind["PRIMITIVE_KIND_BOOLEAN"] = 29] = "PRIMITIVE_KIND_BOOLEAN";
+    TokenKind[TokenKind["VALUE_TYPE_WILDCARD"] = 26] = "VALUE_TYPE_WILDCARD";
+    TokenKind[TokenKind["VALUE_TYPE_STRING"] = 27] = "VALUE_TYPE_STRING";
+    TokenKind[TokenKind["VALUE_TYPE_NUMBER"] = 28] = "VALUE_TYPE_NUMBER";
+    TokenKind[TokenKind["VALUE_TYPE_BOOLEAN"] = 29] = "VALUE_TYPE_BOOLEAN";
+    // VALUE_TYPE_ARRAY,
+    // VALUE_TYPE_OBJECT,
     // they match exact values of primitives
-    TokenKind[TokenKind["PRIMITIVE_NULL"] = 30] = "PRIMITIVE_NULL";
-    TokenKind[TokenKind["PRIMITIVE_TRUE"] = 31] = "PRIMITIVE_TRUE";
-    TokenKind[TokenKind["PRIMITIVE_FALSE"] = 32] = "PRIMITIVE_FALSE";
-    TokenKind[TokenKind["PRIMITIVE_NUMBER"] = 33] = "PRIMITIVE_NUMBER";
-    TokenKind[TokenKind["PRIMITIVE_STRING"] = 34] = "PRIMITIVE_STRING";
+    TokenKind[TokenKind["VALUE_EXACT_NULL"] = 30] = "VALUE_EXACT_NULL";
+    TokenKind[TokenKind["VALUE_EXACT_TRUE"] = 31] = "VALUE_EXACT_TRUE";
+    TokenKind[TokenKind["VALUE_EXACT_FALSE"] = 32] = "VALUE_EXACT_FALSE";
+    TokenKind[TokenKind["VALUE_EXACT_NUMBER"] = 33] = "VALUE_EXACT_NUMBER";
+    TokenKind[TokenKind["VALUE_EXACT_STRING"] = 34] = "VALUE_EXACT_STRING";
 })(TokenKind || (TokenKind = {}));
 /**
     Bunch of helpers for easier work with the monstrous enum.
@@ -50,11 +52,11 @@ export var TokenKind;
 export var enumUtils;
 (function (enumUtils) {
     function isError(t) {
-        return (TokenKind.ERROR <= t && t <= TokenKind.ERROR_INCOMPLETE_PRIMITIVE);
+        return (TokenKind.ERROR <= t && t <= TokenKind.ERROR_INCOMPLETE_VALUE);
     }
     enumUtils.isError = isError;
     function isErrorIncomplete(t) {
-        return (TokenKind.ERROR_INCOMPLETE_KEY <= t && t <= TokenKind.ERROR_INCOMPLETE_PRIMITIVE);
+        return (TokenKind.ERROR_INCOMPLETE_KEY <= t && t <= TokenKind.ERROR_INCOMPLETE_VALUE);
     }
     enumUtils.isErrorIncomplete = isErrorIncomplete;
     function isOperator(t) {
@@ -73,12 +75,8 @@ export var enumUtils;
         return (TokenKind.OPERATOR_CHILD <= t && t <= TokenKind.OPERATOR_PARENT);
     }
     enumUtils.isOperatorParentChild = isOperatorParentChild;
-    function isMatch(t) {
-        return (TokenKind.MATCH_KEY <= t && t <= TokenKind.MATCH_WILDCARD_OBJECT);
+    function isValue(t) {
+        return (TokenKind.VALUE_TYPE_WILDCARD <= t && t <= TokenKind.VALUE_EXACT_STRING);
     }
-    enumUtils.isMatch = isMatch;
-    function isPrimitive(t) {
-        return (TokenKind.PRIMITIVE_KIND_WILDCARD <= t && t <= TokenKind.PRIMITIVE_STRING);
-    }
-    enumUtils.isPrimitive = isPrimitive;
+    enumUtils.isValue = isValue;
 })(enumUtils || (enumUtils = {}));

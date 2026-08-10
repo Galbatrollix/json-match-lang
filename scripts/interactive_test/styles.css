@@ -7,7 +7,7 @@ div  {
 	}
 	& .ERROR,
 	& .ERROR_INCOMPLETE_KEY,
-	& .ERROR_INCOMPLETE_PRIMITIVE,
+	& .ERROR_INCOMPLETE_VALUE,
 	& .ERROR_INCOMPLETE_OBJECT,
 	& .ERROR_INCOMPLETE_ARRAY{
 		text-decoration: wavy underline red;
@@ -34,36 +34,36 @@ div  {
 		color: orange;	
 	}
 	
-    & .PRIMITIVE_KIND_WILDCARD,       
-	& .PRIMITIVE_KIND_STRING,         
-	& .PRIMITIVE_KIND_NUMBER,         
-	& .PRIMITIVE_KIND_BOOLEAN,        
-    & .PRIMITIVE_NULL,                
-	& .PRIMITIVE_TRUE,               
-	& .PRIMITIVE_FALSE,               
-	& .PRIMITIVE_NUMBER,              
-	& .PRIMITIVE_STRING,
-	& .ERROR_INCOMPLETE_PRIMITIVE {
+    & .VALUE_TYPE_WILDCARD,       
+	& .VALUE_TYPE_STRING,         
+	& .VALUE_TYPE_NUMBER,         
+	& .VALUE_TYPE_BOOLEAN,        
+    & .VALUE_EXACT_NULL,                
+	& .VALUE_EXACT_TRUE,               
+	& .VALUE_EXACT_FALSE,               
+	& .VALUE_EXACT_NUMBER,              
+	& .VALUE_EXACT_STRING,
+	& .ERROR_INCOMPLETE_VALUE {
 		color: purple;
 	}
 	
-	& .MATCH_INDEX_ALL,               
-	& .MATCH_INDEX_ARRAY,             
-	& .MATCH_INDEX_OBJECT,
-	& .MATCH_WILDCARD_ALL,            
-	& .MATCH_WILDCARD_ARRAY,          
-	& .MATCH_WILDCARD_OBJECT,
+	& .INDEX_ALL,               
+	& .INDEX_ARRAY,             
+	& .INDEX_OBJECT,
+	& .WILDCARD_ALL,            
+	& .WILDCARD_ARRAY,          
+	& .WILDCARD_OBJECT,
 	& .ERROR_INCOMPLETE_OBJECT,
 	& .ERROR_INCOMPLETE_ARRAY {
 		color: blue;
 	}
 
-	& .MATCH_KEY,
+	& .KEY_QUOTED,
 	& .ERROR_INCOMPLETE_KEY {
 		color: #006400;
 	}
 
-	& .MATCH_KEY_NAKED {
+	& .KEY_NAKED {
 		color: #70C070;
 	}
 }

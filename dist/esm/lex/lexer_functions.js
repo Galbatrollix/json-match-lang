@@ -549,26 +549,26 @@ export var funcs;
     funcs.lexOperatorOr = createMatchExact(OperatorsSyntax.OR);
     funcs.lexOperatorAnd = createMatchExact(OperatorsSyntax.AND);
     funcs.lexOperatorNot = createMatchExact(OperatorsSyntax.NOT);
-    funcs.lexMatchWildcardAll = createMatchExact(OperatorsSyntax.WILDCARD);
+    funcs.lexWildcardAll = createMatchExact(OperatorsSyntax.WILDCARD);
     funcs.lexParenthesisLeft = createMatchExact(OperatorsSyntax.L_PARENTHESIS);
     funcs.lexParenthesisRight = createMatchExact(OperatorsSyntax.R_PARENTHESIS);
-    funcs.lexMatchWildcardArray = createMatchExact(OperatorsSyntax.L_BRACKET + OperatorsSyntax.WILDCARD + OperatorsSyntax.R_BRACKET);
-    funcs.lexMatchWildcardObject = createMatchExact(OperatorsSyntax.L_BRACE + OperatorsSyntax.WILDCARD + OperatorsSyntax.R_BRACE);
-    funcs.lexPrimitiveKindWildcard = createMatchExact(OperatorsSyntax.PRIMITIVE + OperatorsSyntax.WILDCARD);
-    funcs.lexPrimitiveKindString = createMatchExact(OperatorsSyntax.PRIMITIVE + "string");
-    funcs.lexPrimitiveKindNumber = createMatchExact(OperatorsSyntax.PRIMITIVE + "number");
-    funcs.lexPrimitiveKindBoolean = createMatchExact(OperatorsSyntax.PRIMITIVE + "boolean");
-    funcs.lexPrimitiveNull = createMatchExact(OperatorsSyntax.PRIMITIVE + "null");
-    funcs.lexPrimitiveTrue = createMatchExact(OperatorsSyntax.PRIMITIVE + "true");
-    funcs.lexPrimitiveFalse = createMatchExact(OperatorsSyntax.PRIMITIVE + "false");
+    funcs.lexWildcardArray = createMatchExact(OperatorsSyntax.L_BRACKET + OperatorsSyntax.WILDCARD + OperatorsSyntax.R_BRACKET);
+    funcs.lexWildcardObject = createMatchExact(OperatorsSyntax.L_BRACE + OperatorsSyntax.WILDCARD + OperatorsSyntax.R_BRACE);
+    funcs.lexValueTypeWildcard = createMatchExact(OperatorsSyntax.PRIMITIVE + OperatorsSyntax.WILDCARD);
+    funcs.lexValueTypeString = createMatchExact(OperatorsSyntax.PRIMITIVE + "string");
+    funcs.lexValueTypeNumber = createMatchExact(OperatorsSyntax.PRIMITIVE + "number");
+    funcs.lexValueTypeBoolean = createMatchExact(OperatorsSyntax.PRIMITIVE + "boolean");
+    funcs.lexValueExactNull = createMatchExact(OperatorsSyntax.PRIMITIVE + "null");
+    funcs.lexValueExactTrue = createMatchExact(OperatorsSyntax.PRIMITIVE + "true");
+    funcs.lexValueExactFalse = createMatchExact(OperatorsSyntax.PRIMITIVE + "false");
     funcs.lexWhitespace = createMatchTestSequence(isWhitespaceChar);
-    funcs.lexMatchKeyNaked = createMatchTestSequence(isAsciiLetterChar);
-    funcs.lexMatchIndexAll = matchInteger;
-    funcs.lexMatchIndexArray = combinatorChain([matchOpenBracket, matchInteger, matchClosedBracket]);
-    funcs.lexMatchIndexObject = combinatorChain([matchOpenBrace, matchInteger, matchClosedBrace]);
-    funcs.lexMatchKey = matchString;
-    funcs.lexPrimitiveString = combinatorChain([matchPrimitivePrefix, matchString]);
-    funcs.lexPrimitiveNumber = combinatorChain([matchPrimitivePrefix, matchJsonNumber]);
+    funcs.lexKeyNaked = createMatchTestSequence(isAsciiLetterChar);
+    funcs.lexIndexAll = matchInteger;
+    funcs.lexIndexArray = combinatorChain([matchOpenBracket, matchInteger, matchClosedBracket]);
+    funcs.lexIndexObject = combinatorChain([matchOpenBrace, matchInteger, matchClosedBrace]);
+    funcs.lexKeyQuoted = matchString;
+    funcs.lexValueExactString = combinatorChain([matchPrimitivePrefix, matchString]);
+    funcs.lexValueExactNumber = combinatorChain([matchPrimitivePrefix, matchJsonNumber]);
     /**
         Incomplete error functions currently utilize a hacky approach
         which kind-of hardcodes end of string into alternative imeplementations
@@ -581,7 +581,7 @@ export var funcs;
         and combinators to work though.
     */
     funcs.lexErrorIncompleteKey = matchIncompleteString;
-    funcs.lexErrorIncompletePrimitive = combinatorOr([
+    funcs.lexErrorIncompleteValue = combinatorOr([
         createMatchIncompleteExact(OperatorsSyntax.PRIMITIVE + "string"),
         createMatchIncompleteExact(OperatorsSyntax.PRIMITIVE + "number"),
         createMatchIncompleteExact(OperatorsSyntax.PRIMITIVE + "boolean"),

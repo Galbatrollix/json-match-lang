@@ -8,7 +8,7 @@ export declare enum TokenKind {
     ERROR_INCOMPLETE_KEY = 1,// "dupa<EOF>  (...)
     ERROR_INCOMPLETE_OBJECT = 2,// {3<EOF> (...)
     ERROR_INCOMPLETE_ARRAY = 3,// [5<EOF> (...)
-    ERROR_INCOMPLETE_PRIMITIVE = 4,// #strin<EOF> (...)
+    ERROR_INCOMPLETE_VALUE = 4,// #strin<EOF> (...)
     WHITESPACE = 5,
     OPERATOR_CHILD = 6,// > 
     OPERATOR_PARENT = 7,// <
@@ -22,23 +22,23 @@ export declare enum TokenKind {
     OPERATOR_NOT = 15,// !
     PARENTHESIS_LEFT = 16,// (
     PARENTHESIS_RIGHT = 17,// )
-    MATCH_KEY = 18,// "dupa" (...)
-    MATCH_KEY_NAKED = 19,// dupa   (...)
-    MATCH_INDEX_ALL = 20,// 1234   (...)
-    MATCH_INDEX_ARRAY = 21,// [1234] (...)
-    MATCH_INDEX_OBJECT = 22,// {1234} (...)
-    MATCH_WILDCARD_ALL = 23,// *
-    MATCH_WILDCARD_ARRAY = 24,// [*]
-    MATCH_WILDCARD_OBJECT = 25,// {*}
-    PRIMITIVE_KIND_WILDCARD = 26,// #*
-    PRIMITIVE_KIND_STRING = 27,// #string
-    PRIMITIVE_KIND_NUMBER = 28,// #number
-    PRIMITIVE_KIND_BOOLEAN = 29,// #boolean
-    PRIMITIVE_NULL = 30,// #null
-    PRIMITIVE_TRUE = 31,// #true
-    PRIMITIVE_FALSE = 32,// #false
-    PRIMITIVE_NUMBER = 33,// #124.2    (...)
-    PRIMITIVE_STRING = 34
+    KEY_QUOTED = 18,// "dupa" (...)
+    KEY_NAKED = 19,// dupa   (...)
+    INDEX_ALL = 20,// 1234   (...)
+    INDEX_ARRAY = 21,// [1234] (...)
+    INDEX_OBJECT = 22,// {1234} (...)
+    WILDCARD_ALL = 23,// *
+    WILDCARD_ARRAY = 24,// [*]
+    WILDCARD_OBJECT = 25,// {*}
+    VALUE_TYPE_WILDCARD = 26,// #*
+    VALUE_TYPE_STRING = 27,// #string
+    VALUE_TYPE_NUMBER = 28,// #number
+    VALUE_TYPE_BOOLEAN = 29,// #boolean
+    VALUE_EXACT_NULL = 30,// #null
+    VALUE_EXACT_TRUE = 31,// #true
+    VALUE_EXACT_FALSE = 32,// #false
+    VALUE_EXACT_NUMBER = 33,// #124.2    (...)
+    VALUE_EXACT_STRING = 34
 }
 /**
     Bunch of helpers for easier work with the monstrous enum.
@@ -50,7 +50,6 @@ export declare namespace enumUtils {
     function isOperatorLogical(t: TokenKind): boolean;
     function isOperatorSibling(t: TokenKind): boolean;
     function isOperatorParentChild(t: TokenKind): boolean;
-    function isMatch(t: TokenKind): boolean;
-    function isPrimitive(t: TokenKind): boolean;
+    function isValue(t: TokenKind): boolean;
 }
 //# sourceMappingURL=lexer_enum.d.ts.map

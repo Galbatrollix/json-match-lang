@@ -69,11 +69,13 @@ export declare namespace utils {
         function asHtml(tape: TokenTape): string;
         /**
             Exports tokenkinds of TokenTape as a string that represents
-            JS array that could be plucked directly into code. Each tokenkind
-            string identifier is prepended with value of prefix parameter.
+            JS array that could be plucked directly into code.
+
+            Each tokenkind string identifier is prepended with value of prefix parameter.
             If prefix is not specified, prepends nothing.
         
-            Example output : "[tk.WHITESPACE, tk.ERROR, tk.OPERATOR_AND, ]"
+            Example output with "tk." prefix :
+                 "[tk.WHITESPACE, tk.ERROR, tk.OPERATOR_AND, ]"
         */
         function toReadableKinds(kinds: Readonly<Array<TokenKind>>, prefix?: string): string;
     }

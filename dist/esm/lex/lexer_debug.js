@@ -7,7 +7,7 @@ export function integrityCheckBasic(tape) {
         &&
             noDupeErrors(tape)
         &&
-            allIncompletesInLastSlot(tape));
+            incomplesOnlyInLastSlot(tape));
 }
 export function integrityCheckDeep(tape) {
     return integrityCheckBasic(tape) && recursiveOk(tape);
@@ -52,7 +52,7 @@ export function noDupeErrors(tape) {
     Returns true only if no incomplete-error token
     is at the list position other than last.
 */
-export function allIncompletesInLastSlot(tape) {
+export function incomplesOnlyInLastSlot(tape) {
     for (let i = 0; i < tape.tokenCount - 1; i++) {
         const kind = tape.tokenKind[i];
         if (enumUtils.isErrorIncomplete(kind)) {

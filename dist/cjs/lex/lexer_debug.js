@@ -5,7 +5,7 @@ exports.integrityCheckDeep = integrityCheckDeep;
 exports.integrityCheckFull = integrityCheckFull;
 exports.soaOk = soaOk;
 exports.noDupeErrors = noDupeErrors;
-exports.allIncompletesInLastSlot = allIncompletesInLastSlot;
+exports.incomplesOnlyInLastSlot = incomplesOnlyInLastSlot;
 exports.stringsOk = stringsOk;
 exports.recursiveOk = recursiveOk;
 exports.stringSumOk = stringSumOk;
@@ -19,7 +19,7 @@ function integrityCheckBasic(tape) {
         &&
             noDupeErrors(tape)
         &&
-            allIncompletesInLastSlot(tape));
+            incomplesOnlyInLastSlot(tape));
 }
 function integrityCheckDeep(tape) {
     return integrityCheckBasic(tape) && recursiveOk(tape);
@@ -64,7 +64,7 @@ function noDupeErrors(tape) {
     Returns true only if no incomplete-error token
     is at the list position other than last.
 */
-function allIncompletesInLastSlot(tape) {
+function incomplesOnlyInLastSlot(tape) {
     for (let i = 0; i < tape.tokenCount - 1; i++) {
         const kind = tape.tokenKind[i];
         if (lexer_enum_ts_1.enumUtils.isErrorIncomplete(kind)) {

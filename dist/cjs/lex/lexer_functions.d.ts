@@ -17,15 +17,6 @@
         consumed <= end - start
 */
 export type LexFunction = (charList: Array<string>, start: number, end: number) => [consumed: number, matched: boolean];
-/**
-    Similar to matchString, except it matches only incomplete strings -
-    that is strings that have opening quote and do not run into
-    closing qote before running out of characters in charList.
-
-    Will throw error if it matches a complete string. It should be called
-    after the normal string function determined there is no complete string match.
-*/
-declare function matchIncompleteString(charList: Array<string>, start: number, end: number): [number, boolean];
 export declare namespace funcs {
     const lexOperatorChild: LexFunction;
     const lexOperatorParent: LexFunction;
@@ -37,26 +28,26 @@ export declare namespace funcs {
     const lexOperatorOr: LexFunction;
     const lexOperatorAnd: LexFunction;
     const lexOperatorNot: LexFunction;
-    const lexMatchWildcardAll: LexFunction;
+    const lexWildcardAll: LexFunction;
     const lexParenthesisLeft: LexFunction;
     const lexParenthesisRight: LexFunction;
-    const lexMatchWildcardArray: LexFunction;
-    const lexMatchWildcardObject: LexFunction;
-    const lexPrimitiveKindWildcard: LexFunction;
-    const lexPrimitiveKindString: LexFunction;
-    const lexPrimitiveKindNumber: LexFunction;
-    const lexPrimitiveKindBoolean: LexFunction;
-    const lexPrimitiveNull: LexFunction;
-    const lexPrimitiveTrue: LexFunction;
-    const lexPrimitiveFalse: LexFunction;
+    const lexWildcardArray: LexFunction;
+    const lexWildcardObject: LexFunction;
+    const lexValueTypeWildcard: LexFunction;
+    const lexValueTypeString: LexFunction;
+    const lexValueTypeNumber: LexFunction;
+    const lexValueTypeBoolean: LexFunction;
+    const lexValueExactNull: LexFunction;
+    const lexValueExactTrue: LexFunction;
+    const lexValueExactFalse: LexFunction;
     const lexWhitespace: LexFunction;
-    const lexMatchKeyNaked: LexFunction;
-    const lexMatchIndexAll: LexFunction;
-    const lexMatchIndexArray: LexFunction;
-    const lexMatchIndexObject: LexFunction;
-    const lexMatchKey: LexFunction;
-    const lexPrimitiveString: LexFunction;
-    const lexPrimitiveNumber: LexFunction;
+    const lexKeyNaked: LexFunction;
+    const lexIndexAll: LexFunction;
+    const lexIndexArray: LexFunction;
+    const lexIndexObject: LexFunction;
+    const lexKeyQuoted: LexFunction;
+    const lexValueExactString: LexFunction;
+    const lexValueExactNumber: LexFunction;
     /**
         Incomplete error functions currently utilize a hacky approach
         which kind-of hardcodes end of string into alternative imeplementations
@@ -68,11 +59,10 @@ export declare namespace funcs {
         function hit end of file or not. That would require modifying all lexers
         and combinators to work though.
     */
-    const lexErrorIncompleteKey: typeof matchIncompleteString;
-    const lexErrorIncompletePrimitive: LexFunction;
+    const lexErrorIncompleteKey: LexFunction;
+    const lexErrorIncompleteValue: LexFunction;
     const lexErrorIncompleteArray: LexFunction;
     const lexErrorIncompleteObject: LexFunction;
     function lexError(charList: Array<string>, start: number, end: number): [number, boolean];
 }
-export {};
 //# sourceMappingURL=lexer_functions.d.ts.map

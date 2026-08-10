@@ -32,13 +32,13 @@ export function lexTestEmptyString(): boolean {
 */
 const atomCollection: Record<lexer.TokenKind, Array<string> > = {
 	[lexer.TokenKind.ERROR]: [",,,", "...", "\\//"],
-	// auto-generated from match-key
+	// auto-generated from KEY_QUOTED
 	[lexer.TokenKind.ERROR_INCOMPLETE_KEY]: [],
-	[lexer.TokenKind.ERROR_INCOMPLETE_PRIMITIVE]: ['#tr', "#s", "#", "#3.14e"],
+	[lexer.TokenKind.ERROR_INCOMPLETE_VALUE]: ['#tr', "#s", "#", "#3.14e"],
 
-	// auto-extended from index-all
+	// auto-extended from INDEX_ALL
 	[lexer.TokenKind.ERROR_INCOMPLETE_OBJECT]: ["{", "{*"],
-	// auto-extended from index-all
+	// auto-extended from INDEX_ALL
 	[lexer.TokenKind.ERROR_INCOMPLETE_ARRAY]: ["[", "[*"],
 	
 	[lexer.TokenKind.WHITESPACE]: [' ', '  ', "\n\r\t", "       ", "\t\t\t"],
@@ -57,31 +57,31 @@ const atomCollection: Record<lexer.TokenKind, Array<string> > = {
 	[lexer.TokenKind.PARENTHESIS_LEFT]: ['('],
 	[lexer.TokenKind.PARENTHESIS_RIGHT]: [')'],
 
-	[lexer.TokenKind.MATCH_WILDCARD_ALL]: ['*'],
-	[lexer.TokenKind.MATCH_WILDCARD_ARRAY]: ['[*]'],
-	[lexer.TokenKind.MATCH_WILDCARD_OBJECT]: ['{*}'],
+	[lexer.TokenKind.WILDCARD_ALL]: ['*'],
+	[lexer.TokenKind.WILDCARD_ARRAY]: ['[*]'],
+	[lexer.TokenKind.WILDCARD_OBJECT]: ['{*}'],
 
-	[lexer.TokenKind.PRIMITIVE_KIND_WILDCARD]: ['#*'],
-	[lexer.TokenKind.PRIMITIVE_KIND_STRING]: ['#string'],
-	[lexer.TokenKind.PRIMITIVE_KIND_NUMBER]: ['#number'],
-	[lexer.TokenKind.PRIMITIVE_KIND_BOOLEAN]: ['#boolean'],
-	[lexer.TokenKind.PRIMITIVE_NULL]: ['#null'],
-	[lexer.TokenKind.PRIMITIVE_TRUE]: ['#true'],
-	[lexer.TokenKind.PRIMITIVE_FALSE]: ['#false'],
+	[lexer.TokenKind.VALUE_TYPE_WILDCARD]: ['#*'],
+	[lexer.TokenKind.VALUE_TYPE_STRING]: ['#string'],
+	[lexer.TokenKind.VALUE_TYPE_NUMBER]: ['#number'],
+	[lexer.TokenKind.VALUE_TYPE_BOOLEAN]: ['#boolean'],
+	[lexer.TokenKind.VALUE_EXACT_NULL]: ['#null'],
+	[lexer.TokenKind.VALUE_EXACT_TRUE]: ['#true'],
+	[lexer.TokenKind.VALUE_EXACT_FALSE]: ['#false'],
 
-	[lexer.TokenKind.MATCH_KEY_NAKED]: [
+	[lexer.TokenKind.KEY_NAKED]: [
 		'a', 'dupa', 'fooBar', 'B', 'BABAxD', 'zzzz', 'Zy', 'Z', 'z', 'A'
 	],
 
-	[lexer.TokenKind.PRIMITIVE_NUMBER]: [
+	[lexer.TokenKind.VALUE_EXACT_NUMBER]: [
 		'#0', '#-0', '#-0.0000E+000000', '#-1000', '#1000', '#10000000000000001.1'
 	],
 
-	[lexer.TokenKind.MATCH_INDEX_ALL]: [	
+	[lexer.TokenKind.INDEX_ALL]: [	
 		'123', '0', '3', '9999', '1234567654456787654', '10000000000000',
 	],
 
-	[lexer.TokenKind.MATCH_KEY]: [
+	[lexer.TokenKind.KEY_QUOTED]: [
 		`""`, `"dupa"`, `"\\\\\\\n\r"`, `"\\"\\""`, `"ż"`, `"ąęłó"`, `"h"`,
 		`"ᄀᄀᄀ각ᆨᆨ"`,`"ᄀᄀᄀ각ᆨᆨ"`,`"ᄀᄀᄀ각ᆨᆨ   ᄀᄀᄀ각ᆨᆨ"`,
 		`"𝒳 12345 01 || + 😂+😂"`,`"😂"`,`"𝒳"`,`"🇺🇸"`,`"👍🏿"`,`"\\👍🏿"`,
@@ -89,12 +89,12 @@ const atomCollection: Record<lexer.TokenKind, Array<string> > = {
 		`"duuuuuu\\"pa"`,`"d"`
 	],
 	
-	// auto-generated from index_all
-	[lexer.TokenKind.MATCH_INDEX_ARRAY]: [],
-	// auto-generated from index_all
-	[lexer.TokenKind.MATCH_INDEX_OBJECT]: [],
-	// auto-generated from match-key
-	[lexer.TokenKind.PRIMITIVE_STRING]: [],
+	// auto-generated from INDEX_ALL
+	[lexer.TokenKind.INDEX_ARRAY]: [],
+	// auto-generated from INDEX_ALL
+	[lexer.TokenKind.INDEX_OBJECT]: [],
+	// auto-generated from KEY_QUOTED
+	[lexer.TokenKind.VALUE_EXACT_STRING]: [],
 };
 
 /*
@@ -102,35 +102,35 @@ const atomCollection: Record<lexer.TokenKind, Array<string> > = {
 */
 
 // forming index array matches by wrapping generic index match with []
-atomCollection[lexer.TokenKind.MATCH_INDEX_ARRAY].push(
-	...atomCollection[lexer.TokenKind.MATCH_INDEX_ALL].map((x) => '['+x+']')
+atomCollection[lexer.TokenKind.INDEX_ARRAY].push(
+	...atomCollection[lexer.TokenKind.INDEX_ALL].map((x) => '['+x+']')
 );
 
 // forming index object matches by wrapping generic index match with {}
-atomCollection[lexer.TokenKind.MATCH_INDEX_OBJECT].push(
-	...atomCollection[lexer.TokenKind.MATCH_INDEX_ALL].map((x) => '{'+x+'}')
+atomCollection[lexer.TokenKind.INDEX_OBJECT].push(
+	...atomCollection[lexer.TokenKind.INDEX_ALL].map((x) => '{'+x+'}')
 );
 
 // forming string primitives by prepending # to well formed keys
-atomCollection[lexer.TokenKind.PRIMITIVE_STRING].push(
-	...atomCollection[lexer.TokenKind.MATCH_KEY].map((x) => '#'+x)
+atomCollection[lexer.TokenKind.VALUE_EXACT_STRING].push(
+	...atomCollection[lexer.TokenKind.KEY_QUOTED].map((x) => '#'+x)
 );
 
 // forming incomplete keys by stripping last " char from well formed keys
 atomCollection[lexer.TokenKind.ERROR_INCOMPLETE_KEY].push(
-	...atomCollection[lexer.TokenKind.MATCH_KEY].map((x) => x.slice(0, x.length - 1))
+	...atomCollection[lexer.TokenKind.KEY_QUOTED].map((x) => x.slice(0, x.length - 1))
 );
 
 // forming incomplete object matches by stripping last } char from well formed 
 // index object matches
 atomCollection[lexer.TokenKind.ERROR_INCOMPLETE_OBJECT].push(
-	...atomCollection[lexer.TokenKind.MATCH_INDEX_OBJECT].map((x) => x.slice(0, x.length - 1))
+	...atomCollection[lexer.TokenKind.INDEX_OBJECT].map((x) => x.slice(0, x.length - 1))
 );
 
 // forming incomplete array matches by stripping last } char from well formed 
 // index array matches
 atomCollection[lexer.TokenKind.ERROR_INCOMPLETE_ARRAY].push(
-	...atomCollection[lexer.TokenKind.MATCH_INDEX_ARRAY].map((x) => x.slice(0, x.length - 1))
+	...atomCollection[lexer.TokenKind.INDEX_ARRAY].map((x) => x.slice(0, x.length - 1))
 );
 
 
@@ -167,7 +167,7 @@ export function lexTestAtoms(): boolean {
 */
 const joinableAtoms: Array<lexer.TokenKind> = [
 	lexer.TokenKind.WHITESPACE,
-	lexer.TokenKind.MATCH_KEY_NAKED,
+	lexer.TokenKind.KEY_NAKED,
 ] as const;
 
 /**
@@ -208,7 +208,7 @@ export function lexTestJoinableInterleave(): boolean {
 		}
 		return result;
 	}
-	const allNaked: Array<string> = atomCollection[lexer.TokenKind.MATCH_KEY_NAKED];
+	const allNaked: Array<string> = atomCollection[lexer.TokenKind.KEY_NAKED];
 	const allWhitespace : Array<string> = atomCollection[lexer.TokenKind.WHITESPACE];
 	const alternating: Array<string> = interleave(allNaked, allWhitespace);
 
@@ -240,21 +240,21 @@ const disjointAtoms: Array<lexer.TokenKind> = [
 	lexer.TokenKind.OPERATOR_NOT,
 	lexer.TokenKind.PARENTHESIS_LEFT,
 	lexer.TokenKind.PARENTHESIS_RIGHT,
-	lexer.TokenKind.MATCH_KEY,
-	lexer.TokenKind.MATCH_INDEX_ARRAY,
-	lexer.TokenKind.MATCH_INDEX_OBJECT,
-	lexer.TokenKind.MATCH_WILDCARD_ALL,
-	lexer.TokenKind.MATCH_WILDCARD_ARRAY,
-	lexer.TokenKind.MATCH_WILDCARD_OBJECT,
-	lexer.TokenKind.PRIMITIVE_KIND_WILDCARD,
-	lexer.TokenKind.PRIMITIVE_KIND_STRING,
-	lexer.TokenKind.PRIMITIVE_KIND_NUMBER,
-	lexer.TokenKind.PRIMITIVE_KIND_BOOLEAN,
-	lexer.TokenKind.PRIMITIVE_NULL,
-	lexer.TokenKind.PRIMITIVE_TRUE,
-	lexer.TokenKind.PRIMITIVE_FALSE,
-	lexer.TokenKind.PRIMITIVE_NUMBER,
-	lexer.TokenKind.PRIMITIVE_STRING,
+	lexer.TokenKind.KEY_QUOTED,
+	lexer.TokenKind.INDEX_ARRAY,
+	lexer.TokenKind.INDEX_OBJECT,
+	lexer.TokenKind.WILDCARD_ALL,
+	lexer.TokenKind.WILDCARD_ARRAY,
+	lexer.TokenKind.WILDCARD_OBJECT,
+	lexer.TokenKind.VALUE_TYPE_WILDCARD,
+	lexer.TokenKind.VALUE_TYPE_STRING,
+	lexer.TokenKind.VALUE_TYPE_NUMBER,
+	lexer.TokenKind.VALUE_TYPE_BOOLEAN,
+	lexer.TokenKind.VALUE_EXACT_NULL,
+	lexer.TokenKind.VALUE_EXACT_TRUE,
+	lexer.TokenKind.VALUE_EXACT_FALSE,
+	lexer.TokenKind.VALUE_EXACT_NUMBER,
+	lexer.TokenKind.VALUE_EXACT_STRING,
 ];
 
 /**

@@ -1,5 +1,8 @@
 import { TokenKind } from "./lexer_enum.js";
 import { lexJsonMatchCodepoints } from "./lexer_impl.js";
+// todo remove start idx and endidx if they are not useful for the parser
+// (probably won't). A utils functions yielding these in more compressed (overlapping)
+// format would most likely suffice. Start idx and endIdx can be derived from tokenString.
 // autocomplete could behave more sanely if this structure is replaced 
 // with interface or with hacks such as, neither is particularly appealing lol
 // type NamedAlias<t> = t & { _?: never }
@@ -128,11 +131,13 @@ export var utils;
         display.asHtml = asHtml;
         /**
             Exports tokenkinds of TokenTape as a string that represents
-            JS array that could be plucked directly into code. Each tokenkind
-            string identifier is prepended with value of prefix parameter.
+            JS array that could be plucked directly into code.
+
+            Each tokenkind string identifier is prepended with value of prefix parameter.
             If prefix is not specified, prepends nothing.
         
-            Example output : "[tk.WHITESPACE, tk.ERROR, tk.OPERATOR_AND, ]"
+            Example output with "tk." prefix :
+                 "[tk.WHITESPACE, tk.ERROR, tk.OPERATOR_AND, ]"
         */
         function toReadableKinds(kinds, prefix = "") {
             const toJoin = ['['];

@@ -16,7 +16,7 @@ export declare function noDupeErrors(tape: TokenTape): boolean;
     Returns true only if no incomplete-error token
     is at the list position other than last.
 */
-export declare function allIncompletesInLastSlot(tape: TokenTape): boolean;
+export declare function incomplesOnlyInLastSlot(tape: TokenTape): boolean;
 /**
     Returns true only if contents of string and indexes arrays are consistent.
 */

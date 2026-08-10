@@ -26,6 +26,10 @@ export type TokenTape = Readonly <{
 	startIdx:     Readonly<Array<number>>;
 	endIdx:       Readonly<Array<number>>;
 }>
+// todo remove start idx and endidx if they are not useful for the parser
+// (probably won't). A utils functions yielding these in more compressed (overlapping)
+// format would most likely suffice. Start idx and endIdx can be derived from tokenString.
+
 // autocomplete could behave more sanely if this structure is replaced 
 // with interface or with hacks such as, neither is particularly appealing lol
 // type NamedAlias<t> = t & { _?: never }

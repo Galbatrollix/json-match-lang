@@ -682,69 +682,69 @@ export namespace funcs {
 
 	export const lexOperatorNot: LexFunction = createMatchExact(OperatorsSyntax.NOT);
 
-	export const lexMatchWildcardAll: LexFunction = createMatchExact(OperatorsSyntax.WILDCARD);
+	export const lexWildcardAll: LexFunction = createMatchExact(OperatorsSyntax.WILDCARD);
 
 	export const lexParenthesisLeft: LexFunction = createMatchExact(OperatorsSyntax.L_PARENTHESIS);
 	
 	export const lexParenthesisRight: LexFunction = createMatchExact(OperatorsSyntax.R_PARENTHESIS);
 	
-	export const lexMatchWildcardArray: LexFunction = createMatchExact(
+	export const lexWildcardArray: LexFunction = createMatchExact(
 		OperatorsSyntax.L_BRACKET + OperatorsSyntax.WILDCARD + OperatorsSyntax.R_BRACKET
 	);
 
-	export const lexMatchWildcardObject: LexFunction = createMatchExact(
+	export const lexWildcardObject: LexFunction = createMatchExact(
 		OperatorsSyntax.L_BRACE + OperatorsSyntax.WILDCARD + OperatorsSyntax.R_BRACE
 	);
 
-	export const lexPrimitiveKindWildcard: LexFunction = createMatchExact(
+	export const lexValueTypeWildcard: LexFunction = createMatchExact(
 		OperatorsSyntax.PRIMITIVE + OperatorsSyntax.WILDCARD
 	);
 
-	export const lexPrimitiveKindString: LexFunction = createMatchExact(
+	export const lexValueTypeString: LexFunction = createMatchExact(
 		OperatorsSyntax.PRIMITIVE + "string"
 	);
 
-	export const lexPrimitiveKindNumber: LexFunction = createMatchExact(
+	export const lexValueTypeNumber: LexFunction = createMatchExact(
 		OperatorsSyntax.PRIMITIVE + "number"
 	);
 
-	export const lexPrimitiveKindBoolean: LexFunction = createMatchExact(
+	export const lexValueTypeBoolean: LexFunction = createMatchExact(
 		OperatorsSyntax.PRIMITIVE + "boolean"
 	);
 
-	export const lexPrimitiveNull: LexFunction = createMatchExact(
+	export const lexValueExactNull: LexFunction = createMatchExact(
 		OperatorsSyntax.PRIMITIVE + "null"
 	);
 
-	export const lexPrimitiveTrue: LexFunction = createMatchExact(
+	export const lexValueExactTrue: LexFunction = createMatchExact(
 		OperatorsSyntax.PRIMITIVE + "true"
 	);
 
-	export const lexPrimitiveFalse: LexFunction = createMatchExact(
+	export const lexValueExactFalse: LexFunction = createMatchExact(
 		OperatorsSyntax.PRIMITIVE + "false"
 	);
 
 	export const lexWhitespace: LexFunction = createMatchTestSequence(isWhitespaceChar);
 	
-	export const lexMatchKeyNaked: LexFunction = createMatchTestSequence(isAsciiLetterChar);
+	export const lexKeyNaked: LexFunction = createMatchTestSequence(isAsciiLetterChar);
 	
-	export const lexMatchIndexAll: LexFunction = matchInteger;
+	export const lexIndexAll: LexFunction = matchInteger;
 
-	export const lexMatchIndexArray: LexFunction = combinatorChain(
+	export const lexIndexArray: LexFunction = combinatorChain(
 		[matchOpenBracket, matchInteger, matchClosedBracket]
 	);
 
-	export const lexMatchIndexObject: LexFunction = combinatorChain(
+	export const lexIndexObject: LexFunction = combinatorChain(
 		[matchOpenBrace, matchInteger, matchClosedBrace]
 	);
 
-	export const lexMatchKey: LexFunction = matchString;
+	export const lexKeyQuoted: LexFunction = matchString;
 	
-	export const lexPrimitiveString: LexFunction = combinatorChain(
+	export const lexValueExactString: LexFunction = combinatorChain(
 		[matchPrimitivePrefix, matchString]
 	);
 	
-	export const lexPrimitiveNumber = combinatorChain(
+	export const lexValueExactNumber: LexFunction = combinatorChain(
 		[matchPrimitivePrefix, matchJsonNumber]
 	);
 	
@@ -760,9 +760,9 @@ export namespace funcs {
 		function hit end of file or not. That would require modifying all lexers
 		and combinators to work though.
 	*/
-	export const lexErrorIncompleteKey = matchIncompleteString;
+	export const lexErrorIncompleteKey: LexFunction = matchIncompleteString;
 	
-	export const lexErrorIncompletePrimitive = combinatorOr([
+	export const lexErrorIncompleteValue: LexFunction = combinatorOr([
 		createMatchIncompleteExact(OperatorsSyntax.PRIMITIVE + "string"),
 		createMatchIncompleteExact(OperatorsSyntax.PRIMITIVE + "number"),
 		createMatchIncompleteExact(OperatorsSyntax.PRIMITIVE + "boolean"),
@@ -777,7 +777,7 @@ export namespace funcs {
 		),
 	]);
 	
-	export const lexErrorIncompleteArray = combinatorOr([
+	export const lexErrorIncompleteArray: LexFunction = combinatorOr([
 		createMatchIncompleteExact(
 			OperatorsSyntax.L_BRACKET 
 			+ OperatorsSyntax.WILDCARD 
@@ -790,7 +790,7 @@ export namespace funcs {
 		]),
 	]);
 	
-	export const lexErrorIncompleteObject = combinatorOr([
+	export const lexErrorIncompleteObject: LexFunction = combinatorOr([
 		createMatchIncompleteExact(
 			OperatorsSyntax.L_BRACE 
 			+ OperatorsSyntax.WILDCARD 
