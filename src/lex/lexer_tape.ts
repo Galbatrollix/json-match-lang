@@ -7,28 +7,16 @@ import {type MatchToken, lexJsonMatchCodepoints} from "./lexer_impl.ts"
 	SoA of 4 arrays with .length equal to TokenTape.tokenCount property:
 		tokenKind[i]:   TokenKind enum value representing i-th token type
 		tokenString[i]: String sliced from original input, that spans range of i-th token
-		startIdx[i]:     Char index of original input where i-th token starts
-		endIdx[i]:       Char index of original input where i-th token ends, plus one 
 
 	This always is true: with TokenTape as "tt":
-		originalInput.slice(tt.startIdx[i], tt.endIdx[i]) === tt.tokenString[i]
 		tt.tokenString.join("") === originalInput
-		0 <= tt.startIdx[i] <= originalInput.length
-		0 <= tt.endIdx[i]   <= originalInput.length
-		tt.startIdx[i] === tt.endIdx[i-1]  (for i > 0)
-	Char index refers to index in JS string not to code point in unicode sequence.
 */
 export type TokenTape = Readonly <{
 	tokenCount:   Readonly<number>;
 
 	tokenKind:    Readonly<Array<TokenKind>>;
 	tokenString:  Readonly<Array<string>>;
-	startIdx:     Readonly<Array<number>>;
-	endIdx:       Readonly<Array<number>>;
 }>
-// todo remove start idx and endidx if they are not useful for the parser
-// (probably won't). A utils functions yielding these in more compressed (overlapping)
-// format would most likely suffice. Start idx and endIdx can be derived from tokenString.
 
 // autocomplete could behave more sanely if this structure is replaced 
 // with interface or with hacks such as, neither is particularly appealing lol
@@ -66,7 +54,7 @@ export namespace utils {
 		export function equals(t1: TokenTape, t2: TokenTape): boolean{
 	        // its more practical to make a guard for potential new properties 
 			// than to try to make this function future-proof.
-			if (Object.keys(t1).length != 5){
+			if (Object.keys(t1).length != 3){
 				throw new Error("THIS FUNCTION NEEDS TO BE UPDATED");
 			}
 			return (
@@ -75,10 +63,6 @@ export namespace utils {
 				tapeArrayEquals(t1.tokenKind, t2.tokenKind)
 				&&
 				tapeArrayEquals(t1.tokenString, t2.tokenString)
-				&&
-				tapeArrayEquals(t1.startIdx, t2.startIdx)
-				&&
-				tapeArrayEquals(t1.endIdx, t2.endIdx)
 			);
 		}
 
@@ -217,43 +201,15 @@ function assembleTokenTable(
 		resultStrings.push(tokenString);
 	}
 	
-	// obtaining input string char ranges
-	const {resultStartIdx, resultEndIdx} = tokensToCharRanges(resultStrings);
-
 	// constructing output
 	const result: TokenTape = {
 		tokenCount: lexerOutput.length - 1,
 		tokenKind: Object.freeze(resultKinds),
 		tokenString: Object.freeze(resultStrings),
-		startIdx: Object.freeze(resultStartIdx),
-		endIdx: Object.freeze(resultEndIdx),
 	};
 	return Object.freeze(result);
 }
 
-/**
-	Reconstructs index ranges of original input string from
-	stream of consecutive tokens string spat out by the tokenizer.
-	Returned as SOA {resultStartIdx[i], resultEndIdx[i]}
-*/
-function tokensToCharRanges(tokenStrings: Array<string>): {
-	resultStartIdx: Array<number>, resultEndIdx: Array<number>
-}{
-	if (tokenStrings.length == 0){
-		return {resultStartIdx: [], resultEndIdx: []};
-	}
-	
- 	let previous = tokenStrings[0].length;
-	const start: Array<number> = [0];
-	const end: Array<number> = [previous];
-	for (let i = 1; i < tokenStrings.length; i++){
-		const current = tokenStrings[i].length + previous;
-		start.push(previous);
-		end.push(current);
-		previous = current;
-	}
-	return {resultStartIdx: start, resultEndIdx: end};
-}
 
 /*
 	Print helpers

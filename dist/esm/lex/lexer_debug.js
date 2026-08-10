@@ -3,8 +3,6 @@ import { TokenKind, enumUtils } from "./lexer_enum.js";
 export function integrityCheckBasic(tape) {
     return (soaOk(tape)
         &&
-            stringsOk(tape)
-        &&
             noDupeErrors(tape)
         &&
             incomplesOnlyInLastSlot(tape));
@@ -25,11 +23,7 @@ export function integrityCheckFull(tape, originalInput) {
 export function soaOk(tape) {
     return (tape.tokenCount == tape.tokenKind.length
         &&
-            tape.tokenCount == tape.tokenString.length
-        &&
-            tape.tokenCount == tape.startIdx.length
-        &&
-            tape.tokenCount == tape.endIdx.length);
+            tape.tokenCount == tape.tokenString.length);
 }
 /**
     Returns true only if no error tokens exist within the tape
@@ -58,22 +52,6 @@ export function incomplesOnlyInLastSlot(tape) {
         if (enumUtils.isErrorIncomplete(kind)) {
             return false;
         }
-    }
-    return true;
-}
-/**
-    Returns true only if contents of string and indexes arrays are consistent.
-*/
-export function stringsOk(tape) {
-    let accumulatedLength = 0;
-    for (let i = 0; i < tape.tokenCount; i++) {
-        const strlen = tape.tokenString[i].length;
-        const expectedStart = accumulatedLength;
-        const expectedEnd = accumulatedLength + strlen;
-        if (expectedStart != tape.startIdx[i] || expectedEnd != tape.endIdx[i]) {
-            return false;
-        }
-        accumulatedLength += strlen;
     }
     return true;
 }

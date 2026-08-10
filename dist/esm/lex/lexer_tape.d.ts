@@ -4,23 +4,14 @@ import { TokenKind } from "./lexer_enum.ts";
     SoA of 4 arrays with .length equal to TokenTape.tokenCount property:
         tokenKind[i]:   TokenKind enum value representing i-th token type
         tokenString[i]: String sliced from original input, that spans range of i-th token
-        startIdx[i]:     Char index of original input where i-th token starts
-        endIdx[i]:       Char index of original input where i-th token ends, plus one
 
     This always is true: with TokenTape as "tt":
-        originalInput.slice(tt.startIdx[i], tt.endIdx[i]) === tt.tokenString[i]
         tt.tokenString.join("") === originalInput
-        0 <= tt.startIdx[i] <= originalInput.length
-        0 <= tt.endIdx[i]   <= originalInput.length
-        tt.startIdx[i] === tt.endIdx[i-1]  (for i > 0)
-    Char index refers to index in JS string not to code point in unicode sequence.
 */
 export type TokenTape = Readonly<{
     tokenCount: Readonly<number>;
     tokenKind: Readonly<Array<TokenKind>>;
     tokenString: Readonly<Array<string>>;
-    startIdx: Readonly<Array<number>>;
-    endIdx: Readonly<Array<number>>;
 }>;
 export declare function tokenizeMatchString(input: string): TokenTape;
 /**

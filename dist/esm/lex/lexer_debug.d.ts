@@ -18,10 +18,6 @@ export declare function noDupeErrors(tape: TokenTape): boolean;
 */
 export declare function incomplesOnlyInLastSlot(tape: TokenTape): boolean;
 /**
-    Returns true only if contents of string and indexes arrays are consistent.
-*/
-export declare function stringsOk(tape: TokenTape): boolean;
-/**
     Returns true only if all tokens of the tape
     parse into themselves when fed to the tokenizer.
 */

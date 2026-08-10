@@ -8,8 +8,6 @@ export function integrityCheckBasic(tape: TokenTape): boolean {
 	return (
 		soaOk(tape) 
 		&& 
-		stringsOk(tape) 
-		&& 
 		noDupeErrors(tape)
 		&&
 		incomplesOnlyInLastSlot(tape)
@@ -38,10 +36,6 @@ export function soaOk(tape: TokenTape): boolean {
 		tape.tokenCount == tape.tokenKind.length
 		&&
 		tape.tokenCount == tape.tokenString.length
-		&&
-		tape.tokenCount == tape.startIdx.length
-		&&
-		tape.tokenCount == tape.endIdx.length
 	);
 }
 
@@ -78,25 +72,6 @@ export function incomplesOnlyInLastSlot(tape: TokenTape): boolean {
 	return true;
 }
 
-
-/**
-	Returns true only if contents of string and indexes arrays are consistent.
-*/
-export function stringsOk(tape: TokenTape): boolean {
-	let accumulatedLength = 0;
-
-	for (let i = 0; i < tape.tokenCount; i++) {
-		const strlen = tape.tokenString[i].length;
-	
-		const expectedStart = accumulatedLength;
-		const expectedEnd = accumulatedLength + strlen; 
-		if (expectedStart != tape.startIdx[i] || expectedEnd != tape.endIdx[i]){
-			return false;
-		}
-		accumulatedLength += strlen;
-	}
-	return true;
-}
 
 
 /**
