@@ -34,11 +34,13 @@ export declare enum TokenKind {
     VALUE_TYPE_STRING = 27,// #string
     VALUE_TYPE_NUMBER = 28,// #number
     VALUE_TYPE_BOOLEAN = 29,// #boolean
-    VALUE_EXACT_NULL = 30,// #null
-    VALUE_EXACT_TRUE = 31,// #true
-    VALUE_EXACT_FALSE = 32,// #false
-    VALUE_EXACT_NUMBER = 33,// #124.2    (...)
-    VALUE_EXACT_STRING = 34
+    VALUE_TYPE_ARRAY = 30,// #[]
+    VALUE_TYPE_OBJECT = 31,// #{}
+    VALUE_EXACT_NULL = 32,// #null
+    VALUE_EXACT_TRUE = 33,// #true
+    VALUE_EXACT_FALSE = 34,// #false
+    VALUE_EXACT_NUMBER = 35,// #124.2    (...)
+    VALUE_EXACT_STRING = 36
 }
 /**
     Bunch of helpers for easier work with the monstrous enum.

@@ -40,14 +40,14 @@ var TokenKind;
     TokenKind[TokenKind["VALUE_TYPE_STRING"] = 27] = "VALUE_TYPE_STRING";
     TokenKind[TokenKind["VALUE_TYPE_NUMBER"] = 28] = "VALUE_TYPE_NUMBER";
     TokenKind[TokenKind["VALUE_TYPE_BOOLEAN"] = 29] = "VALUE_TYPE_BOOLEAN";
-    // VALUE_TYPE_ARRAY,
-    // VALUE_TYPE_OBJECT,
+    TokenKind[TokenKind["VALUE_TYPE_ARRAY"] = 30] = "VALUE_TYPE_ARRAY";
+    TokenKind[TokenKind["VALUE_TYPE_OBJECT"] = 31] = "VALUE_TYPE_OBJECT";
     // they match exact values of primitives
-    TokenKind[TokenKind["VALUE_EXACT_NULL"] = 30] = "VALUE_EXACT_NULL";
-    TokenKind[TokenKind["VALUE_EXACT_TRUE"] = 31] = "VALUE_EXACT_TRUE";
-    TokenKind[TokenKind["VALUE_EXACT_FALSE"] = 32] = "VALUE_EXACT_FALSE";
-    TokenKind[TokenKind["VALUE_EXACT_NUMBER"] = 33] = "VALUE_EXACT_NUMBER";
-    TokenKind[TokenKind["VALUE_EXACT_STRING"] = 34] = "VALUE_EXACT_STRING";
+    TokenKind[TokenKind["VALUE_EXACT_NULL"] = 32] = "VALUE_EXACT_NULL";
+    TokenKind[TokenKind["VALUE_EXACT_TRUE"] = 33] = "VALUE_EXACT_TRUE";
+    TokenKind[TokenKind["VALUE_EXACT_FALSE"] = 34] = "VALUE_EXACT_FALSE";
+    TokenKind[TokenKind["VALUE_EXACT_NUMBER"] = 35] = "VALUE_EXACT_NUMBER";
+    TokenKind[TokenKind["VALUE_EXACT_STRING"] = 36] = "VALUE_EXACT_STRING";
 })(TokenKind || (exports.TokenKind = TokenKind = {}));
 /**
     Bunch of helpers for easier work with the monstrous enum.

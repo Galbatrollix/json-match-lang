@@ -57,6 +57,8 @@ const LexFunctionsCollection = [
     { fn: funcs.lexValueTypeString, kind: TokenKind.VALUE_TYPE_STRING },
     { fn: funcs.lexValueTypeNumber, kind: TokenKind.VALUE_TYPE_NUMBER },
     { fn: funcs.lexValueTypeBoolean, kind: TokenKind.VALUE_TYPE_BOOLEAN },
+    { fn: funcs.lexValueTypeArray, kind: TokenKind.VALUE_TYPE_ARRAY },
+    { fn: funcs.lexValueTypeObject, kind: TokenKind.VALUE_TYPE_OBJECT },
     { fn: funcs.lexValueExactNull, kind: TokenKind.VALUE_EXACT_NULL },
     { fn: funcs.lexValueExactTrue, kind: TokenKind.VALUE_EXACT_TRUE },
     { fn: funcs.lexValueExactFalse, kind: TokenKind.VALUE_EXACT_FALSE },

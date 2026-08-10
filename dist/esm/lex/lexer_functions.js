@@ -22,7 +22,7 @@ const OperatorsSyntax = {
     L_PARENTHESIS: "(",
     R_PARENTHESIS: ")",
     WILDCARD: "*",
-    PRIMITIVE: "#",
+    VALUE: "#",
     STRING: `"`,
 };
 // only for single characters 
@@ -213,7 +213,7 @@ function combinatorOr(lexerList) {
 // }
 /*
 
-    PARSER PRIMITIVES
+    PARSER VALUES
 
 */
 /**
@@ -333,7 +333,7 @@ const matchOpenBracket = createMatchExact(OperatorsSyntax.L_BRACKET);
 const matchClosedBracket = createMatchExact(OperatorsSyntax.R_BRACKET);
 const matchOpenBrace = createMatchExact(OperatorsSyntax.L_BRACE);
 const matchClosedBrace = createMatchExact(OperatorsSyntax.R_BRACE);
-const matchPrimitivePrefix = createMatchExact(OperatorsSyntax.PRIMITIVE);
+const matchVALUEPrefix = createMatchExact(OperatorsSyntax.VALUE);
 /**
     A bunch of things that together represent a finite state machine
     designed to parse valid JSON numbers, designed to be also usable
@@ -554,21 +554,23 @@ export var funcs;
     funcs.lexParenthesisRight = createMatchExact(OperatorsSyntax.R_PARENTHESIS);
     funcs.lexWildcardArray = createMatchExact(OperatorsSyntax.L_BRACKET + OperatorsSyntax.WILDCARD + OperatorsSyntax.R_BRACKET);
     funcs.lexWildcardObject = createMatchExact(OperatorsSyntax.L_BRACE + OperatorsSyntax.WILDCARD + OperatorsSyntax.R_BRACE);
-    funcs.lexValueTypeWildcard = createMatchExact(OperatorsSyntax.PRIMITIVE + OperatorsSyntax.WILDCARD);
-    funcs.lexValueTypeString = createMatchExact(OperatorsSyntax.PRIMITIVE + "string");
-    funcs.lexValueTypeNumber = createMatchExact(OperatorsSyntax.PRIMITIVE + "number");
-    funcs.lexValueTypeBoolean = createMatchExact(OperatorsSyntax.PRIMITIVE + "boolean");
-    funcs.lexValueExactNull = createMatchExact(OperatorsSyntax.PRIMITIVE + "null");
-    funcs.lexValueExactTrue = createMatchExact(OperatorsSyntax.PRIMITIVE + "true");
-    funcs.lexValueExactFalse = createMatchExact(OperatorsSyntax.PRIMITIVE + "false");
+    funcs.lexValueTypeWildcard = createMatchExact(OperatorsSyntax.VALUE + OperatorsSyntax.WILDCARD);
+    funcs.lexValueTypeString = createMatchExact(OperatorsSyntax.VALUE + "string");
+    funcs.lexValueTypeNumber = createMatchExact(OperatorsSyntax.VALUE + "number");
+    funcs.lexValueTypeBoolean = createMatchExact(OperatorsSyntax.VALUE + "boolean");
+    funcs.lexValueExactNull = createMatchExact(OperatorsSyntax.VALUE + "null");
+    funcs.lexValueExactTrue = createMatchExact(OperatorsSyntax.VALUE + "true");
+    funcs.lexValueExactFalse = createMatchExact(OperatorsSyntax.VALUE + "false");
+    funcs.lexValueTypeArray = createMatchExact(OperatorsSyntax.VALUE + OperatorsSyntax.L_BRACKET + OperatorsSyntax.R_BRACKET);
+    funcs.lexValueTypeObject = createMatchExact(OperatorsSyntax.VALUE + OperatorsSyntax.L_BRACE + OperatorsSyntax.R_BRACE);
     funcs.lexWhitespace = createMatchTestSequence(isWhitespaceChar);
     funcs.lexKeyNaked = createMatchTestSequence(isAsciiLetterChar);
     funcs.lexIndexAll = matchInteger;
     funcs.lexIndexArray = combinatorChain([matchOpenBracket, matchInteger, matchClosedBracket]);
     funcs.lexIndexObject = combinatorChain([matchOpenBrace, matchInteger, matchClosedBrace]);
     funcs.lexKeyQuoted = matchString;
-    funcs.lexValueExactString = combinatorChain([matchPrimitivePrefix, matchString]);
-    funcs.lexValueExactNumber = combinatorChain([matchPrimitivePrefix, matchJsonNumber]);
+    funcs.lexValueExactString = combinatorChain([matchVALUEPrefix, matchString]);
+    funcs.lexValueExactNumber = combinatorChain([matchVALUEPrefix, matchJsonNumber]);
     /**
         Incomplete error functions currently utilize a hacky approach
         which kind-of hardcodes end of string into alternative imeplementations
@@ -582,14 +584,16 @@ export var funcs;
     */
     funcs.lexErrorIncompleteKey = matchIncompleteString;
     funcs.lexErrorIncompleteValue = combinatorOr([
-        createMatchIncompleteExact(OperatorsSyntax.PRIMITIVE + "string"),
-        createMatchIncompleteExact(OperatorsSyntax.PRIMITIVE + "number"),
-        createMatchIncompleteExact(OperatorsSyntax.PRIMITIVE + "boolean"),
-        createMatchIncompleteExact(OperatorsSyntax.PRIMITIVE + "null"),
-        createMatchIncompleteExact(OperatorsSyntax.PRIMITIVE + "true"),
-        createMatchIncompleteExact(OperatorsSyntax.PRIMITIVE + "false"),
-        combinatorChain([matchPrimitivePrefix, matchIncompleteString]),
-        combinatorChain([matchPrimitivePrefix, matchIncompleteJsonNumber]),
+        createMatchIncompleteExact(OperatorsSyntax.VALUE + "string"),
+        createMatchIncompleteExact(OperatorsSyntax.VALUE + "number"),
+        createMatchIncompleteExact(OperatorsSyntax.VALUE + "boolean"),
+        createMatchIncompleteExact(OperatorsSyntax.VALUE + "null"),
+        createMatchIncompleteExact(OperatorsSyntax.VALUE + "true"),
+        createMatchIncompleteExact(OperatorsSyntax.VALUE + "false"),
+        createMatchIncompleteExact(OperatorsSyntax.VALUE + OperatorsSyntax.L_BRACKET + OperatorsSyntax.R_BRACKET),
+        createMatchIncompleteExact(OperatorsSyntax.VALUE + OperatorsSyntax.L_BRACE + OperatorsSyntax.R_BRACE),
+        combinatorChain([matchVALUEPrefix, matchIncompleteString]),
+        combinatorChain([matchVALUEPrefix, matchIncompleteJsonNumber]),
     ]);
     funcs.lexErrorIncompleteArray = combinatorOr([
         createMatchIncompleteExact(OperatorsSyntax.L_BRACKET

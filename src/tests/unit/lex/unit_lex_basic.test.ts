@@ -34,11 +34,11 @@ const atomCollection: Record<lexer.TokenKind, Array<string> > = {
 	[lexer.TokenKind.ERROR]: [",,,", "...", "\\//"],
 	// auto-generated from KEY_QUOTED
 	[lexer.TokenKind.ERROR_INCOMPLETE_KEY]: [],
-	[lexer.TokenKind.ERROR_INCOMPLETE_VALUE]: ['#tr', "#s", "#", "#3.14e"],
+	[lexer.TokenKind.ERROR_INCOMPLETE_VALUE]: ['#tr', "#s", "#", "#3.14e", "#{", "#["],
 
-	// auto-extended from INDEX_ALL
+	// auto-extended from INDEX_OBJECT
 	[lexer.TokenKind.ERROR_INCOMPLETE_OBJECT]: ["{", "{*"],
-	// auto-extended from INDEX_ALL
+	// auto-extended from INDEX_ARRAY
 	[lexer.TokenKind.ERROR_INCOMPLETE_ARRAY]: ["[", "[*"],
 	
 	[lexer.TokenKind.WHITESPACE]: [' ', '  ', "\n\r\t", "       ", "\t\t\t"],
@@ -62,6 +62,8 @@ const atomCollection: Record<lexer.TokenKind, Array<string> > = {
 	[lexer.TokenKind.WILDCARD_OBJECT]: ['{*}'],
 
 	[lexer.TokenKind.VALUE_TYPE_WILDCARD]: ['#*'],
+	[lexer.TokenKind.VALUE_TYPE_ARRAY]: ['#[]'],
+	[lexer.TokenKind.VALUE_TYPE_OBJECT]: ['#{}'],
 	[lexer.TokenKind.VALUE_TYPE_STRING]: ['#string'],
 	[lexer.TokenKind.VALUE_TYPE_NUMBER]: ['#number'],
 	[lexer.TokenKind.VALUE_TYPE_BOOLEAN]: ['#boolean'],

@@ -43,6 +43,8 @@ div  {
 	& .VALUE_EXACT_FALSE,               
 	& .VALUE_EXACT_NUMBER,              
 	& .VALUE_EXACT_STRING,
+	& .VALUE_TYPE_ARRAY,
+	& .VALUE_TYPE_OBJECT,
 	& .ERROR_INCOMPLETE_VALUE {
 		color: purple;
 	}

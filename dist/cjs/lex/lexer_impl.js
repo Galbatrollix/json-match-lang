@@ -60,6 +60,8 @@ const LexFunctionsCollection = [
     { fn: lexer_functions_ts_1.funcs.lexValueTypeString, kind: lexer_enum_ts_1.TokenKind.VALUE_TYPE_STRING },
     { fn: lexer_functions_ts_1.funcs.lexValueTypeNumber, kind: lexer_enum_ts_1.TokenKind.VALUE_TYPE_NUMBER },
     { fn: lexer_functions_ts_1.funcs.lexValueTypeBoolean, kind: lexer_enum_ts_1.TokenKind.VALUE_TYPE_BOOLEAN },
+    { fn: lexer_functions_ts_1.funcs.lexValueTypeArray, kind: lexer_enum_ts_1.TokenKind.VALUE_TYPE_ARRAY },
+    { fn: lexer_functions_ts_1.funcs.lexValueTypeObject, kind: lexer_enum_ts_1.TokenKind.VALUE_TYPE_OBJECT },
     { fn: lexer_functions_ts_1.funcs.lexValueExactNull, kind: lexer_enum_ts_1.TokenKind.VALUE_EXACT_NULL },
     { fn: lexer_functions_ts_1.funcs.lexValueExactTrue, kind: lexer_enum_ts_1.TokenKind.VALUE_EXACT_TRUE },
     { fn: lexer_functions_ts_1.funcs.lexValueExactFalse, kind: lexer_enum_ts_1.TokenKind.VALUE_EXACT_FALSE },

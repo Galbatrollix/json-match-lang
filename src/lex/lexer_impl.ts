@@ -75,12 +75,14 @@ const LexFunctionsCollection: Array<{fn: LexFunction, kind: TokenKind}> = [
 	{fn: funcs.lexValueTypeString,            kind: TokenKind.VALUE_TYPE_STRING},
 	{fn: funcs.lexValueTypeNumber,            kind: TokenKind.VALUE_TYPE_NUMBER},
 	{fn: funcs.lexValueTypeBoolean,           kind: TokenKind.VALUE_TYPE_BOOLEAN},
+	{fn: funcs.lexValueTypeArray,             kind: TokenKind.VALUE_TYPE_ARRAY},
+	{fn: funcs.lexValueTypeObject,            kind: TokenKind.VALUE_TYPE_OBJECT},
 
-	{fn: funcs.lexValueExactNull,              kind: TokenKind.VALUE_EXACT_NULL},
-	{fn: funcs.lexValueExactTrue,              kind: TokenKind.VALUE_EXACT_TRUE},
-	{fn: funcs.lexValueExactFalse,             kind: TokenKind.VALUE_EXACT_FALSE},
-	{fn: funcs.lexValueExactString,            kind: TokenKind.VALUE_EXACT_STRING},
-	{fn: funcs.lexValueExactNumber,            kind: TokenKind.VALUE_EXACT_NUMBER},
+	{fn: funcs.lexValueExactNull,             kind: TokenKind.VALUE_EXACT_NULL},
+	{fn: funcs.lexValueExactTrue,             kind: TokenKind.VALUE_EXACT_TRUE},
+	{fn: funcs.lexValueExactFalse,            kind: TokenKind.VALUE_EXACT_FALSE},
+	{fn: funcs.lexValueExactString,           kind: TokenKind.VALUE_EXACT_STRING},
+	{fn: funcs.lexValueExactNumber,           kind: TokenKind.VALUE_EXACT_NUMBER},
 	
 	//must always be after their respective complete matches
 	{fn: funcs.lexErrorIncompleteKey,         kind: TokenKind.ERROR_INCOMPLETE_KEY},

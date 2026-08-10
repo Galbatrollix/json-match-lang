@@ -48,7 +48,7 @@ const OperatorsSyntax = {
 	L_PARENTHESIS:       "(",
 	R_PARENTHESIS:       ")",
 	WILDCARD:            "*",
-	PRIMITIVE:           "#",
+	VALUE:               "#",
 	STRING:              `"`,
 } as const;
 
@@ -295,7 +295,7 @@ function combinatorOr(lexerList: Array<LexFunction> ): LexFunction {
 
 /*
 
-	PARSER PRIMITIVES
+	PARSER VALUES
 
 */
 
@@ -449,7 +449,7 @@ const matchOpenBracket = createMatchExact(OperatorsSyntax.L_BRACKET);
 const matchClosedBracket = createMatchExact(OperatorsSyntax.R_BRACKET);
 const matchOpenBrace = createMatchExact(OperatorsSyntax.L_BRACE);
 const matchClosedBrace = createMatchExact(OperatorsSyntax.R_BRACE);
-const matchPrimitivePrefix = createMatchExact(OperatorsSyntax.PRIMITIVE);
+const matchVALUEPrefix = createMatchExact(OperatorsSyntax.VALUE);
 
 
 /**
@@ -697,31 +697,38 @@ export namespace funcs {
 	);
 
 	export const lexValueTypeWildcard: LexFunction = createMatchExact(
-		OperatorsSyntax.PRIMITIVE + OperatorsSyntax.WILDCARD
+		OperatorsSyntax.VALUE + OperatorsSyntax.WILDCARD
 	);
 
 	export const lexValueTypeString: LexFunction = createMatchExact(
-		OperatorsSyntax.PRIMITIVE + "string"
+		OperatorsSyntax.VALUE + "string"
 	);
 
 	export const lexValueTypeNumber: LexFunction = createMatchExact(
-		OperatorsSyntax.PRIMITIVE + "number"
+		OperatorsSyntax.VALUE + "number"
 	);
 
 	export const lexValueTypeBoolean: LexFunction = createMatchExact(
-		OperatorsSyntax.PRIMITIVE + "boolean"
+		OperatorsSyntax.VALUE + "boolean"
 	);
 
 	export const lexValueExactNull: LexFunction = createMatchExact(
-		OperatorsSyntax.PRIMITIVE + "null"
+		OperatorsSyntax.VALUE + "null"
 	);
 
 	export const lexValueExactTrue: LexFunction = createMatchExact(
-		OperatorsSyntax.PRIMITIVE + "true"
+		OperatorsSyntax.VALUE + "true"
 	);
 
 	export const lexValueExactFalse: LexFunction = createMatchExact(
-		OperatorsSyntax.PRIMITIVE + "false"
+		OperatorsSyntax.VALUE + "false"
+	);
+
+	export const lexValueTypeArray: LexFunction =  createMatchExact(
+		OperatorsSyntax.VALUE + OperatorsSyntax.L_BRACKET + OperatorsSyntax.R_BRACKET,
+	);
+	export const lexValueTypeObject: LexFunction = createMatchExact(
+		OperatorsSyntax.VALUE + OperatorsSyntax.L_BRACE + OperatorsSyntax.R_BRACE,
 	);
 
 	export const lexWhitespace: LexFunction = createMatchTestSequence(isWhitespaceChar);
@@ -741,11 +748,11 @@ export namespace funcs {
 	export const lexKeyQuoted: LexFunction = matchString;
 	
 	export const lexValueExactString: LexFunction = combinatorChain(
-		[matchPrimitivePrefix, matchString]
+		[matchVALUEPrefix, matchString]
 	);
 	
 	export const lexValueExactNumber: LexFunction = combinatorChain(
-		[matchPrimitivePrefix, matchJsonNumber]
+		[matchVALUEPrefix, matchJsonNumber]
 	);
 	
 
@@ -763,17 +770,23 @@ export namespace funcs {
 	export const lexErrorIncompleteKey: LexFunction = matchIncompleteString;
 	
 	export const lexErrorIncompleteValue: LexFunction = combinatorOr([
-		createMatchIncompleteExact(OperatorsSyntax.PRIMITIVE + "string"),
-		createMatchIncompleteExact(OperatorsSyntax.PRIMITIVE + "number"),
-		createMatchIncompleteExact(OperatorsSyntax.PRIMITIVE + "boolean"),
-		createMatchIncompleteExact(OperatorsSyntax.PRIMITIVE + "null"),
-		createMatchIncompleteExact(OperatorsSyntax.PRIMITIVE + "true"),
-		createMatchIncompleteExact(OperatorsSyntax.PRIMITIVE + "false"),
-		combinatorChain(
-		 	[matchPrimitivePrefix, matchIncompleteString],
+		createMatchIncompleteExact(OperatorsSyntax.VALUE + "string"),
+		createMatchIncompleteExact(OperatorsSyntax.VALUE + "number"),
+		createMatchIncompleteExact(OperatorsSyntax.VALUE + "boolean"),
+		createMatchIncompleteExact(OperatorsSyntax.VALUE + "null"),
+		createMatchIncompleteExact(OperatorsSyntax.VALUE + "true"),
+		createMatchIncompleteExact(OperatorsSyntax.VALUE + "false"),
+		createMatchIncompleteExact(
+			OperatorsSyntax.VALUE + OperatorsSyntax.L_BRACKET + OperatorsSyntax.R_BRACKET,
+		),
+		createMatchIncompleteExact(
+			OperatorsSyntax.VALUE + OperatorsSyntax.L_BRACE + OperatorsSyntax.R_BRACE,
 		),
 		combinatorChain(
-			[matchPrimitivePrefix, matchIncompleteJsonNumber],
+		 	[matchVALUEPrefix, matchIncompleteString],
+		),
+		combinatorChain(
+			[matchVALUEPrefix, matchIncompleteJsonNumber],
 		),
 	]);
 	

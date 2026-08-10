@@ -43,8 +43,8 @@ export enum TokenKind {
 	VALUE_TYPE_STRING,             // #string
 	VALUE_TYPE_NUMBER,             // #number
 	VALUE_TYPE_BOOLEAN,            // #boolean
-	// VALUE_TYPE_ARRAY,
-	// VALUE_TYPE_OBJECT,
+	VALUE_TYPE_ARRAY,              // #[]
+	VALUE_TYPE_OBJECT,             // #{}
 	
 	// they match exact values of primitives
 	VALUE_EXACT_NULL,              // #null
@@ -77,7 +77,6 @@ export namespace enumUtils {
 	export function isOperatorParentChild(t: TokenKind): boolean{
 		return (TokenKind.OPERATOR_CHILD <= t && t <= TokenKind.OPERATOR_PARENT);
 	}
-
 	export function isValue(t: TokenKind): boolean{
 		return (TokenKind.VALUE_TYPE_WILDCARD <= t && t <= TokenKind.VALUE_EXACT_STRING);
 	}

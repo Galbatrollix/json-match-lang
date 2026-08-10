@@ -40,6 +40,8 @@ export declare namespace funcs {
     const lexValueExactNull: LexFunction;
     const lexValueExactTrue: LexFunction;
     const lexValueExactFalse: LexFunction;
+    const lexValueTypeArray: LexFunction;
+    const lexValueTypeObject: LexFunction;
     const lexWhitespace: LexFunction;
     const lexKeyNaked: LexFunction;
     const lexIndexAll: LexFunction;
