@@ -6,6 +6,7 @@ type fuzzerFunc = (batchSize: number, logDirPath: string) => number;
 // with wrong signature
 const lexFuzzers: Array<fuzzerFunc> = Object.values(lexFuzzTests);
 
+let totalFailures = 0;
 /**	
 	Runs all fuzz tests in pararell, for ever.
 
@@ -26,12 +27,14 @@ export function runAllFuzzTests(
 			const fuzzName = fuzzer.name;
 
 			const failures: number = fuzzer(batchSize, logDirPath);
+			totalFailures += failures;
+
 			if (failures != 0){
 				console.log(
 					`Fuzzer ${fuzzName} found ${failures} failures.\n`+
 					`Faulty inputs dumped into log files in directory: ${logDirPath}`
 				);
-			}else{
+			}else if(totalFailures == 0){
 				console.log(
 					`Batch of ${batchSize} iterations completed for` +
 					` fuzzer ${fuzzName} with no failures.`
