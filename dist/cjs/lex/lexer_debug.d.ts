@@ -20,6 +20,10 @@ export declare function incomplesOnlyInLastSlot(tape: TokenTape): boolean;
 /**
     Returns true only if all tokens of the tape
     parse into themselves when fed to the tokenizer.
+    
+    An exception to that rule are Erorr tokens that may parse
+    into an error token and error incomplete token pair or
+    just an error incomplete token.
 */
 export declare function recursiveOk(tape: TokenTape): boolean;
 /**

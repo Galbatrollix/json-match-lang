@@ -69,14 +69,42 @@ function incomplesOnlyInLastSlot(tape) {
 /**
     Returns true only if all tokens of the tape
     parse into themselves when fed to the tokenizer.
+    
+    An exception to that rule are Erorr tokens that may parse
+    into an error token and error incomplete token pair or
+    just an error incomplete token.
 */
 function recursiveOk(tape) {
     for (let i = 0; i < tape.tokenCount; i++) {
         const s = tape.tokenString[i];
+        const kind = tape.tokenKind[i];
         const recursiveTape = (0, lexer_tape_ts_1.tokenizeMatchString)(s);
-        if (recursiveTape.tokenCount != 1 || recursiveTape.tokenString[0] != s) {
+        if (lexer_enum_ts_1.enumUtils.isError(kind)) {
+            // possible case where error is split into error and incomplete
+            const twoElementsCase = (recursiveTape.tokenCount == 2
+                &&
+                    recursiveTape.tokenString.join("") == s
+                &&
+                    recursiveTape.tokenKind[0] == lexer_enum_ts_1.TokenKind.ERROR
+                &&
+                    lexer_enum_ts_1.enumUtils.isErrorIncomplete(recursiveTape.tokenKind[1]));
+            // possible case where error is not split but might become an incomplete
+            const oneElementCase = (recursiveTape.tokenCount == 1
+                &&
+                    recursiveTape.tokenString[0] == s
+                &&
+                    lexer_enum_ts_1.enumUtils.isError(recursiveTape.tokenKind[0]));
+            // if neither one or two elements variant happened then something is wrong
+            if (!oneElementCase && !twoElementsCase) {
+                return false;
+            }
+        }
+        else if (recursiveTape.tokenCount != 1
+            || recursiveTape.tokenString[0] != s
+            || recursiveTape.tokenKind[0] != kind) {
             // console.log(`FAILED AT STRING: ${i}: ${s}`);
             // console.log("GOT: ", recursiveTape);
+            // console.log("Fault at token:" + String(i));
             return false;
         }
     }
