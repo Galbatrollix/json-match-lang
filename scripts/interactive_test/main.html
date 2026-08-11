@@ -20,7 +20,7 @@
 	import {lexer} from "./../../dist/esm/main.js"
 	function echo_to_div() {
   		let content = document.getElementsByTagName("textarea")[0].value;
-		const tape = lexer.tokenizeMatchString(content);
+		const tape = lexer.tokenizeExpressionString(content);
 		//console.log(tape)
 		const asHtml = lexer.tapeUtils.display.asHtml(tape);
 		const readableKinds = lexer.tapeUtils.display.toReadableKinds(

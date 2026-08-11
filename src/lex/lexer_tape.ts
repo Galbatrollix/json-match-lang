@@ -22,7 +22,7 @@ export type TokenTape = Readonly <{
 // with interface or with hacks such as, neither is particularly appealing lol
 // type NamedAlias<t> = t & { _?: never }
 
-export function tokenizeMatchString(input: string): TokenTape {
+export function tokenizeExpressionString(input: string): TokenTape {
 	//codepoints are not always length one, cuz surrogate pairs!
 	const codepointList: Array<string> = Array.from(input);
 	const lexerOutput: Array<MatchToken> = lexJsonMatchCodepoints(codepointList);

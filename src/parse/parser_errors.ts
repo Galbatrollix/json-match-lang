@@ -41,7 +41,7 @@ export type ErrorStringNotValidJson = {
 	Tagged union of all error types,
 	uses field (kind: ErrorKind) as union discriminator.
 */
-export type Error = Readonly<
+export type ParseError = Readonly<
 	ErrorFoundErrorTokens 
 	| ErrorIndexOutOfBounds
 	| ErrorStringNotValidJson

@@ -13,12 +13,13 @@ export function randomInRange(range: Readonly<[min:number, max:number]>): number
 
 
 const unicodeRange = [0, 1114111 +1] as const;
+const asciiRange = [0, 255 +1] as const;
 
 /**
 	Constructs a random valid unicode string of provided length
 	(can have broken surrogate pairs and such)
 */
-export function randomString(length: number): string {
+export function randomUnicodeString(length: number): string {
 	const toJoin: Array<string> = [];
 	
 	for(let i = 0; i < length; i++){
@@ -26,6 +27,17 @@ export function randomString(length: number): string {
 	}
 
 	return toJoin.join("");
+}
+
+export function randomAsciiString(length: number): string {
+	const toJoin: Array<string> = [];
+	
+	for(let i = 0; i < length; i++){
+		toJoin.push(String.fromCodePoint(randomInRange(asciiRange)));
+	}
+
+	return toJoin.join("");
+	
 }
 
 

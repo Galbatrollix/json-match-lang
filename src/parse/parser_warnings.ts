@@ -14,4 +14,4 @@ export type WarningTest = {
 	tokenIndexes: Array<number>,
 }
 
-export type Warning = WarningBogusSequence | WarningTest;
+export type ParseWarning = WarningBogusSequence | WarningTest;

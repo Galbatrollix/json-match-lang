@@ -1,4 +1,4 @@
-import {type TokenTape, tokenizeMatchString, utils} from "./lexer_tape.ts"
+import {type TokenTape, tokenizeExpressionString, utils} from "./lexer_tape.ts"
 import {TokenKind, enumUtils} from "./lexer_enum.ts"
 
 
@@ -87,7 +87,7 @@ export function recursiveOk(tape: TokenTape): boolean {
 		const s = tape.tokenString[i];
 		const kind = tape.tokenKind[i];
 		
-		const recursiveTape = tokenizeMatchString(s);
+		const recursiveTape = tokenizeExpressionString(s);
 
 		if (enumUtils.isError(kind)){
 
@@ -142,7 +142,7 @@ export function stringSumOk(tape: TokenTape, originalInput: string): boolean {
 	exactly the same tape when tokenized again
 */
 export function tokenizeAgainOk(tape: TokenTape, originalInput: string): boolean {
-	const tokenizedAgain = tokenizeMatchString(originalInput);
+	const tokenizedAgain = tokenizeExpressionString(originalInput);
 
 	return utils.misc.equals(tape, tokenizedAgain);
 }

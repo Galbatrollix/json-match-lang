@@ -50,7 +50,7 @@ for (let i = 0; i< crazyStrings.length; i++){
 */
 export function lexTestCrazyStrings(): boolean {
 	for (const str of crazyStrings) {
-		const tape: lexer.TokenTape = lexer.tokenizeMatchString(str);
+		const tape: lexer.TokenTape = lexer.tokenizeExpressionString(str);
 		
 		if(! lexer.tapeUtils.debug.integrityCheckFull(tape, str)){
 			return false;
@@ -200,7 +200,7 @@ const fullExpressions: Array<expressionEntry> = [
 */
 export function lexTestFullExpressions(): boolean {
 	for (const {expr, tokens} of fullExpressions ){
-		const tape: lexer.TokenTape = lexer.tokenizeMatchString(expr);
+		const tape: lexer.TokenTape = lexer.tokenizeExpressionString(expr);
 		const valid: boolean = lexer.tapeUtils.debug.integrityCheckFull(tape, expr);
 		if (! valid ){
 			return false;

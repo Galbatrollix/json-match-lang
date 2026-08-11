@@ -11,7 +11,7 @@ import {lexer} from "../../../main.ts"
 */
 export function lexTestEmptyString(): boolean {
 	const empty = '';
-	const output: lexer.TokenTape = lexer.tokenizeMatchString(empty);
+	const output: lexer.TokenTape = lexer.tokenizeExpressionString(empty);
 	
 	const integrityOk: boolean = lexer.tapeUtils.debug.integrityCheckFull(output, empty);
 	if (!integrityOk){
@@ -143,7 +143,7 @@ atomCollection[lexer.TokenKind.ERROR_INCOMPLETE_ARRAY].push(
 export function lexTestAtoms(): boolean {
 	for (const [kind, atomStrings] of Object.entries(atomCollection)){
 		for (const atom of atomStrings){
-			const tape: lexer.TokenTape = lexer.tokenizeMatchString(atom);
+			const tape: lexer.TokenTape = lexer.tokenizeExpressionString(atom);
 			
 			// no atom can return an invalid tape
 			if (! lexer.tapeUtils.debug.integrityCheckFull(tape, atom)){
@@ -180,7 +180,7 @@ export function lexTestJoinableAtoms(): boolean {
 	for (const kind of joinableAtoms){
 		const str: string = atomCollection[kind].join("");
 		
-		const tape: lexer.TokenTape = lexer.tokenizeMatchString(str);
+		const tape: lexer.TokenTape = lexer.tokenizeExpressionString(str);
 	
 		if (! lexer.tapeUtils.debug.integrityCheckFull(tape, str)){
 			return false;
@@ -215,7 +215,7 @@ export function lexTestJoinableInterleave(): boolean {
 	const alternating: Array<string> = interleave(allNaked, allWhitespace);
 
 	const alternatingStr = alternating.join("");
-	const tape: lexer.TokenTape = lexer.tokenizeMatchString(alternatingStr);
+	const tape: lexer.TokenTape = lexer.tokenizeExpressionString(alternatingStr);
 	
 	if (! lexer.tapeUtils.debug.integrityCheckFull(tape, alternatingStr)){
 		return false;
@@ -268,7 +268,7 @@ export function lexTestDisjointAtoms(): boolean {
 		const str: string = atomCollection[atomKind].join("");
 		const atomCount = atomCollection[atomKind].length;
 		
-		const tape: lexer.TokenTape = lexer.tokenizeMatchString(str);
+		const tape: lexer.TokenTape = lexer.tokenizeExpressionString(str);
 	
 		if (! lexer.tapeUtils.debug.integrityCheckFull(tape, str)){
 			return false;
@@ -326,7 +326,7 @@ export function lextTestWhitespaceBetweenAtoms(): boolean {
 	
 	const combined = interleavedWithWhitespace.join("");
 	
-	const tape: lexer.TokenTape = lexer.tokenizeMatchString(combined);
+	const tape: lexer.TokenTape = lexer.tokenizeExpressionString(combined);
 	if (! lexer.tapeUtils.debug.integrityCheckFull(tape, combined)){
 		return false;
 	}	
@@ -364,8 +364,8 @@ export function lextTestWhitespaceBetweenAtoms(): boolean {
 export function lexTestSiblingOperatorPrecedence(): boolean {
 	const next = '+++';
 	const prev = '---';
-	const nextTape = lexer.tokenizeMatchString(next);
-	const prevTape = lexer.tokenizeMatchString(prev);
+	const nextTape = lexer.tokenizeExpressionString(next);
+	const prevTape = lexer.tokenizeExpressionString(prev);
 	
 	const nValid = lexer.tapeUtils.debug.integrityCheckFull(nextTape, next);
 	const pValid = lexer.tapeUtils.debug.integrityCheckFull(prevTape, prev);

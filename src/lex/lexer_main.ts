@@ -1,5 +1,5 @@
 export {enumUtils, TokenKind} from "./lexer_enum.ts"
-export {type TokenTape, tokenizeMatchString} from "./lexer_tape.ts"
+export {type TokenTape, tokenizeExpressionString} from "./lexer_tape.ts"
 
 
 import  * as debug_ from "./lexer_debug.ts"

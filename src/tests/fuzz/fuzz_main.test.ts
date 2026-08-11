@@ -6,7 +6,6 @@ type fuzzerFunc = (batchSize: number, logDirPath: string) => number;
 // with wrong signature
 const lexFuzzers: Array<fuzzerFunc> = Object.values(lexFuzzTests);
 
-let totalFailures = 0;
 /**	
 	Runs all fuzz tests in pararell, for ever.
 
@@ -21,7 +20,7 @@ export function runAllFuzzTests(
 	logDirPath: string = "temp/tests/dumps",
 ): never {
 	console.log(`Running all fuzzers in parallel...`);
-
+	let totalFailures = 0;
 	for(;;){
 		for (const fuzzer of lexFuzzers){
 			const fuzzName = fuzzer.name;
