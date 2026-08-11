@@ -1,4 +1,4 @@
-import { tokenizeMatchString, utils } from "./lexer_tape.js";
+import { tokenizeExpressionString, utils } from "./lexer_tape.js";
 import { TokenKind, enumUtils } from "./lexer_enum.js";
 export function integrityCheckBasic(tape) {
     return (soaOk(tape)
@@ -67,7 +67,7 @@ export function recursiveOk(tape) {
     for (let i = 0; i < tape.tokenCount; i++) {
         const s = tape.tokenString[i];
         const kind = tape.tokenKind[i];
-        const recursiveTape = tokenizeMatchString(s);
+        const recursiveTape = tokenizeExpressionString(s);
         if (enumUtils.isError(kind)) {
             // possible case where error is split into error and incomplete
             const twoElementsCase = (recursiveTape.tokenCount == 2
@@ -110,6 +110,6 @@ export function stringSumOk(tape, originalInput) {
     exactly the same tape when tokenized again
 */
 export function tokenizeAgainOk(tape, originalInput) {
-    const tokenizedAgain = tokenizeMatchString(originalInput);
+    const tokenizedAgain = tokenizeExpressionString(originalInput);
     return utils.misc.equals(tape, tokenizedAgain);
 }

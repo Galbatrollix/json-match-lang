@@ -37,5 +37,5 @@ export type ErrorStringNotValidJson = {
     Tagged union of all error types,
     uses field (kind: ErrorKind) as union discriminator.
 */
-export type Error = Readonly<ErrorFoundErrorTokens | ErrorIndexOutOfBounds | ErrorStringNotValidJson>;
+export type ParseError = Readonly<ErrorFoundErrorTokens | ErrorIndexOutOfBounds | ErrorStringNotValidJson>;
 //# sourceMappingURL=parser_errors.d.ts.map

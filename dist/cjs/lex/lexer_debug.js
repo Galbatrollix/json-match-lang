@@ -78,7 +78,7 @@ function recursiveOk(tape) {
     for (let i = 0; i < tape.tokenCount; i++) {
         const s = tape.tokenString[i];
         const kind = tape.tokenKind[i];
-        const recursiveTape = (0, lexer_tape_ts_1.tokenizeMatchString)(s);
+        const recursiveTape = (0, lexer_tape_ts_1.tokenizeExpressionString)(s);
         if (lexer_enum_ts_1.enumUtils.isError(kind)) {
             // possible case where error is split into error and incomplete
             const twoElementsCase = (recursiveTape.tokenCount == 2
@@ -121,6 +121,6 @@ function stringSumOk(tape, originalInput) {
     exactly the same tape when tokenized again
 */
 function tokenizeAgainOk(tape, originalInput) {
-    const tokenizedAgain = (0, lexer_tape_ts_1.tokenizeMatchString)(originalInput);
+    const tokenizedAgain = (0, lexer_tape_ts_1.tokenizeExpressionString)(originalInput);
     return lexer_tape_ts_1.utils.misc.equals(tape, tokenizedAgain);
 }

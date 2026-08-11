@@ -1,17 +1,12 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const parser_warnings_ts_1 = require("./parser_warnings.js");
-const warning = [];
-switch (warning[0].kind) {
-    case parser_warnings_ts_1.WarningKind.BOGUS_SEQUENCE:
-        {
-            warning[0].tokenRanges;
-        }
-        break;
-    case parser_warnings_ts_1.WarningKind.TEST:
-        {
-            warning[0].tokenIndexes;
-        }
-        break;
-    default: warning[0];
+exports.parseExpressionTokens = parseExpressionTokens;
+const parser_preprocess_ts_1 = require("./parser_preprocess.js");
+function parseExpressionTokens(tape) {
+    (0, parser_preprocess_ts_1.preprocessFindInvalidTokens)(tape);
+    return {
+        ast: undefined,
+        warnings: [],
+        errors: [],
+    };
 }

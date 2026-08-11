@@ -1,13 +1,13 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.utils = void 0;
-exports.tokenizeMatchString = tokenizeMatchString;
+exports.tokenizeExpressionString = tokenizeExpressionString;
 const lexer_enum_ts_1 = require("./lexer_enum.js");
 const lexer_impl_ts_1 = require("./lexer_impl.js");
 // autocomplete could behave more sanely if this structure is replaced 
 // with interface or with hacks such as, neither is particularly appealing lol
 // type NamedAlias<t> = t & { _?: never }
-function tokenizeMatchString(input) {
+function tokenizeExpressionString(input) {
     //codepoints are not always length one, cuz surrogate pairs!
     const codepointList = Array.from(input);
     const lexerOutput = (0, lexer_impl_ts_1.lexJsonMatchCodepoints)(codepointList);

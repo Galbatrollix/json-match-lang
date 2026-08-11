@@ -1,15 +1,12 @@
-import { WarningKind } from "./parser_warnings.js";
-const warning = [];
-switch (warning[0].kind) {
-    case WarningKind.BOGUS_SEQUENCE:
-        {
-            warning[0].tokenRanges;
-        }
-        break;
-    case WarningKind.TEST:
-        {
-            warning[0].tokenIndexes;
-        }
-        break;
-    default: warning[0];
+import * as lexer from "./../lex/lexer_main.js";
+import {} from "./parser_errors.js";
+import {} from "./parser_warnings.js";
+import { preprocessFindInvalidTokens } from "./parser_preprocess.js";
+export function parseExpressionTokens(tape) {
+    preprocessFindInvalidTokens(tape);
+    return {
+        ast: undefined,
+        warnings: [],
+        errors: [],
+    };
 }

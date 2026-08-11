@@ -33,12 +33,12 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.tapeUtils = exports.tokenizeMatchString = exports.TokenKind = exports.enumUtils = void 0;
+exports.tapeUtils = exports.tokenizeExpressionString = exports.TokenKind = exports.enumUtils = void 0;
 var lexer_enum_ts_1 = require("./lexer_enum.js");
 Object.defineProperty(exports, "enumUtils", { enumerable: true, get: function () { return lexer_enum_ts_1.enumUtils; } });
 Object.defineProperty(exports, "TokenKind", { enumerable: true, get: function () { return lexer_enum_ts_1.TokenKind; } });
 var lexer_tape_ts_1 = require("./lexer_tape.js");
-Object.defineProperty(exports, "tokenizeMatchString", { enumerable: true, get: function () { return lexer_tape_ts_1.tokenizeMatchString; } });
+Object.defineProperty(exports, "tokenizeExpressionString", { enumerable: true, get: function () { return lexer_tape_ts_1.tokenizeExpressionString; } });
 const debug_ = __importStar(require("./lexer_debug.js"));
 const lexer_tape_ts_2 = require("./lexer_tape.js");
 var tapeUtils;

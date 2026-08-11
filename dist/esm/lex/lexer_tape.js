@@ -3,7 +3,7 @@ import { lexJsonMatchCodepoints } from "./lexer_impl.js";
 // autocomplete could behave more sanely if this structure is replaced 
 // with interface or with hacks such as, neither is particularly appealing lol
 // type NamedAlias<t> = t & { _?: never }
-export function tokenizeMatchString(input) {
+export function tokenizeExpressionString(input) {
     //codepoints are not always length one, cuz surrogate pairs!
     const codepointList = Array.from(input);
     const lexerOutput = lexJsonMatchCodepoints(codepointList);

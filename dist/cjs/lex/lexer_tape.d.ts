@@ -13,7 +13,7 @@ export type TokenTape = Readonly<{
     tokenKind: Readonly<Array<TokenKind>>;
     tokenString: Readonly<Array<string>>;
 }>;
-export declare function tokenizeMatchString(input: string): TokenTape;
+export declare function tokenizeExpressionString(input: string): TokenTape;
 /**
     Bundle of utility functions for handling TokenTape values.
 */

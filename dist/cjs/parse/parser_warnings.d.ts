@@ -10,5 +10,5 @@ export type WarningTest = {
     kind: WarningKind.TEST;
     tokenIndexes: Array<number>;
 };
-export type Warning = WarningBogusSequence | WarningTest;
+export type ParseWarning = WarningBogusSequence | WarningTest;
 //# sourceMappingURL=parser_warnings.d.ts.map

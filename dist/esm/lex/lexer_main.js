@@ -1,5 +1,5 @@
 export { enumUtils, TokenKind } from "./lexer_enum.js";
-export { tokenizeMatchString } from "./lexer_tape.js";
+export { tokenizeExpressionString } from "./lexer_tape.js";
 import * as debug_ from "./lexer_debug.js";
 import { utils } from "./lexer_tape.js";
 export var tapeUtils;
