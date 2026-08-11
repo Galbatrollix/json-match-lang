@@ -27,7 +27,7 @@ var utils;
     */
         function hasError(tape) {
             for (let i = 0; i < tape.tokenCount; i++) {
-                if (tape.tokenKind[i] == lexer_enum_ts_1.TokenKind.ERROR) {
+                if (lexer_enum_ts_1.enumUtils.isError(tape.tokenKind[i])) {
                     return true;
                 }
             }

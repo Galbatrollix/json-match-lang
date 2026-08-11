@@ -1,10 +1,10 @@
-import {TokenKind} from "./lexer_enum.ts"
+import {TokenKind, enumUtils} from "./lexer_enum.ts"
 import {type MatchToken, lexJsonMatchCodepoints} from "./lexer_impl.ts"
 
 
 /**
 	Immutable output of json match string tokenizer.
-	SoA of 4 arrays with .length equal to TokenTape.tokenCount property:
+	SoA of 2 arrays with .length equal to TokenTape.tokenCount property:
 		tokenKind[i]:   TokenKind enum value representing i-th token type
 		tokenString[i]: String sliced from original input, that spans range of i-th token
 
@@ -16,7 +16,7 @@ export type TokenTape = Readonly <{
 
 	tokenKind:    Readonly<Array<TokenKind>>;
 	tokenString:  Readonly<Array<string>>;
-}>
+}> & { _?: never };
 
 // autocomplete could behave more sanely if this structure is replaced 
 // with interface or with hacks such as, neither is particularly appealing lol
@@ -41,7 +41,7 @@ export namespace utils {
 	*/
 		export function hasError(tape: TokenTape): boolean {
 			for (let i = 0; i< tape.tokenCount; i++){
-				if (tape.tokenKind[i] == TokenKind.ERROR){
+				if (enumUtils.isError(tape.tokenKind[i])){
 					return true;
 				}
 			}

@@ -1,4 +1,4 @@
-import { TokenKind } from "./lexer_enum.js";
+import { TokenKind, enumUtils } from "./lexer_enum.js";
 import { lexJsonMatchCodepoints } from "./lexer_impl.js";
 // autocomplete could behave more sanely if this structure is replaced 
 // with interface or with hacks such as, neither is particularly appealing lol
@@ -23,7 +23,7 @@ export var utils;
     */
         function hasError(tape) {
             for (let i = 0; i < tape.tokenCount; i++) {
-                if (tape.tokenKind[i] == TokenKind.ERROR) {
+                if (enumUtils.isError(tape.tokenKind[i])) {
                     return true;
                 }
             }

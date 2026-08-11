@@ -1,7 +1,7 @@
 import { TokenKind } from "./lexer_enum.ts";
 /**
     Immutable output of json match string tokenizer.
-    SoA of 4 arrays with .length equal to TokenTape.tokenCount property:
+    SoA of 2 arrays with .length equal to TokenTape.tokenCount property:
         tokenKind[i]:   TokenKind enum value representing i-th token type
         tokenString[i]: String sliced from original input, that spans range of i-th token
 
@@ -12,7 +12,9 @@ export type TokenTape = Readonly<{
     tokenCount: Readonly<number>;
     tokenKind: Readonly<Array<TokenKind>>;
     tokenString: Readonly<Array<string>>;
-}>;
+}> & {
+    _?: never;
+};
 export declare function tokenizeExpressionString(input: string): TokenTape;
 /**
     Bundle of utility functions for handling TokenTape values.
