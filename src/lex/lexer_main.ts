@@ -1,4 +1,4 @@
-export {enumUtils, TokenKind} from "./lexer_enum.ts"
+export {TokenKindUtils, TokenKind} from "./lexer_enum.ts"
 export {type TokenTape, tokenizeExpressionString} from "./lexer_tape.ts"
 
 

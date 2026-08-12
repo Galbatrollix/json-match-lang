@@ -1,5 +1,5 @@
 import {type TokenTape, tokenizeExpressionString, utils} from "./lexer_tape.ts"
-import {TokenKind, enumUtils} from "./lexer_enum.ts"
+import {TokenKind, TokenKindUtils} from "./lexer_enum.ts"
 
 
 
@@ -31,7 +31,7 @@ export function integrityCheckFull(tape: TokenTape, originalInput: string): bool
 /**
 	Returns true only if TokenTape SoA structure is consistent.	
 */
-export function soaOk(tape: TokenTape): boolean {
+function soaOk(tape: TokenTape): boolean {
 	return (
 		tape.tokenCount == tape.tokenKind.length
 		&&
@@ -44,7 +44,7 @@ export function soaOk(tape: TokenTape): boolean {
 	in neighborhood of other error tokens. Only considers plain
 	error tokens. Ignores incomplete-error tokens.
 */
-export function noDupeErrors(tape: TokenTape): boolean {
+function noDupeErrors(tape: TokenTape): boolean {
 	if (tape.tokenCount < 2) return true;
 
 	for (let i = 1; i < tape.tokenCount; i++){
@@ -62,10 +62,10 @@ export function noDupeErrors(tape: TokenTape): boolean {
 	Returns true only if no incomplete-error token
 	is at the list position other than last. 
 */
-export function incomplesOnlyInLastSlot(tape: TokenTape): boolean {
+function incomplesOnlyInLastSlot(tape: TokenTape): boolean {
 	for (let i = 0; i < tape.tokenCount - 1; i++){
 		const kind: TokenKind = tape.tokenKind[i];
-		if (enumUtils.isErrorIncomplete(kind)){
+		if (TokenKindUtils.isErrorIncomplete(kind)){
 			return false;
 		}
 	}
@@ -82,14 +82,14 @@ export function incomplesOnlyInLastSlot(tape: TokenTape): boolean {
 	into an error token and error incomplete token pair or
 	just an error incomplete token.
 */
-export function recursiveOk(tape: TokenTape): boolean {
+function recursiveOk(tape: TokenTape): boolean {
 	for (let i = 0; i<tape.tokenCount ;i++) {
 		const s = tape.tokenString[i];
 		const kind = tape.tokenKind[i];
 		
 		const recursiveTape = tokenizeExpressionString(s);
 
-		if (enumUtils.isError(kind)){
+		if (TokenKindUtils.isError(kind)){
 
 			// possible case where error is split into error and incomplete
 			const twoElementsCase: boolean = (
@@ -99,7 +99,7 @@ export function recursiveOk(tape: TokenTape): boolean {
 				&&
 				recursiveTape.tokenKind[0] == TokenKind.ERROR
 				&&
-				enumUtils.isErrorIncomplete(recursiveTape.tokenKind[1])
+				TokenKindUtils.isErrorIncomplete(recursiveTape.tokenKind[1])
 			);
 			// possible case where error is not split but might become an incomplete
 			const oneElementCase: boolean = (
@@ -107,7 +107,7 @@ export function recursiveOk(tape: TokenTape): boolean {
 				&&
 				recursiveTape.tokenString[0] == s
 				&& 
-				enumUtils.isError(recursiveTape.tokenKind[0])
+				TokenKindUtils.isError(recursiveTape.tokenKind[0])
 			);
 			
 			// if neither one or two elements variant happened then something is wrong
@@ -133,7 +133,7 @@ export function recursiveOk(tape: TokenTape): boolean {
 /**
 	Returns true only if contents of tape strings sum up to the original input string.
 */
-export function stringSumOk(tape: TokenTape, originalInput: string): boolean {
+function stringSumOk(tape: TokenTape, originalInput: string): boolean {
 	return tape.tokenString.join("") == originalInput;
 }
 
@@ -141,7 +141,7 @@ export function stringSumOk(tape: TokenTape, originalInput: string): boolean {
 	Returns true only if original input yields 
 	exactly the same tape when tokenized again
 */
-export function tokenizeAgainOk(tape: TokenTape, originalInput: string): boolean {
+function tokenizeAgainOk(tape: TokenTape, originalInput: string): boolean {
 	const tokenizedAgain = tokenizeExpressionString(originalInput);
 
 	return utils.misc.equals(tape, tokenizedAgain);

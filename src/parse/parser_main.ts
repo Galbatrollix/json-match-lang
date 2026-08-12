@@ -4,21 +4,52 @@ import {type ParseWarning} from "./parser_warnings.ts"
 import {preprocessFindInvalidTokens} from "./parser_preprocess.ts"
 
 
-export type ExpressionAst = undefined;
+export type CompiledExpression = undefined;
+
+export type ParseResult = Readonly<{
+	output: CompiledExpression,
+	errors: Readonly<Array<ParseError>>,
+	warnings: Readonly<Array<ParseWarning>>,
+}>;
 
 
-export type ParseResult = {
-	ast: ExpressionAst,
-	warnings: Array<ParseWarning>,
-	errors: Array<ParseError>,
-};
+
+//todo: go over lexer and maybe reorganize it so it makes more sense, update docstrings and
+// names perhaps too
 
 export function parseExpressionTokens(tape: lexer.TokenTape): ParseResult {
-	preprocessFindInvalidTokens(tape);
+	
+	// find any critical and easy to spot errors with supplied token tape
+	const preprocessingErrors: Array<ParseError> = preprocessFindInvalidTokens(tape);
+	if (preprocessingErrors){
+		return assembleParseResult(
+			emptyCompiledExpression(), preprocessingErrors, [] 
+		);
+	}
+	
+	
+	return assembleParseResult(emptyCompiledExpression(), [], []);
+}
 
+
+function emptyCompiledExpression(): CompiledExpression {
+	return undefined;
+}
+
+/**
+	Turns parse result parts and assembles them into final 
+	object and performs necessary freezing operations.
+
+	Arrays given as parameters may be modified (frozen)
+*/
+function assembleParseResult(
+	output: CompiledExpression,
+	errors: Array<ParseError>,
+	warnings: Array<ParseWarning>,
+): ParseResult{
 	return {
-		ast: undefined,
-		warnings: [],
-		errors: [],	
+		output: output,
+		errors: Object.freeze(errors),
+		warnings: Object.freeze(warnings),
 	}
 }

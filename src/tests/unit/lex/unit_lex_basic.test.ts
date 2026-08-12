@@ -305,7 +305,7 @@ export function lextTestWhitespaceBetweenAtoms(): boolean {
 			continue;
 		}
 		// filtering out errors
-		if (lexer.enumUtils.isError(Number(kind))){
+		if (lexer.TokenKindUtils.isError(Number(kind))){
 			continue;
 		}
 		

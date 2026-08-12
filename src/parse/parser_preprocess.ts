@@ -1,5 +1,5 @@
 import * as lexer from "./../lex/lexer_main.ts"
-import {type ParseError, ErrorKind} from "./parser_errors.ts"
+import {type ParseError, ParseErrorKind} from "./parser_errors.ts"
 // import {type ParseWarning} from "./parser_warnings.ts"
 
 
@@ -21,7 +21,7 @@ export function preprocessFindInvalidTokens(tape: lexer.TokenTape): Array<ParseE
 		const kind: lexer.TokenKind = tape.tokenKind[i];
 		const str: string = tape.tokenString[i];
 
-		if (lexer.enumUtils.isError(kind)){
+		if (lexer.TokenKindUtils.isError(kind)){
 			errorTokenIdx.push(i);
 		}else if(isOverflownIndex(kind, str)){
 			indexOverflowIdx.push(i);	
@@ -36,21 +36,21 @@ export function preprocessFindInvalidTokens(tape: lexer.TokenTape): Array<ParseE
 	// for three 4-line blocks is more trouble than its worth 
 	if (errorTokenIdx){
 		foundErrors.push({
-			kind: ErrorKind.FOUND_ERROR_TOKENS,
+			kind: ParseErrorKind.FOUND_ERROR_TOKENS,
 			tokenIndexes: Object.freeze(errorTokenIdx),
 		});
 	}
 
 	if (indexOverflowIdx){
 		foundErrors.push({
-			kind: ErrorKind.INDEX_OUT_OF_BOUNDS,
+			kind: ParseErrorKind.INDEX_OUT_OF_BOUNDS,
 			tokenIndexes: Object.freeze(indexOverflowIdx),
 		});
 	}
 
 	if (wrongStringIdx){
 		foundErrors.push({
-			kind: ErrorKind.STRING_NOT_VALID_JSON,
+			kind: ParseErrorKind.STRING_NOT_VALID_JSON,
 			tokenIndexes: Object.freeze(wrongStringIdx),
 		});
 	}

@@ -1,4 +1,4 @@
-import {TokenKind, enumUtils} from "./lexer_enum.ts"
+import {TokenKind, TokenKindUtils} from "./lexer_enum.ts"
 import {type MatchToken, lexJsonMatchCodepoints} from "./lexer_impl.ts"
 
 
@@ -18,9 +18,6 @@ export type TokenTape = Readonly <{
 	tokenString:  Readonly<Array<string>>;
 }> & { _?: never };
 
-// autocomplete could behave more sanely if this structure is replaced 
-// with interface or with hacks such as, neither is particularly appealing lol
-// type NamedAlias<t> = t & { _?: never }
 
 export function tokenizeExpressionString(input: string): TokenTape {
 	//codepoints are not always length one, cuz surrogate pairs!
@@ -34,14 +31,18 @@ export function tokenizeExpressionString(input: string): TokenTape {
 	Bundle of utility functions for handling TokenTape values.
 */
 export namespace utils {
+	/**
+		Contains general purpose utility functions such as
+		comparing two tapes or checking if tape has error.
+	*/
 	export namespace misc {
 		/**
-		Returns true if TokenTape has at least one error token. 
-		Otherwise returns false.
-	*/
+			Returns true if TokenTape has at least one error token. 
+			Otherwise returns false.
+		*/
 		export function hasError(tape: TokenTape): boolean {
 			for (let i = 0; i< tape.tokenCount; i++){
-				if (enumUtils.isError(tape.tokenKind[i])){
+				if (TokenKindUtils.isError(tape.tokenKind[i])){
 					return true;
 				}
 			}
@@ -160,7 +161,7 @@ export namespace utils {
 			Each tokenkind string identifier is prepended with value of prefix parameter.
 			If prefix is not specified, prepends nothing.
 		
-			Example output with "tk." prefix :
+			Example output with "tk." prefix:
 				 "[tk.WHITESPACE, tk.ERROR, tk.OPERATOR_AND, ]"
 		*/
 		export function toReadableKinds(

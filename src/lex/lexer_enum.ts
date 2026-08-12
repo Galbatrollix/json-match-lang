@@ -58,7 +58,7 @@ export enum TokenKind {
 /**
 	Bunch of helpers for easier work with the monstrous enum.	
 */
-export namespace enumUtils {
+export namespace TokenKindUtils {
 	export function isError(t: TokenKind): boolean{
 		return (TokenKind.ERROR <= t && t <= TokenKind.ERROR_INCOMPLETE_VALUE);
 	}

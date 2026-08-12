@@ -99,8 +99,9 @@ const LexFunctionsCollection: Array<{fn: LexFunction, kind: TokenKind}> = [
 	lex functions from lowest to highest index and returns results and
 	assigned token kind of the first function that matched. 
 
-	At least one of the functions must match (error token). 
-	If that doesnt happen, error gets thrown.
+	At least one of the functions must match (error token must always match). 
+	If that doesnt happen, it means program is ill-formed.
+	In event of such failure error gets thrown.
 */
 function nextToken(charList: Array<string>, current: number): MatchToken {
 	const end = charList.length;

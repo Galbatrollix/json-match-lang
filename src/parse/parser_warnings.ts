@@ -1,17 +1,26 @@
-
-export enum WarningKind {
-	BOGUS_SEQUENCE,
+/**
+	Enum of ParseWarning union discriminators
+	each entry in the enum corresponds with
+	a specific ParseWarning variant.
+*/
+export enum ParseWarningKind {
+	BOGUS_PAIR,
 	TEST,
 }
 
-
-export type WarningBogusSequence = {
-	kind: WarningKind.BOGUS_SEQUENCE,
-	tokenRanges: Array<[number, number]>,
+export namespace ParseWarningVariants {
+	export type BogusPair = {
+		kind: ParseWarningKind.BOGUS_PAIR,
+		tokenIndexes: Array<number>,
+	}
+	export type Test = {
+		kind: ParseWarningKind.TEST,
+		tokenIndexes: Array<number>,
+	}
 }
-export type WarningTest = {
-	kind: WarningKind.TEST,
-	tokenIndexes: Array<number>,
-}
 
-export type ParseWarning = WarningBogusSequence | WarningTest;
+
+export type ParseWarning = Readonly < 
+	ParseWarningVariants.BogusPair 
+	| ParseWarningVariants.Test
+>
