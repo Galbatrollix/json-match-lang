@@ -49,34 +49,34 @@ export var TokenKind;
 /**
     Bunch of helpers for easier work with the monstrous enum.
 */
-export var enumUtils;
-(function (enumUtils) {
+export var TokenKindUtils;
+(function (TokenKindUtils) {
     function isError(t) {
         return (TokenKind.ERROR <= t && t <= TokenKind.ERROR_INCOMPLETE_VALUE);
     }
-    enumUtils.isError = isError;
+    TokenKindUtils.isError = isError;
     function isErrorIncomplete(t) {
         return (TokenKind.ERROR_INCOMPLETE_KEY <= t && t <= TokenKind.ERROR_INCOMPLETE_VALUE);
     }
-    enumUtils.isErrorIncomplete = isErrorIncomplete;
+    TokenKindUtils.isErrorIncomplete = isErrorIncomplete;
     function isOperator(t) {
         return (TokenKind.OPERATOR_CHILD <= t && t <= TokenKind.OPERATOR_NOT);
     }
-    enumUtils.isOperator = isOperator;
+    TokenKindUtils.isOperator = isOperator;
     function isOperatorLogical(t) {
         return (TokenKind.OPERATOR_OR <= t && t <= TokenKind.OPERATOR_NOT);
     }
-    enumUtils.isOperatorLogical = isOperatorLogical;
+    TokenKindUtils.isOperatorLogical = isOperatorLogical;
     function isOperatorSibling(t) {
         return (TokenKind.OPERATOR_SIBLING_NEXT <= t && t <= TokenKind.OPERATOR_SIBLING_ANY);
     }
-    enumUtils.isOperatorSibling = isOperatorSibling;
+    TokenKindUtils.isOperatorSibling = isOperatorSibling;
     function isOperatorParentChild(t) {
         return (TokenKind.OPERATOR_CHILD <= t && t <= TokenKind.OPERATOR_PARENT);
     }
-    enumUtils.isOperatorParentChild = isOperatorParentChild;
+    TokenKindUtils.isOperatorParentChild = isOperatorParentChild;
     function isValue(t) {
         return (TokenKind.VALUE_TYPE_WILDCARD <= t && t <= TokenKind.VALUE_EXACT_STRING);
     }
-    enumUtils.isValue = isValue;
-})(enumUtils || (enumUtils = {}));
+    TokenKindUtils.isValue = isValue;
+})(TokenKindUtils || (TokenKindUtils = {}));

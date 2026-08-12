@@ -1,5 +1,5 @@
 import * as lexer from "./../lex/lexer_main.js";
-import { ErrorKind } from "./parser_errors.js";
+import { ParseErrorKind } from "./parser_errors.js";
 // import {type ParseWarning} from "./parser_warnings.ts"
 /**
     A parser preprocessing function that scans token tape for critical problems
@@ -17,7 +17,7 @@ export function preprocessFindInvalidTokens(tape) {
     for (let i = 0; i < tape.tokenCount; i++) {
         const kind = tape.tokenKind[i];
         const str = tape.tokenString[i];
-        if (lexer.enumUtils.isError(kind)) {
+        if (lexer.TokenKindUtils.isError(kind)) {
             errorTokenIdx.push(i);
         }
         else if (isOverflownIndex(kind, str)) {
@@ -32,19 +32,19 @@ export function preprocessFindInvalidTokens(tape) {
     // for three 4-line blocks is more trouble than its worth 
     if (errorTokenIdx) {
         foundErrors.push({
-            kind: ErrorKind.FOUND_ERROR_TOKENS,
+            kind: ParseErrorKind.FOUND_ERROR_TOKENS,
             tokenIndexes: Object.freeze(errorTokenIdx),
         });
     }
     if (indexOverflowIdx) {
         foundErrors.push({
-            kind: ErrorKind.INDEX_OUT_OF_BOUNDS,
+            kind: ParseErrorKind.INDEX_OUT_OF_BOUNDS,
             tokenIndexes: Object.freeze(indexOverflowIdx),
         });
     }
     if (wrongStringIdx) {
         foundErrors.push({
-            kind: ErrorKind.STRING_NOT_VALID_JSON,
+            kind: ParseErrorKind.STRING_NOT_VALID_JSON,
             tokenIndexes: Object.freeze(wrongStringIdx),
         });
     }

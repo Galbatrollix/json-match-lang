@@ -1,12 +1,8 @@
 import {TokenKind, TokenKindUtils} from "./lexer_enum.ts"
 import {tokenizeExpressionString} from "./lexer_tokenize.ts"
 
-function dupa(): any{
-	return tokenizeExpressionString('');
-}
-
 /**
-	Immutable output of json match string tokenizer.
+	Immutable output of expression string tokenizer.
 	SoA of 2 arrays with .length equal to TokenTape.tokenCount property:
 		tokenKind[i]:   TokenKind enum value representing i-th token type
 		tokenString[i]: String sliced from original input, that spans range of i-th token
@@ -25,12 +21,12 @@ export type TokenTape = Readonly <{
 /**
 	Bundle of utility functions for handling TokenTape values.
 */
-export namespace tapeUtils {
+export namespace TokenTapeUtils {
 	/**
 		Contains general purpose utility functions such as
 		comparing two tapes or checking if tape has error.
 	*/
-	export namespace misc {
+	export namespace Misc {
 		/**
 			Returns true if TokenTape has at least one error token. 
 			Otherwise returns false.
@@ -62,13 +58,31 @@ export namespace tapeUtils {
 			);
 		}
 
+		/**
+			A helper for comparing tape pararell arrays for equality. 
+			Returns true if both are equal
+		*/
+		function tapeArrayEquals<T>(arr1: Readonly<Array<T>>, arr2: Readonly<Array<T>>): boolean {
+			if (arr1.length != arr2.length){
+				return false;
+			}
+
+			for (let i = 0; i < arr1.length; i++){
+				if (arr1[i] != arr2[i]){
+					return false;
+				}
+			}
+
+			return true;
+		}
+
 	}
 	
 	/**
 		Contains functions for data presentation
 		purposes only. 
 	*/
-	export namespace display {
+	export namespace Display {
 		/**
 			Returns token tape encoded as array of strings, with each
 			string corresponding to one tokentape entry.
@@ -159,7 +173,7 @@ export namespace tapeUtils {
 			Example output with "tk." prefix:
 				 "[tk.WHITESPACE, tk.ERROR, tk.OPERATOR_AND, ]"
 		*/
-		export function toReadableKinds(
+		export function asReadableKinds(
 			kinds: Readonly<Array<TokenKind>>,
 			prefix: string = "",
 		): string {
@@ -175,10 +189,32 @@ export namespace tapeUtils {
 			return toJoin.join("")
 
 		}
+
+		function truncateStr(s: string, maxLength: number): string {
+			return s.slice(0, maxLength);
+		}
+
+		// max length must be at least 7.
+		function truncateStrWithEllipsis( s: string, maxLength: number): string {
+			if (maxLength < 7){
+				return s;
+			}
+			if (s.length <= maxLength){
+				return s;
+			}
+			// s is too long
+			const sliced = s.slice(0, maxLength - 5);
+			return sliced + "(...)";
+		}
+			
+		function replaceWhitespaceWithSpaces(s: string): string {
+			return s.replace(/[\f\n\r\t\v\u00A0\u2028\u2029]/g, " ");
+		}
+		
 	}
 
 
-	export namespace debug {
+	export namespace Debug {
 		export function integrityCheckBasic(tape: TokenTape): boolean {
 			return (
 				soaOk(tape) 
@@ -319,54 +355,9 @@ export namespace tapeUtils {
 		function tokenizeAgainOk(tape: TokenTape, originalInput: string): boolean {
 			const tokenizedAgain = tokenizeExpressionString(originalInput);
 
-			return tapeUtils.misc.equals(tape, tokenizedAgain);
+			return TokenTapeUtils.Misc.equals(tape, tokenizedAgain);
 		}
 
 	}
 
-}
-
-
-
-/*
-	Print helpers
-*/
-
-function truncateStr(s: string, maxLength: number): string {
-		return s.slice(0, maxLength);
-	}
-
-// max length must be at least 7.
-function truncateStrWithEllipsis( s: string, maxLength: number): string {
-	if (maxLength < 7){
-		return s;
-	}
-	if (s.length <= maxLength){
-		return s;
-	}
-	// s is too long
-	const sliced = s.slice(0, maxLength - 5);
-	return sliced + "(...)";
-}
-	
-function replaceWhitespaceWithSpaces(s: string): string {
-	return s.replace(/[\f\n\r\t\v\u00A0\u2028\u2029]/g, " ");
-}
-
-/*
-	A helper for comparing tape pararell arrays for equality. 
-	Returns true if both are equal
-*/
-function tapeArrayEquals<T>(arr1: Readonly<Array<T>>, arr2: Readonly<Array<T>>): boolean {
-	if (arr1.length != arr2.length){
-		return false;
-	}
-
-	for (let i = 0; i < arr1.length; i++){
-		if (arr1[i] != arr2[i]){
-			return false;
-		}
-	}
-
-	return true;
 }

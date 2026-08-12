@@ -1,35 +1,29 @@
-import { TokenKind, enumUtils } from "./lexer_enum.js";
-import { lexJsonMatchCodepoints } from "./lexer_impl.js";
-// autocomplete could behave more sanely if this structure is replaced 
-// with interface or with hacks such as, neither is particularly appealing lol
-// type NamedAlias<t> = t & { _?: never }
-export function tokenizeExpressionString(input) {
-    //codepoints are not always length one, cuz surrogate pairs!
-    const codepointList = Array.from(input);
-    const lexerOutput = lexJsonMatchCodepoints(codepointList);
-    const tape = assembleTokenTable(lexerOutput, codepointList);
-    return tape;
-}
+import { TokenKind, TokenKindUtils } from "./lexer_enum.js";
+import { tokenizeExpressionString } from "./lexer_tokenize.js";
 /**
     Bundle of utility functions for handling TokenTape values.
 */
-export var utils;
-(function (utils) {
-    let misc;
-    (function (misc) {
-        /**
-        Returns true if TokenTape has at least one error token.
-        Otherwise returns false.
+export var TokenTapeUtils;
+(function (TokenTapeUtils) {
+    /**
+        Contains general purpose utility functions such as
+        comparing two tapes or checking if tape has error.
     */
-        function hasError(tape) {
+    let Misc;
+    (function (Misc) {
+        /**
+            Returns true if TokenTape has at least one error token.
+            Otherwise returns false.
+        */
+        function hasErrors(tape) {
             for (let i = 0; i < tape.tokenCount; i++) {
-                if (enumUtils.isError(tape.tokenKind[i])) {
+                if (TokenKindUtils.isError(tape.tokenKind[i])) {
                     return true;
                 }
             }
             return false;
         }
-        misc.hasError = hasError;
+        Misc.hasErrors = hasErrors;
         /**
             Returns true only if given token tapes are identical
         */
@@ -45,14 +39,29 @@ export var utils;
                 &&
                     tapeArrayEquals(t1.tokenString, t2.tokenString));
         }
-        misc.equals = equals;
-    })(misc = utils.misc || (utils.misc = {}));
+        Misc.equals = equals;
+        /**
+            A helper for comparing tape pararell arrays for equality.
+            Returns true if both are equal
+        */
+        function tapeArrayEquals(arr1, arr2) {
+            if (arr1.length != arr2.length) {
+                return false;
+            }
+            for (let i = 0; i < arr1.length; i++) {
+                if (arr1[i] != arr2[i]) {
+                    return false;
+                }
+            }
+            return true;
+        }
+    })(Misc = TokenTapeUtils.Misc || (TokenTapeUtils.Misc = {}));
     /**
         Contains functions for data presentation
         purposes only.
     */
-    let display;
-    (function (display) {
+    let Display;
+    (function (Display) {
         /**
             Returns token tape encoded as array of strings, with each
             string corresponding to one tokentape entry.
@@ -77,7 +86,7 @@ export var utils;
             }
             return result;
         }
-        display.asArr = asArr;
+        Display.asArr = asArr;
         /**
             Returns token tape encoded as a single string with line
             separators. Mainly for printing in console.
@@ -89,7 +98,7 @@ export var utils;
             }
             return entries.join("\n");
         }
-        display.asStr = asStr;
+        Display.asStr = asStr;
         /**
             Returns token tape encoded as HTML for display with syntax highlight
             and whatnot. Troublesome characters are replaced with escape sequences
@@ -121,7 +130,7 @@ export var utils;
             }
             return spanList.join("");
         }
-        display.asHtml = asHtml;
+        Display.asHtml = asHtml;
         /**
             Exports tokenkinds of TokenTape as a string that represents
             JS array that could be plucked directly into code.
@@ -129,10 +138,10 @@ export var utils;
             Each tokenkind string identifier is prepended with value of prefix parameter.
             If prefix is not specified, prepends nothing.
         
-            Example output with "tk." prefix :
+            Example output with "tk." prefix:
                  "[tk.WHITESPACE, tk.ERROR, tk.OPERATOR_AND, ]"
         */
-        function toReadableKinds(kinds, prefix = "") {
+        function asReadableKinds(kinds, prefix = "") {
             const toJoin = ['['];
             for (let i = 0; i < kinds.length; i++) {
                 const kindIdentifier = TokenKind[kinds[i]];
@@ -143,62 +152,143 @@ export var utils;
             toJoin.push(']');
             return toJoin.join("");
         }
-        display.toReadableKinds = toReadableKinds;
-    })(display = utils.display || (utils.display = {}));
-})(utils || (utils = {}));
-function assembleTokenTable(lexerOutput, codepointList) {
-    const resultKinds = [];
-    const resultStrings = [];
-    for (let i = 1; i < lexerOutput.length; i++) {
-        const startIdx = lexerOutput[i - 1].endIdx;
-        const endIdx = lexerOutput[i].endIdx;
-        const kind = lexerOutput[i].kind;
-        const tokenSlice = codepointList.slice(startIdx, endIdx);
-        const tokenString = tokenSlice.join("");
-        resultKinds.push(kind);
-        resultStrings.push(tokenString);
-    }
-    // constructing output
-    const result = {
-        tokenCount: lexerOutput.length - 1,
-        tokenKind: Object.freeze(resultKinds),
-        tokenString: Object.freeze(resultStrings),
-    };
-    return Object.freeze(result);
-}
-/*
-    Print helpers
-*/
-function truncateStr(s, maxLength) {
-    return s.slice(0, maxLength);
-}
-// max length must be at least 7.
-function truncateStrWithEllipsis(s, maxLength) {
-    if (maxLength < 7) {
-        return s;
-    }
-    if (s.length <= maxLength) {
-        return s;
-    }
-    // s is too long
-    const sliced = s.slice(0, maxLength - 5);
-    return sliced + "(...)";
-}
-function replaceWhitespaceWithSpaces(s) {
-    return s.replace(/[\f\n\r\t\v\u00A0\u2028\u2029]/g, " ");
-}
-/*
-    A helper for comparing tape pararell arrays for equality.
-    Returns true if both are equal
-*/
-function tapeArrayEquals(arr1, arr2) {
-    if (arr1.length != arr2.length) {
-        return false;
-    }
-    for (let i = 0; i < arr1.length; i++) {
-        if (arr1[i] != arr2[i]) {
-            return false;
+        Display.asReadableKinds = asReadableKinds;
+        function truncateStr(s, maxLength) {
+            return s.slice(0, maxLength);
         }
-    }
-    return true;
-}
+        // max length must be at least 7.
+        function truncateStrWithEllipsis(s, maxLength) {
+            if (maxLength < 7) {
+                return s;
+            }
+            if (s.length <= maxLength) {
+                return s;
+            }
+            // s is too long
+            const sliced = s.slice(0, maxLength - 5);
+            return sliced + "(...)";
+        }
+        function replaceWhitespaceWithSpaces(s) {
+            return s.replace(/[\f\n\r\t\v\u00A0\u2028\u2029]/g, " ");
+        }
+    })(Display = TokenTapeUtils.Display || (TokenTapeUtils.Display = {}));
+    let Debug;
+    (function (Debug) {
+        function integrityCheckBasic(tape) {
+            return (soaOk(tape)
+                &&
+                    noDupeErrors(tape)
+                &&
+                    incomplesOnlyInLastSlot(tape));
+        }
+        Debug.integrityCheckBasic = integrityCheckBasic;
+        function integrityCheckDeep(tape) {
+            return integrityCheckBasic(tape) && recursiveOk(tape);
+        }
+        Debug.integrityCheckDeep = integrityCheckDeep;
+        function integrityCheckFull(tape, originalInput) {
+            return (integrityCheckDeep(tape)
+                &&
+                    stringSumOk(tape, originalInput)
+                &&
+                    tokenizeAgainOk(tape, originalInput));
+        }
+        Debug.integrityCheckFull = integrityCheckFull;
+        /**
+            Returns true only if TokenTape SoA structure is consistent.
+        */
+        function soaOk(tape) {
+            return (tape.tokenCount == tape.tokenKind.length
+                &&
+                    tape.tokenCount == tape.tokenString.length);
+        }
+        /**
+            Returns true only if no error tokens exist within the tape
+            in neighborhood of other error tokens. Only considers plain
+            error tokens. Ignores incomplete-error tokens.
+        */
+        function noDupeErrors(tape) {
+            if (tape.tokenCount < 2)
+                return true;
+            for (let i = 1; i < tape.tokenCount; i++) {
+                const left = tape.tokenKind[i - 1];
+                const right = tape.tokenKind[i];
+                if (left == TokenKind.ERROR && right == TokenKind.ERROR) {
+                    return false;
+                }
+            }
+            return true;
+        }
+        /**
+            Returns true only if no incomplete-error token
+            is at the list position other than last.
+        */
+        function incomplesOnlyInLastSlot(tape) {
+            for (let i = 0; i < tape.tokenCount - 1; i++) {
+                const kind = tape.tokenKind[i];
+                if (TokenKindUtils.isErrorIncomplete(kind)) {
+                    return false;
+                }
+            }
+            return true;
+        }
+        /**
+            Returns true only if all tokens of the tape
+            parse into themselves when fed to the tokenizer.
+            
+            An exception to that rule are Erorr tokens that may parse
+            into an error token and error incomplete token pair or
+            just an error incomplete token.
+        */
+        function recursiveOk(tape) {
+            for (let i = 0; i < tape.tokenCount; i++) {
+                const s = tape.tokenString[i];
+                const kind = tape.tokenKind[i];
+                const recursiveTape = tokenizeExpressionString(s);
+                if (TokenKindUtils.isError(kind)) {
+                    // possible case where error is split into error and incomplete
+                    const twoElementsCase = (recursiveTape.tokenCount == 2
+                        &&
+                            recursiveTape.tokenString.join("") == s
+                        &&
+                            recursiveTape.tokenKind[0] == TokenKind.ERROR
+                        &&
+                            TokenKindUtils.isErrorIncomplete(recursiveTape.tokenKind[1]));
+                    // possible case where error is not split but might become an incomplete
+                    const oneElementCase = (recursiveTape.tokenCount == 1
+                        &&
+                            recursiveTape.tokenString[0] == s
+                        &&
+                            TokenKindUtils.isError(recursiveTape.tokenKind[0]));
+                    // if neither one or two elements variant happened then something is wrong
+                    if (!oneElementCase && !twoElementsCase) {
+                        return false;
+                    }
+                }
+                else if (recursiveTape.tokenCount != 1
+                    || recursiveTape.tokenString[0] != s
+                    || recursiveTape.tokenKind[0] != kind) {
+                    // console.log(`FAILED AT STRING: ${i}: ${s}`);
+                    // console.log("GOT: ", recursiveTape);
+                    // console.log("Fault at token:" + String(i));
+                    return false;
+                }
+            }
+            return true;
+        }
+        /**
+            Returns true only if contents of tape strings sum up to the original input string.
+        */
+        function stringSumOk(tape, originalInput) {
+            return tape.tokenString.join("") == originalInput;
+        }
+        /**
+            Returns true only if original input yields
+            exactly the same tape when tokenized again
+        */
+        function tokenizeAgainOk(tape, originalInput) {
+            const tokenizedAgain = tokenizeExpressionString(originalInput);
+            return TokenTapeUtils.Misc.equals(tape, tokenizedAgain);
+        }
+    })(Debug = TokenTapeUtils.Debug || (TokenTapeUtils.Debug = {}));
+})(TokenTapeUtils || (TokenTapeUtils = {}));

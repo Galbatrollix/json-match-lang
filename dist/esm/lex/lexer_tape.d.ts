@@ -1,6 +1,6 @@
 import { TokenKind } from "./lexer_enum.ts";
 /**
-    Immutable output of json match string tokenizer.
+    Immutable output of expression string tokenizer.
     SoA of 2 arrays with .length equal to TokenTape.tokenCount property:
         tokenKind[i]:   TokenKind enum value representing i-th token type
         tokenString[i]: String sliced from original input, that spans range of i-th token
@@ -15,17 +15,20 @@ export type TokenTape = Readonly<{
 }> & {
     _?: never;
 };
-export declare function tokenizeExpressionString(input: string): TokenTape;
 /**
     Bundle of utility functions for handling TokenTape values.
 */
-export declare namespace utils {
-    namespace misc {
-        /**
-        Returns true if TokenTape has at least one error token.
-        Otherwise returns false.
+export declare namespace TokenTapeUtils {
+    /**
+        Contains general purpose utility functions such as
+        comparing two tapes or checking if tape has error.
     */
-        function hasError(tape: TokenTape): boolean;
+    namespace Misc {
+        /**
+            Returns true if TokenTape has at least one error token.
+            Otherwise returns false.
+        */
+        function hasErrors(tape: TokenTape): boolean;
         /**
             Returns true only if given token tapes are identical
         */
@@ -35,7 +38,7 @@ export declare namespace utils {
         Contains functions for data presentation
         purposes only.
     */
-    namespace display {
+    namespace Display {
         /**
             Returns token tape encoded as array of strings, with each
             string corresponding to one tokentape entry.
@@ -67,10 +70,15 @@ export declare namespace utils {
             Each tokenkind string identifier is prepended with value of prefix parameter.
             If prefix is not specified, prepends nothing.
         
-            Example output with "tk." prefix :
+            Example output with "tk." prefix:
                  "[tk.WHITESPACE, tk.ERROR, tk.OPERATOR_AND, ]"
         */
-        function toReadableKinds(kinds: Readonly<Array<TokenKind>>, prefix?: string): string;
+        function asReadableKinds(kinds: Readonly<Array<TokenKind>>, prefix?: string): string;
+    }
+    namespace Debug {
+        function integrityCheckBasic(tape: TokenTape): boolean;
+        function integrityCheckDeep(tape: TokenTape): boolean;
+        function integrityCheckFull(tape: TokenTape, originalInput: string): boolean;
     }
 }
 //# sourceMappingURL=lexer_tape.d.ts.map

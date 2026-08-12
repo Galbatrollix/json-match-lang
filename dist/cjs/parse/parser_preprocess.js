@@ -53,7 +53,7 @@ function preprocessFindInvalidTokens(tape) {
     for (let i = 0; i < tape.tokenCount; i++) {
         const kind = tape.tokenKind[i];
         const str = tape.tokenString[i];
-        if (lexer.enumUtils.isError(kind)) {
+        if (lexer.TokenKindUtils.isError(kind)) {
             errorTokenIdx.push(i);
         }
         else if (isOverflownIndex(kind, str)) {
@@ -68,19 +68,19 @@ function preprocessFindInvalidTokens(tape) {
     // for three 4-line blocks is more trouble than its worth 
     if (errorTokenIdx) {
         foundErrors.push({
-            kind: parser_errors_ts_1.ErrorKind.FOUND_ERROR_TOKENS,
+            kind: parser_errors_ts_1.ParseErrorKind.FOUND_ERROR_TOKENS,
             tokenIndexes: Object.freeze(errorTokenIdx),
         });
     }
     if (indexOverflowIdx) {
         foundErrors.push({
-            kind: parser_errors_ts_1.ErrorKind.INDEX_OUT_OF_BOUNDS,
+            kind: parser_errors_ts_1.ParseErrorKind.INDEX_OUT_OF_BOUNDS,
             tokenIndexes: Object.freeze(indexOverflowIdx),
         });
     }
     if (wrongStringIdx) {
         foundErrors.push({
-            kind: parser_errors_ts_1.ErrorKind.STRING_NOT_VALID_JSON,
+            kind: parser_errors_ts_1.ParseErrorKind.STRING_NOT_VALID_JSON,
             tokenIndexes: Object.freeze(wrongStringIdx),
         });
     }

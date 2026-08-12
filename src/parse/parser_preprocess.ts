@@ -1,6 +1,6 @@
 import * as lexer from "./../lex/lexer_main.ts"
 import {type ParseError, ParseErrorKind} from "./parser_errors.ts"
-// import {type ParseWarning} from "./parser_warnings.ts"
+import {type ParseWarning, ParseWarningKind} from "./parser_warnings.ts"
 
 
 /**
@@ -34,36 +34,109 @@ export function preprocessFindInvalidTokens(tape: lexer.TokenTape): Array<ParseE
 	
 	// some code repetition below, but making a generic mechanism 
 	// for three 4-line blocks is more trouble than its worth 
-	if (errorTokenIdx){
+	if (errorTokenIdx.length){
 		foundErrors.push({
 			kind: ParseErrorKind.FOUND_ERROR_TOKENS,
 			tokenIndexes: Object.freeze(errorTokenIdx),
 		});
 	}
 
-	if (indexOverflowIdx){
+	if (indexOverflowIdx.length){
 		foundErrors.push({
 			kind: ParseErrorKind.INDEX_OUT_OF_BOUNDS,
 			tokenIndexes: Object.freeze(indexOverflowIdx),
 		});
 	}
 
-	if (wrongStringIdx){
+	if (wrongStringIdx.length){
 		foundErrors.push({
 			kind: ParseErrorKind.STRING_NOT_VALID_JSON,
 			tokenIndexes: Object.freeze(wrongStringIdx),
 		});
 	}
-
 	return foundErrors;
 }
 
+/**
+	A parser preprocessing function that scans token tape for suspicious
+	sequences that couldn't possibly be output by the lexer unless something broke.
+
+	Bogus sequences are not syntactically invalid from parser's perspective, so
+	parser can continue normal operation if they are found - hence warning instead of 
+	an error.
+	
+	If at least one pair of ajacent tokens that qualify as bogus sequence is found,
+	this function returns a single-element ParseWarning array holding an appropriate
+	warning value. Otherwise an empty array is returned.
+*/
+export function preprocessFindBogusPairs(tape: lexer.TokenTape): Array<ParseWarning> {
+	const bogusPairIndexes: Array<number> = [];
+	
+	for(let i = 1; i < tape.tokenCount; i++){
+		const leftKind = tape.tokenKind[i-1];
+		const rightKind = tape.tokenKind[i];
+		
+		if (isBogusPair(leftKind, rightKind)){
+			bogusPairIndexes.push(i-1);
+		}
+	}
+	
+	if (bogusPairIndexes.length){
+		return [{
+			kind: ParseWarningKind.BOGUS_PAIR,
+			tokenIndexes: Object.freeze(bogusPairIndexes), 
+		}];
+	}else{
+		return [];
+	}
+}
 
 
+type leftBogusOptions = 
+	lexer.TokenKind.KEY_NAKED
+	| lexer.TokenKind.WHITESPACE
+	| lexer.TokenKind.INDEX_ALL
+	| lexer.TokenKind.VALUE_EXACT_NUMBER
+	| lexer.TokenKind.OPERATOR_SIBLING_NEXT
+	| lexer.TokenKind.OPERATOR_SIBLING_PREV;
+/**
+	Collection of bogus options. If left member of a pair
+	is a key in this collection, pair is bogus if and only if
+	right member of a pair is contained in bogusPairsVariants[leftMember]
+*/
+const bogusPairsVariants: Record<leftBogusOptions, Array<lexer.TokenKind>> = {
+	[lexer.TokenKind.KEY_NAKED]:           [lexer.TokenKind.KEY_NAKED],
+	[lexer.TokenKind.WHITESPACE]:          [lexer.TokenKind.WHITESPACE],
+	[lexer.TokenKind.INDEX_ALL]:           [lexer.TokenKind.INDEX_ALL],
+	[lexer.TokenKind.VALUE_EXACT_NUMBER]:  [lexer.TokenKind.INDEX_ALL],
+
+	[lexer.TokenKind.OPERATOR_SIBLING_NEXT]:  [
+		lexer.TokenKind.OPERATOR_SIBLING_NEXT,
+		lexer.TokenKind.OPERATOR_SIBLING_SUBSEQUENT,
+	],
+	[lexer.TokenKind.OPERATOR_SIBLING_PREV]:  [
+		lexer.TokenKind.OPERATOR_SIBLING_PREV,
+		lexer.TokenKind.OPERATOR_SIBLING_PRECEDING,
+	],
+}
 
 
-
-
+/**
+	Checks if two adjacent token Kinds qualify as a "bogus pair"
+*/
+function isBogusPair(leftKind: lexer.TokenKind, rightKind: lexer.TokenKind): boolean {
+	switch (leftKind){
+		default:
+			return false;
+		case lexer.TokenKind.KEY_NAKED:
+		case lexer.TokenKind.WHITESPACE:
+		case lexer.TokenKind.INDEX_ALL:
+		case lexer.TokenKind.VALUE_EXACT_NUMBER:
+		case lexer.TokenKind.OPERATOR_SIBLING_NEXT:
+		case lexer.TokenKind.OPERATOR_SIBLING_NEXT:
+			return bogusPairsVariants[leftKind].includes(rightKind);
+	}	
+}
 
 
 /**
@@ -119,4 +192,5 @@ function isValidJsonString(s: string): boolean {
 	}catch(e){
 		return false;
 	}
+
 }

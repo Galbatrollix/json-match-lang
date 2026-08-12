@@ -11,11 +11,11 @@ export enum ParseWarningKind {
 export namespace ParseWarningVariants {
 	export type BogusPair = {
 		kind: ParseWarningKind.BOGUS_PAIR,
-		tokenIndexes: Array<number>,
+		tokenIndexes: Readonly<Array<number>>,
 	}
 	export type Test = {
 		kind: ParseWarningKind.TEST,
-		tokenIndexes: Array<number>,
+		tokenIndexes: Readonly<Array<number>>,
 	}
 }
 

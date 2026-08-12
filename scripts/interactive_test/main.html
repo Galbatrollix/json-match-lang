@@ -22,8 +22,8 @@
   		let content = document.getElementsByTagName("textarea")[0].value;
 		const tape = lexer.tokenizeExpressionString(content);
 		//console.log(tape)
-		const asHtml = lexer.tapeUtils.display.asHtml(tape);
-		const readableKinds = lexer.tapeUtils.display.toReadableKinds(
+		const asHtml = lexer.TokenTapeUtils.Display.asHtml(tape);
+		const readableKinds = lexer.TokenTapeUtils.Display.asReadableKinds(
 			tape.tokenKind, "tk."
 		);
 		console.log(readableKinds);

@@ -52,7 +52,7 @@ export function lexTestCrazyStrings(): boolean {
 	for (const str of crazyStrings) {
 		const tape: lexer.TokenTape = lexer.tokenizeExpressionString(str);
 		
-		if(! lexer.tapeUtils.debug.integrityCheckFull(tape, str)){
+		if(! lexer.TokenTapeUtils.Debug.integrityCheckFull(tape, str)){
 			return false;
 		}
 		// tokens are expected to parse as single strings
@@ -201,7 +201,7 @@ const fullExpressions: Array<expressionEntry> = [
 export function lexTestFullExpressions(): boolean {
 	for (const {expr, tokens} of fullExpressions ){
 		const tape: lexer.TokenTape = lexer.tokenizeExpressionString(expr);
-		const valid: boolean = lexer.tapeUtils.debug.integrityCheckFull(tape, expr);
+		const valid: boolean = lexer.TokenTapeUtils.Debug.integrityCheckFull(tape, expr);
 		if (! valid ){
 			return false;
 		}

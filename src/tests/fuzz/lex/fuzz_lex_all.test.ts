@@ -22,7 +22,7 @@ export function lexFuzzRandomUnicodeStringInputs(batchSize: number, logDirPath: 
 		let fail: boolean = false;
 		try {
 			const tape: lexer.TokenTape = lexer.tokenizeExpressionString(input);
-			fail = ! lexer.tapeUtils.debug.integrityCheckFull(tape, input);
+			fail = ! lexer.TokenTapeUtils.Debug.integrityCheckFull(tape, input);
 		}catch(e){
 			fail = true;
 		}
@@ -50,7 +50,7 @@ export function lexFuzzRandomAsciiStringInputs(batchSize: number, logDirPath: st
 		let fail: boolean = false;
 		try {
 			const tape: lexer.TokenTape = lexer.tokenizeExpressionString(input);
-			fail = ! lexer.tapeUtils.debug.integrityCheckFull(tape, input);
+			fail = ! lexer.TokenTapeUtils.Debug.integrityCheckFull(tape, input);
 		}catch(e){
 			fail = true;
 		}

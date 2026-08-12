@@ -1,5 +1,10 @@
-export var WarningKind;
-(function (WarningKind) {
-    WarningKind[WarningKind["BOGUS_SEQUENCE"] = 0] = "BOGUS_SEQUENCE";
-    WarningKind[WarningKind["TEST"] = 1] = "TEST";
-})(WarningKind || (WarningKind = {}));
+/**
+    Enum of ParseWarning union discriminators
+    each entry in the enum corresponds with
+    a specific ParseWarning variant.
+*/
+export var ParseWarningKind;
+(function (ParseWarningKind) {
+    ParseWarningKind[ParseWarningKind["BOGUS_PAIR"] = 0] = "BOGUS_PAIR";
+    ParseWarningKind[ParseWarningKind["TEST"] = 1] = "TEST";
+})(ParseWarningKind || (ParseWarningKind = {}));

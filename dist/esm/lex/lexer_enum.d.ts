@@ -45,7 +45,7 @@ export declare enum TokenKind {
 /**
     Bunch of helpers for easier work with the monstrous enum.
 */
-export declare namespace enumUtils {
+export declare namespace TokenKindUtils {
     function isError(t: TokenKind): boolean;
     function isErrorIncomplete(t: TokenKind): boolean;
     function isOperator(t: TokenKind): boolean;

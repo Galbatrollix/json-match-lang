@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.lexJsonMatchCodepoints = lexJsonMatchCodepoints;
+exports.lexExpressionCodepoints = lexExpressionCodepoints;
 const lexer_enum_ts_1 = require("./lexer_enum.js");
 const lexer_functions_ts_1 = require("./lexer_functions.js");
 /**
@@ -13,7 +13,7 @@ const lexer_functions_ts_1 = require("./lexer_functions.js");
     prepends a dummy element to the result.
     Dummy element is of kind WHITESPACE and its endIdx is always 0.
 */
-function lexJsonMatchCodepoints(characterList) {
+function lexExpressionCodepoints(characterList) {
     let charactersConsumed = 0;
     const charactersTotal = characterList.length;
     // initializing result array with a dummy whitespace element to simplify code 
@@ -81,8 +81,9 @@ const LexFunctionsCollection = [
     lex functions from lowest to highest index and returns results and
     assigned token kind of the first function that matched.
 
-    At least one of the functions must match (error token).
-    If that doesnt happen, error gets thrown.
+    At least one of the functions must match (error token must always match).
+    If that doesnt happen, it means program is ill-formed.
+    In event of such failure error gets thrown.
 */
 function nextToken(charList, current) {
     const end = charList.length;
