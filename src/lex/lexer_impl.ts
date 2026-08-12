@@ -16,7 +16,7 @@ export type MatchToken = {
 	prepends a dummy element to the result.
 	Dummy element is of kind WHITESPACE and its endIdx is always 0.
 */
-export function lexJsonMatchCodepoints(characterList: Array<string>): Array<MatchToken> {
+export function lexExpressionCodepoints(characterList: Array<string>): Array<MatchToken> {
 	let charactersConsumed = 0;
 	const charactersTotal = characterList.length;
 	// initializing result array with a dummy whitespace element to simplify code 
