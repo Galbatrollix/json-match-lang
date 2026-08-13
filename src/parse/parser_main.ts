@@ -4,7 +4,9 @@ import {type ParseWarning} from "./parser_warnings.ts"
 import {
 	preprocessFindInvalidTokens,
 	preprocessFindBogusPairs,
+	preprocessFilterWhitespace,
 } from "./parser_preprocess.ts"
+import {generateExpressionParseTape} from "./parser_impl.ts"
 
 
 export type CompiledExpression = undefined;
@@ -31,6 +33,13 @@ export function parseExpressionTokens(tape: lexer.TokenTape): ParseResult {
 	}
 	const warnings: Array<ParseWarning> = preprocessFindBogusPairs(tape);
 	const errors: Array<ParseError> = [];
+
+	const filterResult = preprocessFilterWhitespace(tape);
+
+	const filteredTokens: Array<lexer.TokenKind> = filterResult.tokens;
+	const originalIndexMapping: Array<number> = filterResult.mapping;
+
+	const _temp = generateExpressionParseTape(filteredTokens);
 	
 	return assembleParseResult(emptyCompiledExpression(), errors, warnings);
 }

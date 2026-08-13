@@ -58,6 +58,41 @@ export function preprocessFindInvalidTokens(tape: lexer.TokenTape): Array<ParseE
 }
 
 /**
+	Parser preprocessing function that based on lexer.TokenTape 
+	makes a new array of tokens with whitespace filtered.
+
+	Returns new array with whitespace filtered and mapping
+	that maps indexes in filtered array to indexes in original TokenTape.
+*/
+export function preprocessFilterWhitespace( 
+	tape: lexer.TokenTape 
+):{ tokens: Array<lexer.TokenKind>, mapping: Array<number>} {
+	
+	// preallocating arrays 
+	const tokens: Array<lexer.TokenKind> = new Array(tape.tokenCount);
+	const mapping: Array<number> = new Array(tape.tokenCount);
+
+	let filteredIndex = 0;
+		
+	for(let i = 0; i < tape.tokenCount; i++){
+		const kind = tape.tokenKind[i];
+		if (kind == lexer.TokenKind.WHITESPACE){
+			continue;
+		}
+		
+		tokens[filteredIndex] = kind;
+		mapping[filteredIndex] = i;
+
+		filteredIndex += 1;
+	}
+
+	tokens.length = mapping.length = filteredIndex;
+	
+	return {tokens, mapping}
+}
+
+
+/**
 	A parser preprocessing function that scans token tape for suspicious
 	sequences that couldn't possibly be output by the lexer unless something broke.
 
@@ -91,9 +126,8 @@ export function preprocessFindBogusPairs(tape: lexer.TokenTape): Array<ParseWarn
 	}
 }
 
-
 type leftBogusOptions = 
-	lexer.TokenKind.KEY_NAKED
+	| lexer.TokenKind.KEY_NAKED
 	| lexer.TokenKind.WHITESPACE
 	| lexer.TokenKind.INDEX_ALL
 	| lexer.TokenKind.VALUE_EXACT_NUMBER
@@ -170,7 +204,10 @@ function isWrongString(tokenKind: lexer.TokenKind, tokenString: string): boolean
 	}
 }
 
-/** s is assumed to be a decimal digit sequence with no leading zeros */
+/** 
+	s is assumed to be a decimal digit sequence with no leading zeros 
+	just as token index is defined by the lexer
+*/
 function fitsU32MinusOneAsNumber(s: string): boolean {
 	const u32Max = 4294967295;
 	const breakpointDigits = 10;
