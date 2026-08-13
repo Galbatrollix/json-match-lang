@@ -40,6 +40,10 @@ export function parseExpressionTokens(tape: lexer.TokenTape): ParseResult {
 	const originalIndexMapping: Array<number> = filterResult.mapping;
 
 	const _temp = generateExpressionParseTape(filteredTokens);
+
+	console.log(_temp, _temp.parseTape.constraints);
+	// todo: postprocess errors to transform the filtered token indexes 
+	// into original token indexes
 	
 	return assembleParseResult(emptyCompiledExpression(), errors, warnings);
 }

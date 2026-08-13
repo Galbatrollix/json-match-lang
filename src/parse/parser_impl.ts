@@ -1,13 +1,14 @@
 import * as lexer from "./../lex/lexer_main.ts"
 
 import {
-	type ExpressionCombinator,
-	type ConstraintTreeNodeKind,
+	ExpressionCombinator,
+	ConstraintTreeNodeKind,
 	type ConstraintTreeNode,
 } from "./parser_types.ts"
 
 import {
-	type ParseError
+	type ParseError,
+	ParseErrorKind
 } from "./parser_errors.ts"
 
 
@@ -63,14 +64,20 @@ export function generateExpressionParseTape(
 				errors: err,
 			};
 		}
-	
-		const pairCombinator: ExpressionCombinator = pair[0];
-		const pairConstraint: ConstraintTreeNode = pair[1];
+		// with no errors returned pair must not be undefined
+		const pairCombinator: ExpressionCombinator = pair![0];
+		const pairConstraint: ConstraintTreeNode = pair![1];
 
 		combinators.push(pairCombinator);
 		constraints.push(pairConstraint);
 		
 		// tokens consumed equals to end of token range of last constraint
+		// pair cannot possibly parse into 0 tokens consumed.
+		// this assertion prevents infinite loop in case of a fatal error.
+		if (tokensConsumed == pairConstraint.range[1]){
+			throw new Error("Catastrophic parser failure, infinite loop");
+		}
+
 		tokensConsumed = pairConstraint.range[1];
 	}
 
@@ -83,10 +90,175 @@ export function generateExpressionParseTape(
 }
 
 
+/**
+	Runs parser forward to obtain next expression combinator and contraint 
+	tree node pair. 
+
+	If syntax error occured, returns undefined as pair value and 
+	a non-empty ParseError array.
+
+	If next pair parsed successfully, returns a valid pair value 
+	and an empty ParseError array.
+*/
 function nextPair(
 	filteredTokens: Readonly<Array<lexer.TokenKind>>,
 	tokensConsumed: number,
-): {pair: [ExpressionCombinator, ConstraintTreeNode], err: Array<ParseError>} {
-	//@ts-expect-error
-	return {}
+): {pair: [ExpressionCombinator, ConstraintTreeNode] | undefined, err: Array<ParseError>} {
+	
+	const combinatorResult = parseExpressionCombinator(filteredTokens, tokensConsumed);
+	if (combinatorResult == undefined){
+		return {
+			pair: undefined,
+			err:[{ // todo change the error kind and stuff
+				kind: ParseErrorKind.WRONG_SYNTAX,
+				tokenIndexes: [tokensConsumed],
+			}],
+		};
+	}
+
+	tokensConsumed += combinatorResult.consumed;
+
+	const constraintResult = parseExpressionConstraint(filteredTokens, tokensConsumed);
+	if (constraintResult == undefined){
+		return {
+			pair: undefined,
+			err:[{ // todo change the error kind and stuff
+				kind: ParseErrorKind.WRONG_SYNTAX,
+				tokenIndexes: [tokensConsumed],
+			}],
+		};
+	}
+			
+
+	return {
+		pair: [combinatorResult.combinator,  constraintResult.constraint],
+		err: [],
+	}
+
+}
+
+/**
+	Parses an expression combinator from tokens stream,
+	starting at start index.
+	
+	Start must be lower than tokens.length (start < tokens.length)
+	
+	If parse succeded, returns: {ExpressionCombinator, consumedTokens}
+
+	If parse failed, returns: undefined
+*/
+function parseExpressionCombinator(
+	tokens: Readonly<Array<lexer.TokenKind>>,
+	start: number
+): { combinator: ExpressionCombinator, consumed: number} | undefined {
+	const nextToken = tokens[start];
+	switch(nextToken){
+
+		// something went horribly wrong if this case is hit.
+		case lexer.TokenKind.ERROR_INCOMPLETE_KEY:
+		case lexer.TokenKind.ERROR_INCOMPLETE_OBJECT:
+		case lexer.TokenKind.ERROR_INCOMPLETE_ARRAY:
+		case lexer.TokenKind.ERROR_INCOMPLETE_VALUE:
+		case lexer.TokenKind.ERROR:
+		case lexer.TokenKind.WHITESPACE:
+			throw new Error("Fatal parser error, whitespace or error tokens"
+			+ " did not filter properly");
+		
+		// logical operators and right parenthesis mean syntax error occured
+		case lexer.TokenKind.OPERATOR_OR:
+		case lexer.TokenKind.OPERATOR_AND:
+		case lexer.TokenKind.PARENTHESIS_RIGHT:
+			return undefined;
+
+		// precise operator detected, use conversion table
+		case lexer.TokenKind.OPERATOR_CHILD:
+		case lexer.TokenKind.OPERATOR_PARENT:
+		case lexer.TokenKind.OPERATOR_SIBLING_NEXT:
+		case lexer.TokenKind.OPERATOR_SIBLING_PREV:
+		case lexer.TokenKind.OPERATOR_SIBLING_SUBSEQUENT:
+		case lexer.TokenKind.OPERATOR_SIBLING_PRECEDING:
+		case lexer.TokenKind.OPERATOR_SIBLING_ANY:
+			return {
+				combinator: combinatorConversionTable[nextToken],
+				consumed: 1,
+			};
+		// if precise operator not detected but next token suggests beggining 
+		// of constraint block, it signals the implicit descendant operator.
+		default: 
+			return {
+				combinator: ExpressionCombinator.DESCENDANT,
+				consumed: 0,
+			};
+	}
+}
+/**
+	A table-like object that provides mapping
+	between tokens and their respective expression combinators.
+*/
+const combinatorConversionTable = {
+	[lexer.TokenKind.OPERATOR_CHILD]:              ExpressionCombinator.CHILD,
+	[lexer.TokenKind.OPERATOR_PARENT]:             ExpressionCombinator.PARENT,
+	[lexer.TokenKind.OPERATOR_SIBLING_NEXT]:       ExpressionCombinator.SIBLING_NEXT,
+	[lexer.TokenKind.OPERATOR_SIBLING_PREV]:       ExpressionCombinator.SIBLING_PREV,
+	[lexer.TokenKind.OPERATOR_SIBLING_SUBSEQUENT]: ExpressionCombinator.SIBLING_SUBSEQUENT,
+	[lexer.TokenKind.OPERATOR_SIBLING_PRECEDING]:  ExpressionCombinator.SIBLING_PRECEDING,
+	[lexer.TokenKind.OPERATOR_SIBLING_ANY]:        ExpressionCombinator.SIBLING_ANY,
+} as const;
+
+
+/**
+	Parses a constraint block in the json match lang expression.
+	Handles simple cases such as end of token array or 
+	combinator operator being a next token.
+	
+	Otherwise, delegates heavy work to specialized 
+	constraint block parser.
+
+	If next token is a combinator operator or there is no tokens left
+	, then resulting constraint node is implicitly a wildcard constraint 
+	and consumes 0 tokens.
+
+*/
+function parseExpressionConstraint(
+	tokens: Readonly<Array<lexer.TokenKind>>,
+	start: number
+): { constraint: ConstraintTreeNode, consumed: number} | undefined {
+
+	// implicit wildcard if tape is out of tokens
+	if (start == tokens.length){
+		return implicitWildcardConstraintResult(start);
+	}
+	
+	// implicit wildcard if next is a combinator operator
+	switch(tokens[start]){
+		default:
+			break;
+		case lexer.TokenKind.OPERATOR_CHILD:
+		case lexer.TokenKind.OPERATOR_PARENT:
+		case lexer.TokenKind.OPERATOR_SIBLING_NEXT:
+		case lexer.TokenKind.OPERATOR_SIBLING_PREV:
+		case lexer.TokenKind.OPERATOR_SIBLING_SUBSEQUENT:
+		case lexer.TokenKind.OPERATOR_SIBLING_PRECEDING:
+		case lexer.TokenKind.OPERATOR_SIBLING_ANY:
+			return implicitWildcardConstraintResult(start);
+	}
+	// otherwise perform constraint block parse.
+
+	// temporarily returns implicit wildcard.
+	return implicitWildcardConstraintResult(start);
+}
+
+/**
+	A helper that assembles a return value for parseExpressionConstraint function
+	which corresponding to implicit wildcard case.
+*/
+function implicitWildcardConstraintResult(currentIndex: number): 
+	{constraint: ConstraintTreeNode, consumed: number} {
+
+	const node: ConstraintTreeNode = {
+		kind: ConstraintTreeNodeKind.ATOM,
+		range: [currentIndex, currentIndex],
+		children: [],
+	}
+	return {constraint: node, consumed: 0};
 }

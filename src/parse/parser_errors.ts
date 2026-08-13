@@ -7,6 +7,7 @@ export enum ParseErrorKind {
 	FOUND_ERROR_TOKENS,
 	INDEX_OUT_OF_BOUNDS,
 	STRING_NOT_VALID_JSON,
+	WRONG_SYNTAX,
 }
 
 /**
@@ -47,7 +48,14 @@ export namespace ParseErrorVariants {
 		kind: ParseErrorKind.STRING_NOT_VALID_JSON,
 		tokenIndexes: Readonly<Array<number>>,
 	}
-
+	
+	/**
+		SUBJECT TO CHANGE
+	*/
+	export type WrongSyntax = {
+		kind: ParseErrorKind.WRONG_SYNTAX,
+		tokenIndexes: Readonly<Array<number>>,
+	}
 }
 
 
@@ -59,4 +67,5 @@ export type ParseError = Readonly<
 	ParseErrorVariants.FoundErrorTokens 
 	| ParseErrorVariants.IndexOutOfBounds
 	| ParseErrorVariants.StringNotValidJson
+	| ParseErrorVariants.WrongSyntax
 >;
