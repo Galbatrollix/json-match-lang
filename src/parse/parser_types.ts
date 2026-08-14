@@ -21,7 +21,6 @@ export enum ExpressionCombinator {
 */
 export enum ConstraintTreeNodeKind {
 	ATOM,         // has always 0 children
-	PARENS,       // has always 1 child
 	NOT,          // has always 1 child
 	AND,          // has at least 1 child
 	OR,           // has at least 1 child

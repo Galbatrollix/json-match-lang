@@ -11,6 +11,7 @@ import {
 	ParseErrorKind
 } from "./parser_errors.ts"
 
+import {parseConstraintsTopLevel} from "./parser_constraints.ts"
 
 /**
 	Structure representing a successful parse output
@@ -144,7 +145,6 @@ function nextPair(
 	Start must be lower than tokens.length (start < tokens.length)
 	
 	If parse succeded, returns: {ExpressionCombinator, consumedTokens}
-
 	If parse failed, returns: undefined
 */
 function parseExpressionCombinator(
@@ -218,6 +218,9 @@ const combinatorConversionTable = {
 	, then resulting constraint node is implicitly a wildcard constraint 
 	and consumes 0 tokens.
 
+	If parse succeded, returns: {ConstraintTreeNode, consumedTokens}
+	If parse failed, returns: undefined
+
 */
 function parseExpressionConstraint(
 	tokens: Readonly<Array<lexer.TokenKind>>,
@@ -242,10 +245,9 @@ function parseExpressionConstraint(
 		case lexer.TokenKind.OPERATOR_SIBLING_ANY:
 			return implicitWildcardConstraintResult(start);
 	}
-	// otherwise perform constraint block parse.
 
-	// temporarily returns implicit wildcard.
-	return implicitWildcardConstraintResult(start);
+	// otherwise perform serious constraint block parse.
+	return parseConstraintsTopLevel(tokens, start);
 }
 
 /**

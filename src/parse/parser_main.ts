@@ -41,7 +41,8 @@ export function parseExpressionTokens(tape: lexer.TokenTape): ParseResult {
 
 	const _temp = generateExpressionParseTape(filteredTokens);
 
-	console.log(_temp, _temp.parseTape.constraints);
+	console.log(_temp);
+	console.dir(_temp.parseTape.constraints, {depth: 5});
 	// todo: postprocess errors to transform the filtered token indexes 
 	// into original token indexes
 	

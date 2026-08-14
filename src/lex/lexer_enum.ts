@@ -77,8 +77,10 @@ export namespace TokenKindUtils {
 	export function isOperatorParentChild(t: TokenKind): boolean{
 		return (TokenKind.OPERATOR_CHILD <= t && t <= TokenKind.OPERATOR_PARENT);
 	}
-	export function isValue(t: TokenKind): boolean{
+	export function isConstraint(t: TokenKind): boolean{
+		return (TokenKind.KEY_QUOTED <= t && t <= TokenKind.VALUE_EXACT_STRING);
+	}
+	export function isValueConstraint(t: TokenKind): boolean{
 		return (TokenKind.VALUE_TYPE_WILDCARD <= t && t <= TokenKind.VALUE_EXACT_STRING);
 	}
-	
 }
