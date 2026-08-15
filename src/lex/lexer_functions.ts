@@ -219,22 +219,17 @@ function combinatorChain(lexerList: Array<LexFunction> ): LexFunction {
 		let at = start;		
 		// loop doesnt perform bound checks on charList as some lex functions
 		// can return true with 0 tokens consumed (optionals)
-		let fnIndex = 0;
-		for (;fnIndex < lexerList.length; fnIndex++) {
+		for (let fnIndex = 0; fnIndex < lexerList.length; fnIndex++) {
 			const [consumed, matched] = lexerList[fnIndex](charList, at, end);
 			if (! matched){
 				return [0, false];
 			}
 			at += consumed;
 		}
-
+		
+		// all functions passed
 		const consumedTotal = at - start;
-		const allFunctionsPassed: boolean = (fnIndex == lexerList.length);
-		if (allFunctionsPassed){
-			return [consumedTotal, true];
-		}else{
-			return [0, false];
-		}
+		return [consumedTotal, true];
 	}
 
 	return resultFunc;
@@ -449,7 +444,7 @@ const matchOpenBracket = createMatchExact(OperatorsSyntax.L_BRACKET);
 const matchClosedBracket = createMatchExact(OperatorsSyntax.R_BRACKET);
 const matchOpenBrace = createMatchExact(OperatorsSyntax.L_BRACE);
 const matchClosedBrace = createMatchExact(OperatorsSyntax.R_BRACE);
-const matchVALUEPrefix = createMatchExact(OperatorsSyntax.VALUE);
+const matchValuePrefix = createMatchExact(OperatorsSyntax.VALUE);
 
 
 /**
@@ -748,11 +743,11 @@ export namespace funcs {
 	export const lexKeyQuoted: LexFunction = matchString;
 	
 	export const lexValueExactString: LexFunction = combinatorChain(
-		[matchVALUEPrefix, matchString]
+		[matchValuePrefix, matchString]
 	);
 	
 	export const lexValueExactNumber: LexFunction = combinatorChain(
-		[matchVALUEPrefix, matchJsonNumber]
+		[matchValuePrefix, matchJsonNumber]
 	);
 	
 
@@ -783,10 +778,10 @@ export namespace funcs {
 			OperatorsSyntax.VALUE + OperatorsSyntax.L_BRACE + OperatorsSyntax.R_BRACE,
 		),
 		combinatorChain(
-		 	[matchVALUEPrefix, matchIncompleteString],
+		 	[matchValuePrefix, matchIncompleteString],
 		),
 		combinatorChain(
-			[matchVALUEPrefix, matchIncompleteJsonNumber],
+			[matchValuePrefix, matchIncompleteJsonNumber],
 		),
 	]);
 	
