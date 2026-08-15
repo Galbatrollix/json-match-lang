@@ -206,7 +206,7 @@ function parseOrBlock(
 	
 	// inner function matched, construct output
 	const newNode: ConstraintTreeNode = {
-		kind: ConstraintTreeNodeKind.AND,
+		kind: ConstraintTreeNodeKind.OR,
 		range: [start, start + consumed],
 		children: childTree,
 	}
