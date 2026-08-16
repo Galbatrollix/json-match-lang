@@ -58,7 +58,7 @@ export function parseConstraintsTopLevel(
 	start: number,
 ): { constraint: ConstraintTreeNode, consumed: number} | undefined {
 	const dummyTreeNode: Array<ConstraintTreeNode> = []
-
+	// todo report consumed characters on fail for error purposes
 	const [consumed, success] = parseOrBlock(tokens, start, dummyTreeNode);
 	if (success){
 		return {
@@ -245,8 +245,9 @@ function parseNegation(
 		childTree,
 	);
 	
+	// output tree needs not be rolled back on fail since only 1 function was called
+	// and each parse function must not modify output tree on fail.
 	if (! matched){
-		// rollback output tree
 		return [consumed + 1, false];
 	}
 

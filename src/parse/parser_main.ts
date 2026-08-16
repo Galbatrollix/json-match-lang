@@ -1,5 +1,9 @@
 import * as lexer from "./../lex/lexer_main.ts"
-import {type ParseError} from "./parser_errors.ts"
+import {
+	type ParseError,
+	type IncompleteParseError,
+	parseErrorsFromIncomplete,
+} from "./parser_errors.ts"
 import {type ParseWarning} from "./parser_warnings.ts"
 import {
 	preprocessFindInvalidTokens,
@@ -25,30 +29,43 @@ export type ParseResult = Readonly<{
 //todo: go over lexer and maybe reorganize it so it makes more sense, update docstrings and
 // names perhaps too
 
-export function parseExpressionTokens(tape: lexer.TokenTape): ParseResult {
+export function parseExpressionTokens(lexTape: lexer.TokenTape): ParseResult {
 	
-	// find any critical and easy to spot errors with supplied token tape
-	const preprocessingErrors: Array<ParseError> = preprocessFindInvalidTokens(tape);
+	// find any critical and easy to spot errors with supplied token lexTape
+	const preprocessingErrors: Array<ParseError> = preprocessFindInvalidTokens(lexTape);
 	if (preprocessingErrors.length){
 		return assembleParseResult(
 			emptyCompiledExpression(), preprocessingErrors, [] 
 		);
 	}
-	const warnings: Array<ParseWarning> = preprocessFindBogusPairs(tape);
-	const errors: Array<ParseError> = [];
+	const warnings: Array<ParseWarning> = preprocessFindBogusPairs(lexTape);
 
-	const filterResult = preprocessFilterWhitespace(tape);
+	const filterResult = preprocessFilterWhitespace(lexTape);
 
 	const filteredTokens: Array<lexer.TokenKind> = filterResult.tokens;
 	const originalIndexMapping: Array<number> = filterResult.mapping;
 
-	const _temp = generateExpressionParseTape(filteredTokens);
+	const parseOutput = generateExpressionParseTape(filteredTokens);
+	const parseTape: ExpressionParseTape = parseOutput.parseTape;
+	const incompleteErrors: Array<IncompleteParseError> = parseOutput.errors;
 
-	console.log(_temp);
-	console.dir(_temp.parseTape.constraints, {depth: 7});
+	const errors: Array<ParseError> = parseErrorsFromIncomplete(
+		incompleteErrors,
+		originalIndexMapping,
+	);
+	console.log(errors);
+	console.log(lexer.TokenTapeUtils.Display.asStr(lexTape));
+
+	if (errors.length){
+		return assembleParseResult(
+			emptyCompiledExpression(), errors, [] 
+		);
+	};
+
+
 	console.log(ExpressionParseTapeUtils.Display.asTreeFull(
-		_temp.parseTape,
-		tape.tokenString,
+		parseTape,
+		lexTape.tokenString,
 		originalIndexMapping,
 	));
 	// todo: postprocess errors to transform the filtered token indexes 

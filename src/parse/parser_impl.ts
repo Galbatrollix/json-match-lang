@@ -8,7 +8,7 @@ import {
 } from "./parser_types.ts"
 
 import {
-	type ParseError,
+	type IncompleteParseError,
 	ParseErrorKind
 } from "./parser_errors.ts"
 
@@ -27,7 +27,7 @@ import {parseConstraintsTopLevel} from "./parser_constraints.ts"
 */
 export function generateExpressionParseTape(
 	filteredTokens: Readonly<Array<lexer.TokenKind>>
-): {parseTape: ExpressionParseTape, errors: Array<ParseError>} {
+): {parseTape: ExpressionParseTape, errors: Array<IncompleteParseError>} {
 
 	const combinators: Array<ExpressionCombinator> = [];
 	const constraints: Array<ConstraintTreeNode> = [];
@@ -76,23 +76,26 @@ export function generateExpressionParseTape(
 	tree node pair. 
 
 	If syntax error occured, returns undefined as pair value and 
-	a non-empty ParseError array.
+	a non-empty IncompleteParseError array.
 
 	If next pair parsed successfully, returns a valid pair value 
-	and an empty ParseError array.
+	and an empty IncompleteParseError array.
 */
 function nextPair(
 	filteredTokens: Readonly<Array<lexer.TokenKind>>,
 	tokensConsumed: number,
-): {pair: [ExpressionCombinator, ConstraintTreeNode] | undefined, err: Array<ParseError>} {
+): {
+	pair: [ExpressionCombinator, ConstraintTreeNode] | undefined,
+	err: Array<IncompleteParseError>
+} {
 	
 	const combinatorResult = parseExpressionCombinator(filteredTokens, tokensConsumed);
 	if (combinatorResult == undefined){
 		return {
 			pair: undefined,
-			err:[{ // todo change the error kind and stuff
-				kind: ParseErrorKind.WRONG_SYNTAX,
-				tokenIndexes: [tokensConsumed],
+			err:[{ 
+				targetKind: ParseErrorKind.WRONG_SYNTAX, 
+				filteredTokenIndexes: [tokensConsumed],
 			}],
 		};
 	}
@@ -103,9 +106,9 @@ function nextPair(
 	if (constraintResult == undefined){
 		return {
 			pair: undefined,
-			err:[{ // todo change the error kind and stuff
-				kind: ParseErrorKind.WRONG_SYNTAX,
-				tokenIndexes: [tokensConsumed],
+			err:[{ 
+				targetKind: ParseErrorKind.WRONG_SYNTAX, 
+				filteredTokenIndexes: [tokensConsumed],
 			}],
 		};
 	}
