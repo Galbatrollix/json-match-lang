@@ -164,7 +164,7 @@ function parseAndBlock(
 	if (! matched){
 		return [consumed, false];
 	}
-	
+
 	// inner function matched, construct output
 	const newNode: ConstraintTreeNode = {
 		kind: ConstraintTreeNodeKind.AND,
@@ -227,6 +227,7 @@ function parseNegation(
  	start: number,
 	outputTree: Array<ConstraintTreeNode>,
 ): [number, boolean] {
+	
 	if (start == tokens.length){
 		return [0, false];
 	}
@@ -245,6 +246,7 @@ function parseNegation(
 	);
 	
 	if (! matched){
+		// rollback output tree
 		return [consumed + 1, false];
 	}
 
@@ -365,12 +367,14 @@ function combinatorOptionalRepeat(func: ParseFunction): ParseFunction {
 	): [number, boolean]{
 		let matched: boolean = false;
 		let consumedTotal: number = 0;
-		do{
+		for(;;){
 			const result = func(tokens, start + consumedTotal, outputTree);
 			matched = result[1];
+			if (! matched){
+				break;
+			}
 			consumedTotal += result[0];
-		
-		}while(matched);
+		}
 
 		return [consumedTotal, true];
 	}

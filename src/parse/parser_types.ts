@@ -82,7 +82,27 @@ export namespace ExpressionParseTapeUtils{
 			}
 			return trees.join("\n");
 		}
-		// export function asTreeFull()
+		export function asTreeFull(
+			tape: ExpressionParseTape,
+			tokenStrings: Readonly<Array<string>>,
+			tokenMapping: Readonly<Array<number>>,
+		): string {
+			const trees: Array<string> = []
+		
+			for (let i = 0; i < tape.constraints.length; i++){
+				const combinator: string = ExpressionCombinator[tape.combinators[i]]
+
+				const root: ConstraintTreeNode = tape.constraints[i];
+				const obj: any = ConstraintTreeNodeUtils.Display.treeifyReprFull(
+					root, tokenStrings, tokenMapping,
+				);
+				
+				trees.push(combinator);
+				trees.push(treeifyObject(obj, true));
+
+			}
+			return trees.join("\n");
+		}
 	}
 }
 
@@ -96,6 +116,32 @@ export namespace ConstraintTreeNodeUtils {
 			const [rootIdx, rootVal] = nodeToTreeifyImpl(node);
 			return {[rootIdx]: rootVal};
 		}
+		/**
+			Converts a constraint tree nde into nested object representation
+			that will be possible to display as string with treeify.
+
+			Unlike function treeifyRepr, includes atom token values in the result
+		*/
+		export function treeifyReprFull(
+			node: ConstraintTreeNode,
+			tokenStrings: Readonly<Array<string>>,
+			tokenMapping: Readonly<Array<number>>,
+		): any {
+			const [rootIdx, rootVal] = nodeToTreeifyFullImpl(
+				node, tokenStrings, tokenMapping
+			);
+
+			// handling special case for "implicit wildcard" constraint
+			// which has uniquely special property of range[0] == range[1]
+			
+			if (node.range[0] == node.range[1]){
+				return {[rootIdx]: "(implicit) *"};
+			}else{
+				return {[rootIdx]: rootVal};
+			}
+
+		}		
+
 		/**
 			Recursive function that constructs result for the nodeToTreeify function.
 		*/
@@ -113,6 +159,37 @@ export namespace ConstraintTreeNodeUtils {
 			}
 	
 			return [identifier, result];
+		}
+
+		function nodeToTreeifyFullImpl(
+			node: ConstraintTreeNode,
+			tokenStrings: Readonly<Array<string>>,
+			tokenMapping: Readonly<Array<number>>,
+		): [string, any]{
+
+			const kindStr: string = ConstraintTreeNodeKind[node.kind];
+			const rangeStr = ` [${node.range[0]}, ${node.range[1]}]`;
+
+			const identifier = kindStr + rangeStr;
+
+			// atom case 
+			if (node.kind == ConstraintTreeNodeKind.ATOM){
+				const token: string = tokenStrings[tokenMapping[node.range[0]]];
+				return [identifier, token];
+			}
+		
+			// general case
+			const result: any = {};
+			
+			for(const child of node.children){
+				const [childId, childObj] = nodeToTreeifyFullImpl(
+					child, tokenStrings, tokenMapping
+				);
+				result[childId] = childObj;
+			}
+	
+			return [identifier, result];
+			
 		}
 	}
 }

@@ -4,16 +4,18 @@ import {runAllUnitTests} from "./unit/unit_main.test.ts"
 
 import {lexer} from "./../main.ts"
 import {parseExpressionTokens} from "./../parse/parser_main.ts"
-import {treeifyObject} from "./../vendored/treeify.ts"
+
 
 runAllUnitTests();
 
 
 //const expr = `> THIS >> "is" > "a" > Pretty | Long > "expression" > string <<<> Long > is > a > good #-3.1415E0#-3.1415E0#-3.1415E0#-3.1415E0#-3.1415E0#-3.1415E0#-3.1415E0#-3.1415E0#-3.1415E0#-3.1415E0#-3.1415E0#-3.1415E0#-3.1415E0#-3.1415E0 > way > to > say > that & AND By The Way, there is some numbers for ya ey: #-3.1415E0, 1234124, #0.000000000000000000000000000001E00000000000000000000000000000000000000000001`;
 //const expr = `> THIS >> "is" > "a" > Pretty | Long > "expression" > string <<<> Long > is > a > good #-3.1415E0#-3.1415E0#-3.1415E0#-3.1415E0#-3.1415E0#-3.1415E0#-3.1415E0#-3.1415E0#-3.1415E0#-3.1415E0#-3.1415E0#-3.1415E0#-3.1415E0#-3.1415E0 > way > to > say > that & AND By The Way there is some numbers for ya ey #-3.1415E0 1234124 #0.000000000000000000000000000001E00000000000000000000000000000000000000000001`;
-const expr2 = `>>> "dupa" | !"kupa" & lupa & !!(10 | 12) | #1235 ++<>`;
-const expr = `><>(!"kiki")<>-+++ (!dupa)`
-const expr1 = `dupa | kupa & siki | !czort`
+const expr3 = `>>> "dupa" | !"kupa" & lupa & !!(10 | 12) | #1235 ++<>`;
+const expr1 = `><>(!"kiki")<>-+++ (!dupa)`
+const expr2 = `#"kwaczka" >> dupa | kupa & siki | !czort <`
+const expr = `> lupa | !!(dupa | siki)`
+const expr5 = `!(((( dupa))))`
 const startTime = performance.now()
 
 const tokenized = lexer.tokenizeExpressionString(expr);
@@ -24,5 +26,4 @@ const endTime = performance.now()
 
 console.log(`Call to doSomething took ${endTime - startTime} milliseconds`)
 
-console.log(treeifyObject({dupa: {kupa: "yes", siki: undefined}}, true));
-runAllFuzzTests();
+// runAllFuzzTests();
