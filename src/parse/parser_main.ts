@@ -7,7 +7,10 @@ import {
 	preprocessFilterWhitespace,
 } from "./parser_preprocess.ts"
 import {generateExpressionParseTape} from "./parser_impl.ts"
-
+import {
+	type ExpressionParseTape, 
+	ExpressionParseTapeUtils,
+} from "./parser_types.ts"
 
 export type CompiledExpression = undefined;
 
@@ -43,6 +46,7 @@ export function parseExpressionTokens(tape: lexer.TokenTape): ParseResult {
 
 	console.log(_temp);
 	console.dir(_temp.parseTape.constraints, {depth: 7});
+	console.log(ExpressionParseTapeUtils.Display.asTree(_temp.parseTape))
 	// todo: postprocess errors to transform the filtered token indexes 
 	// into original token indexes
 	

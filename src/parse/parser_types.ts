@@ -1,4 +1,4 @@
-
+import {treeifyObject} from "./../vendored/treeify.ts"
 
 /**
 	Enum representing all possible combinators (aka relations between
@@ -41,3 +41,91 @@ export type ConstraintTreeNode = {
 	children: Array<ConstraintTreeNode>,
 	
 }
+
+
+/**
+	Structure representing a successful parse output
+
+	Json match lang expression's syntax is inherently linear -
+		each constraint block follows a combinator
+		and each combinator follows a constraint block (or expression beggining)
+	Thanks to that property, combinators and constaints 
+	essentially come in pairs [combinator, constraint], ...
+
+	hence: expression can be represented simply as two arrays:
+		- combinators
+		- contraints
+	for any index i, (i < length):
+		constraint[i] is constraint following the combinator at combinator[i]
+
+*/
+export type ExpressionParseTape = {
+	combinators: Array<ExpressionCombinator>,
+	constraints: Array<ConstraintTreeNode>,
+}
+
+
+export namespace ExpressionParseTapeUtils{
+	export namespace Display {
+		export function asTree(tape: ExpressionParseTape): string {
+			const trees: Array<string> = []
+		
+			for (let i = 0; i < tape.constraints.length; i++){
+				const combinator: string = ExpressionCombinator[tape.combinators[i]]
+
+				const root: ConstraintTreeNode = tape.constraints[i];
+				const obj: any = ConstraintTreeNodeUtils.Display.treeifyRepr(root);
+				
+				trees.push(combinator);
+				trees.push(treeifyObject(obj, true));
+
+			}
+			return trees.join("\n");
+		}
+		// export function asTreeFull()
+	}
+}
+
+export namespace ConstraintTreeNodeUtils {
+	export namespace Display {		
+		/**
+			Converts a consraint tree node into nested object representation 
+			that will be possible to display as string with treeify.
+		*/
+		export function treeifyRepr(node: ConstraintTreeNode): any {
+			const [rootIdx, rootVal] = nodeToTreeifyImpl(node);
+			return {[rootIdx]: rootVal};
+		}
+		/**
+			Recursive function that constructs result for the nodeToTreeify function.
+		*/
+		function nodeToTreeifyImpl(node: ConstraintTreeNode): [string, any] {
+			const kindStr: string = ConstraintTreeNodeKind[node.kind];
+			const rangeStr = ` [${node.range[0]}, ${node.range[1]}]`;
+
+			const identifier = kindStr + rangeStr;
+
+			const result: any = {};
+			
+			for(const child of node.children){
+				const [childId, childObj] = nodeToTreeifyImpl(child);
+				result[childId] = childObj;
+			}
+	
+			return [identifier, result];
+		}
+	}
+}
+
+// {
+//     oranges: {
+//         'mandarin': {                       
+//             clementine: null,               
+//             tangerine: 'so cheap and juicy!'
+//         }                                   
+//     },                                      
+//     apples: {                               
+//         'gala': null,                       
+//         'pink lady': null
+//     }
+// }

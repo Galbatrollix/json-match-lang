@@ -4,6 +4,7 @@ import {
 	ExpressionCombinator,
 	ConstraintTreeNodeKind,
 	type ConstraintTreeNode,
+	type ExpressionParseTape,
 } from "./parser_types.ts"
 
 import {
@@ -12,27 +13,6 @@ import {
 } from "./parser_errors.ts"
 
 import {parseConstraintsTopLevel} from "./parser_constraints.ts"
-
-/**
-	Structure representing a successful parse output
-
-	Json match lang expression's syntax is inherently linear -
-		each constraint block follows a combinator
-		and each combinator follows a constraint block (or expression beggining)
-	Thanks to that property, combinators and constaints 
-	essentially come in pairs [combinator, constraint], ...
-
-	hence: expression can be represented simply as two arrays:
-		- combinators
-		- contraints
-	for any index i, (i < length):
-		constraint[i] is constraint following the combinator at combinator[i]
-
-*/
-export type ExpressionParseTape = {
-	combinators: Array<ExpressionCombinator>,
-	constraints: Array<ConstraintTreeNode>,
-}
 
 
 /**
