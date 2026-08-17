@@ -56,18 +56,17 @@ type ParseFunction = (
 export function parseConstraintsTopLevel(
 	tokens: Readonly<Array<lexer.TokenKind>>,
 	start: number,
-): { constraint: ConstraintTreeNode, consumed: number} | undefined {
+): { constraint: ConstraintTreeNode, consumed: number, success: boolean} {
 	const dummyTreeNode: Array<ConstraintTreeNode> = []
 	// todo report consumed characters on fail for error purposes
 	const [consumed, success] = parseOrBlock(tokens, start, dummyTreeNode);
-	if (success){
-		return {
-			constraint: dummyTreeNode[0],
-			consumed: consumed,
-		}
-	}else{
-		return undefined;
+
+	return {
+		constraint: dummyTreeNode[0],
+		consumed: consumed,
+		success: success,
 	}
+	
 }
 
 /**

@@ -38,8 +38,7 @@ export enum ConstraintTreeNodeKind {
 export type ConstraintTreeNode = {
 	kind: ConstraintTreeNodeKind,
 	range: [number, number],
-	children: Array<ConstraintTreeNode>,
-	
+	children: Array<ConstraintTreeNode>,	
 }
 
 

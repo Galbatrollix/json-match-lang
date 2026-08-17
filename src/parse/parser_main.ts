@@ -16,6 +16,11 @@ import {
 	ExpressionParseTapeUtils,
 } from "./parser_types.ts"
 
+import {
+	postprocessCollapseTreesInPlace
+} from "./parser_postprocess.ts"
+
+
 export type CompiledExpression = undefined;
 
 export type ParseResult = Readonly<{
@@ -61,8 +66,14 @@ export function parseExpressionTokens(lexTape: lexer.TokenTape): ParseResult {
 			emptyCompiledExpression(), errors, [] 
 		);
 	};
+	// TODO: HERE COLLECT WARNINGS FROM RAW AST
 
-
+	console.log(ExpressionParseTapeUtils.Display.asTreeFull(
+		parseTape,
+		lexTape.tokenString,
+		originalIndexMapping,
+	));
+	postprocessCollapseTreesInPlace(parseTape);
 	console.log(ExpressionParseTapeUtils.Display.asTreeFull(
 		parseTape,
 		lexTape.tokenString,

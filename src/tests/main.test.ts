@@ -11,11 +11,17 @@ runAllUnitTests();
 
 //const expr = `> THIS >> "is" > "a" > Pretty | Long > "expression" > string <<<> Long > is > a > good #-3.1415E0#-3.1415E0#-3.1415E0#-3.1415E0#-3.1415E0#-3.1415E0#-3.1415E0#-3.1415E0#-3.1415E0#-3.1415E0#-3.1415E0#-3.1415E0#-3.1415E0#-3.1415E0 > way > to > say > that & AND By The Way, there is some numbers for ya ey: #-3.1415E0, 1234124, #0.000000000000000000000000000001E00000000000000000000000000000000000000000001`;
 //const expr = `> THIS >> "is" > "a" > Pretty | Long > "expression" > string <<<> Long > is > a > good #-3.1415E0#-3.1415E0#-3.1415E0#-3.1415E0#-3.1415E0#-3.1415E0#-3.1415E0#-3.1415E0#-3.1415E0#-3.1415E0#-3.1415E0#-3.1415E0#-3.1415E0#-3.1415E0 > way > to > say > that & AND By The Way there is some numbers for ya ey #-3.1415E0 1234124 #0.000000000000000000000000000001E00000000000000000000000000000000000000000001`;
-const expr5 = `>>> "dupa" | !"kupa" & lupa & !!(10 | 12) | #1235 ++<>`;
-const expr1 = `><>(!"kiki")<>-+++ (!dupa)`
-const expr2 = `#"kwaczka" >> dupa | kupa & siki | !czort <`
-const expr3 = `> lupa | !!(dupa | siki)`
-const expr = `!((!(!( dupa && {0}))))`
+const expr1 = `>>> "dupa" | !"kupa" & lupa & !!(10 | 12) | #1235 ++<>`;
+const expr2 = `><>(!"kiki")<>-+++ (!dupa)`
+const expr3 = `#"kwaczka" >> dupa | kupa & siki | !czort <`
+const expr4 = `> lupa | !!(dupa | siki)`
+const expr5 = `!((!(!( dupa && {0}))))` // example for getting error emits right
+const expr6 = `>>>>69<>>>> ++ ++*++ ++`
+const expr7 = `1 | 2 | 3 | 5 & !6 | 8 & !#"dupa"`
+const expr8 = `((dupa)) | siki`
+const expr9 = `!((!(!( dupa & {0}))))` 
+
+const expr = expr9;
 const startTime = performance.now()
 
 const tokenized = lexer.tokenizeExpressionString(expr);

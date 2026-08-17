@@ -9,7 +9,7 @@ import {
 
 import {
 	type IncompleteParseError,
-	ParseErrorKind
+	ParseErrorKind,
 } from "./parser_errors.ts"
 
 import {parseConstraintsTopLevel} from "./parser_constraints.ts"
@@ -90,7 +90,7 @@ function nextPair(
 } {
 	
 	const combinatorResult = parseExpressionCombinator(filteredTokens, tokensConsumed);
-	if (combinatorResult == undefined){
+	if (! combinatorResult.success){
 		return {
 			pair: undefined,
 			err:[{ 
@@ -103,7 +103,7 @@ function nextPair(
 	tokensConsumed += combinatorResult.consumed;
 
 	const constraintResult = parseExpressionConstraint(filteredTokens, tokensConsumed);
-	if (constraintResult == undefined){
+	if (! constraintResult.success){
 		return {
 			pair: undefined,
 			err:[{ 
@@ -113,12 +113,10 @@ function nextPair(
 		};
 	}
 			
-
 	return {
 		pair: [combinatorResult.combinator,  constraintResult.constraint],
 		err: [],
-	}
-
+	};
 }
 
 /**
@@ -127,14 +125,15 @@ function nextPair(
 	
 	Start must be lower than tokens.length (start < tokens.length)
 	
-	If parse succeded, returns: {ExpressionCombinator, consumedTokens}
-	If parse failed, returns: undefined
+	If parse succeded, returns: {ExpressionCombinator, consumedTokens, true}
+	If parse failed, returns: {???, 0, false}
 */
 function parseExpressionCombinator(
 	tokens: Readonly<Array<lexer.TokenKind>>,
 	start: number
-): { combinator: ExpressionCombinator, consumed: number} | undefined {
+): { combinator: ExpressionCombinator, consumed: number, success: boolean} {
 	const nextToken = tokens[start];
+	
 	switch(nextToken){
 
 		// something went horribly wrong if this case is hit.
@@ -151,7 +150,7 @@ function parseExpressionCombinator(
 		case lexer.TokenKind.OPERATOR_OR:
 		case lexer.TokenKind.OPERATOR_AND:
 		case lexer.TokenKind.PARENTHESIS_RIGHT:
-			return undefined;
+			return combinatorMatchFail();
 
 		// precise operator detected, use conversion table
 		case lexer.TokenKind.OPERATOR_CHILD:
@@ -161,17 +160,12 @@ function parseExpressionCombinator(
 		case lexer.TokenKind.OPERATOR_SIBLING_SUBSEQUENT:
 		case lexer.TokenKind.OPERATOR_SIBLING_PRECEDING:
 		case lexer.TokenKind.OPERATOR_SIBLING_ANY:
-			return {
-				combinator: combinatorConversionTable[nextToken],
-				consumed: 1,
-			};
+			return combinatorFromTable(nextToken);
+
 		// if precise operator not detected but next token suggests beggining 
 		// of constraint block, it signals the implicit descendant operator.
 		default: 
-			return {
-				combinator: ExpressionCombinator.DESCENDANT,
-				consumed: 0,
-			};
+			return combinatorImplicitDescendant();
 	}
 }
 /**
@@ -187,6 +181,44 @@ const combinatorConversionTable = {
 	[lexer.TokenKind.OPERATOR_SIBLING_PRECEDING]:  ExpressionCombinator.SIBLING_PRECEDING,
 	[lexer.TokenKind.OPERATOR_SIBLING_ANY]:        ExpressionCombinator.SIBLING_ANY,
 } as const;
+
+function combinatorFromTable(nextToken: keyof typeof combinatorConversionTable): {
+	combinator: ExpressionCombinator,
+	consumed: number,
+	success: boolean,
+} {
+	return {
+		combinator: combinatorConversionTable[nextToken],
+		consumed: 1,
+		success: true,
+	};
+}
+
+function combinatorImplicitDescendant(): {
+	combinator: ExpressionCombinator,
+	consumed: number,
+	success: boolean,
+} {
+	return {
+		combinator: ExpressionCombinator.DESCENDANT,
+		consumed: 0,
+		success: true,
+	};
+}
+
+function combinatorMatchFail(): {
+	combinator: ExpressionCombinator,
+	consumed: number,
+	success: boolean,
+} {
+	return {
+		// using descendant as a default garbage value
+		combinator: ExpressionCombinator.DESCENDANT,
+		consumed: 0,
+		success: false,
+	};
+}
+
 
 
 /**
@@ -208,7 +240,7 @@ const combinatorConversionTable = {
 function parseExpressionConstraint(
 	tokens: Readonly<Array<lexer.TokenKind>>,
 	start: number
-): { constraint: ConstraintTreeNode, consumed: number} | undefined {
+): { constraint: ConstraintTreeNode, consumed: number, success: boolean} {
 
 	// implicit wildcard if tape is out of tokens
 	if (start == tokens.length){
@@ -238,12 +270,12 @@ function parseExpressionConstraint(
 	which corresponding to implicit wildcard case.
 */
 function implicitWildcardConstraintResult(currentIndex: number): 
-	{constraint: ConstraintTreeNode, consumed: number} {
+	{constraint: ConstraintTreeNode, consumed: number, success: boolean} {
 
 	const node: ConstraintTreeNode = {
 		kind: ConstraintTreeNodeKind.ATOM,
 		range: [currentIndex, currentIndex],
 		children: [],
 	}
-	return {constraint: node, consumed: 0};
+	return {constraint: node, consumed: 0, success: true};
 }
