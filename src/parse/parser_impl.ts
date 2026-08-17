@@ -36,9 +36,9 @@ export function generateExpressionParseTape(
 	const tokensTotal = filteredTokens.length;
 	
 	while (tokensConsumed < tokensTotal) {
-		const {pair, err} = nextPair(filteredTokens, tokensConsumed);
+		const {pair, consumed, err} = nextPair(filteredTokens, tokensConsumed);
 		
-		// if syntax error occured, early exit
+		// if parsing error occured, early exit
 		if (err.length){
 			return {
 				parseTape:{combinators, constraints},
@@ -52,14 +52,13 @@ export function generateExpressionParseTape(
 		combinators.push(pairCombinator);
 		constraints.push(pairConstraint);
 		
-		// tokens consumed equals to end of token range of last constraint
 		// pair cannot possibly parse into 0 tokens consumed.
 		// this assertion prevents infinite loop in case of a fatal error.
-		if (tokensConsumed == pairConstraint.range[1]){
+		if (consumed == 0){
 			throw new Error("Catastrophic parser failure, infinite loop");
 		}
-
-		tokensConsumed = pairConstraint.range[1];
+		
+		tokensConsumed += consumed;
 	}
 
 	
@@ -72,52 +71,91 @@ export function generateExpressionParseTape(
 
 
 /**
+	Result type for nextPair function as it returns quite a bunch of things
+	Read nextPair for more info.
+*/
+type NextPairResult = {
+	pair: [ExpressionCombinator, ConstraintTreeNode] | undefined,
+	consumed: number,
+	err: Array<IncompleteParseError>,
+};
+
+/**
 	Runs parser forward to obtain next expression combinator and contraint 
 	tree node pair. 
-
-	If syntax error occured, returns undefined as pair value and 
-	a non-empty IncompleteParseError array.
-
-	If next pair parsed successfully, returns a valid pair value 
-	and an empty IncompleteParseError array.
+	// 	TODO BETTER DOCSTRING
 */
 function nextPair(
 	filteredTokens: Readonly<Array<lexer.TokenKind>>,
-	tokensConsumed: number,
-): {
-	pair: [ExpressionCombinator, ConstraintTreeNode] | undefined,
-	err: Array<IncompleteParseError>
-} {
+	start: number,
+): NextPairResult {
+	const combinatorResult = parseExpressionCombinator(filteredTokens, start);
 	
-	const combinatorResult = parseExpressionCombinator(filteredTokens, tokensConsumed);
-	if (! combinatorResult.success){
-		return {
-			pair: undefined,
-			err:[{ 
-				targetKind: ParseErrorKind.WRONG_SYNTAX, 
-				filteredTokenIndexes: [tokensConsumed],
-			}],
-		};
+	// constraint start is moved by 1 if combinator parse failed.
+	// This is in order to run constraint parse anyway and gather intel
+	// for error info on what could have caused a problem.
+	const constraintStart = combinatorResult.success 
+							? start + combinatorResult.consumed
+							: start + 1;
+	
+	// parsing constraint is enclosed in a trycatch, for the stack overflow is a possibility
+	try {
+		var constraintResult = parseExpressionConstraint(filteredTokens, constraintStart);
+	}catch(e){
+		return nextPairErrorResult(stackOverflowError(constraintStart));
 	}
 
-	tokensConsumed += combinatorResult.consumed;
-
-	const constraintResult = parseExpressionConstraint(filteredTokens, tokensConsumed);
-	if (! constraintResult.success){
+	// both parsed properly, just return valid values
+	if (constraintResult.success && combinatorResult.success){
 		return {
-			pair: undefined,
-			err:[{ 
-				targetKind: ParseErrorKind.WRONG_SYNTAX, 
-				filteredTokenIndexes: [tokensConsumed],
-			}],
+			pair: [combinatorResult.combinator,  constraintResult.constraint],
+			consumed: constraintStart + constraintResult.consumed,
+			err: [],
 		};
 	}
-			
+	else if (! combinatorResult.success){
+		return nextPairErrorResult(decideErrorType(
+			[constraintStart, constraintStart + constraintResult.consumed]
+		));
+	}
+	else { //if (! constraintResult.success){
+		return nextPairErrorResult(decideErrorType(
+			[constraintStart, constraintStart + constraintResult.consumed]
+		));
+	}
+}
+
+/**
+	Constructs a full error-result for nextPair function
+	from just an IncompleteParseError instance.
+*/
+function nextPairErrorResult(err: IncompleteParseError): NextPairResult {
 	return {
-		pair: [combinatorResult.combinator,  constraintResult.constraint],
-		err: [],
+		pair: undefined,
+		consumed: 0,
+		err: [err],
 	};
 }
+/**
+	Constructs a new IncompleteParseError of target kind stack overflow
+	with provided lastIndex in filteredTokenIndexes collection.
+*/
+function stackOverflowError(lastIndex: number): IncompleteParseError {
+	return {
+		targetKind: ParseErrorKind.STACK_OVERFLOW,
+		filteredTokenIndexes: [lastIndex],
+	};
+}
+
+
+// subject to change
+function decideErrorType(indexes: Array<number>): IncompleteParseError {
+	return {
+		targetKind: ParseErrorKind.WRONG_SYNTAX,
+		filteredTokenIndexes: indexes,
+	};
+}
+
 
 /**
 	Parses an expression combinator from tokens stream,

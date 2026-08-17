@@ -8,6 +8,7 @@ export enum ParseErrorKind {
 	INDEX_OUT_OF_BOUNDS,
 	STRING_NOT_VALID_JSON,
 	WRONG_SYNTAX,
+	STACK_OVERFLOW,
 }
 
 /**
@@ -56,6 +57,18 @@ export namespace ParseErrorVariants {
 		kind: ParseErrorKind.WRONG_SYNTAX,
 		tokenIndexes: Readonly<Array<number>>,
 	}
+
+	/**
+		Reported when parsing a constraint block in an expression
+		exceeds platform's stack or recursion limit. 
+
+		Token indexes array contains a last token attempted to parse before
+		the eror appeared.
+	*/
+	export type StackOverflow = {
+		kind: ParseErrorKind.STACK_OVERFLOW,
+		tokenIndexes: Readonly<Array<number>>,
+	}
 }
 
 /**
@@ -67,6 +80,7 @@ export type ParseError = Readonly<
 	| ParseErrorVariants.IndexOutOfBounds
 	| ParseErrorVariants.StringNotValidJson
 	| ParseErrorVariants.WrongSyntax
+	| ParseErrorVariants.StackOverflow
 >;
 
 

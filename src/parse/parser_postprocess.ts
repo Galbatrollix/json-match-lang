@@ -16,9 +16,7 @@ import {
 */
 export function postprocessCollapseTreesInPlace(parseTape: ExpressionParseTape): void {
 	for (let i = 0; i < parseTape.constraints.length; i++){
-		//console.log([parseTape.constraints[i]])
 		collapseTreeImpl(parseTape.constraints[i]);
-		//console.log([parseTape.constraints[i]])
 	}
 }
 
@@ -64,24 +62,3 @@ function collapseTreeImpl(root: ConstraintTreeNode): void {
 	root.children = node[0].children;
 
 }
-
-/*
-
-
-
-export type ConstraintTreeNode = {
-	kind: ConstraintTreeNodeKind,
-	range: [number, number],
-	children: Array<ConstraintTreeNode>,	
-}
-
-export type ExpressionParseTape = {
-	combinators: Array<ExpressionCombinator>,
-	constraints: Array<ConstraintTreeNode>,
-}
-
-
-
-
-
-*/

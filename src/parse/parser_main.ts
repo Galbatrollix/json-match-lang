@@ -56,7 +56,7 @@ export function parseExpressionTokens(lexTape: lexer.TokenTape): ParseResult {
 
 	const errors: Array<ParseError> = parseErrorsFromIncomplete(
 		incompleteErrors,
-		originalIndexMapping,
+		originalIndexMapping
 	);
 	console.log(errors);
 	console.log(lexer.TokenTapeUtils.Display.asStr(lexTape));
