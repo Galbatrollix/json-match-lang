@@ -113,11 +113,13 @@ function nextPair(
 			err: [],
 		};
 	} 
-	else {
-		return nextPairErrorResult(syntaxError(
-			constraintStart + constraintResult.consumed - 1,
-		));
-	}
+	// at least one did not parse properly, returning a syntax error
+	
+	//todo fiddle with returned index value to maybe compensate for combinator consumed
+	return nextPairErrorResult(syntaxError(
+		constraintStart + constraintResult.consumed - 1, 
+	));
+	
 
 }
 

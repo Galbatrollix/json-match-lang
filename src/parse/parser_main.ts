@@ -4,10 +4,8 @@ import {
 	type IncompleteParseError,
 	parseErrorsFromIncomplete,
 } from "./parser_errors.ts"
-import {type ParseWarning} from "./parser_warnings.ts"
 import {
 	preprocessFindInvalidTokens,
-	preprocessFindBogusPairs,
 	preprocessFilterWhitespace,
 } from "./parser_preprocess.ts"
 import {generateExpressionParseTape} from "./parser_impl.ts"
@@ -26,9 +24,7 @@ export type CompiledExpression = undefined;
 export type ParseResult = Readonly<{
 	output: CompiledExpression,
 	errors: Readonly<Array<ParseError>>,
-	warnings: Readonly<Array<ParseWarning>>,
 }>;
-
 
 
 //todo: go over lexer and maybe reorganize it so it makes more sense, update docstrings and
@@ -40,10 +36,9 @@ export function parseExpressionTokens(lexTape: lexer.TokenTape): ParseResult {
 	const preprocessingErrors: Array<ParseError> = preprocessFindInvalidTokens(lexTape);
 	if (preprocessingErrors.length){
 		return assembleParseResult(
-			emptyCompiledExpression(), preprocessingErrors, [] 
+			emptyCompiledExpression(), preprocessingErrors 
 		);
 	}
-	const warnings: Array<ParseWarning> = preprocessFindBogusPairs(lexTape);
 
 	const filterResult = preprocessFilterWhitespace(lexTape);
 
@@ -64,7 +59,7 @@ export function parseExpressionTokens(lexTape: lexer.TokenTape): ParseResult {
 
 	if (errors.length){
 		return assembleParseResult(
-			emptyCompiledExpression(), errors, [] 
+			emptyCompiledExpression(), errors
 		);
 	};
 	// TODO: HERE COLLECT WARNINGS FROM RAW AST
@@ -83,7 +78,7 @@ export function parseExpressionTokens(lexTape: lexer.TokenTape): ParseResult {
 	// todo: postprocess errors to transform the filtered token indexes 
 	// into original token indexes
 	
-	return assembleParseResult(emptyCompiledExpression(), errors, warnings);
+	return assembleParseResult(emptyCompiledExpression(), errors);
 }
 
 
@@ -100,11 +95,9 @@ function emptyCompiledExpression(): CompiledExpression {
 function assembleParseResult(
 	output: CompiledExpression,
 	errors: Array<ParseError>,
-	warnings: Array<ParseWarning>,
 ): ParseResult{
 	return {
 		output: output,
 		errors: Object.freeze(errors),
-		warnings: Object.freeze(warnings),
 	}
 }
