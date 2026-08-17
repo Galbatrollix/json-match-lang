@@ -19,10 +19,12 @@ const expr5 = `!((!(!( dupa && {0}))))` // example for getting error emits right
 const expr6 = `>>>>69<>>>> ++ ++*++ ++`
 const expr7 = `1 | 2 | 3 | 5 & !6 | 8 & !#"dupa"`
 const expr8 = `((dupa)) | siki`
-const expr9 = `!((!(!( dupa & {0}))))` 
+const expr9 = `!((!(!!!( dupa & {0}))))` 
 const expr10 = `meh & keh & (dupa !&! kupa)`;
 const expr11 = `(`.repeat(100000);
-const expr = expr10;
+
+const expr12 = `dupa >> +  czort  !!!!!!kupa  & dupa`; 
+const expr = expr9
 const startTime = performance.now()
 
 const tokenized = lexer.tokenizeExpressionString(expr);

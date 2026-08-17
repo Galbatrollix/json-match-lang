@@ -7,8 +7,8 @@ export enum ParseErrorKind {
 	FOUND_ERROR_TOKENS,
 	INDEX_OUT_OF_BOUNDS,
 	STRING_NOT_VALID_JSON,
-	WRONG_SYNTAX,
 	STACK_OVERFLOW,
+	WRONG_SYNTAX,
 }
 
 /**
@@ -50,13 +50,6 @@ export namespace ParseErrorVariants {
 		tokenIndexes: Readonly<Array<number>>,
 	}
 	
-	/**
-		SUBJECT TO CHANGE
-	*/
-	export type WrongSyntax = {
-		kind: ParseErrorKind.WRONG_SYNTAX,
-		tokenIndexes: Readonly<Array<number>>,
-	}
 
 	/**
 		Reported when parsing a constraint block in an expression
@@ -69,6 +62,17 @@ export namespace ParseErrorVariants {
 		kind: ParseErrorKind.STACK_OVERFLOW,
 		tokenIndexes: Readonly<Array<number>>,
 	}
+
+
+	
+
+	/**
+		SUBJECT TO CHANGE
+	*/
+	export type WrongSyntax = {
+		kind: ParseErrorKind.WRONG_SYNTAX,
+		tokenIndexes: Readonly<Array<number>>,
+	}
 }
 
 /**
@@ -79,9 +83,10 @@ export type ParseError = Readonly<
 	ParseErrorVariants.FoundErrorTokens 
 	| ParseErrorVariants.IndexOutOfBounds
 	| ParseErrorVariants.StringNotValidJson
-	| ParseErrorVariants.WrongSyntax
 	| ParseErrorVariants.StackOverflow
+	| ParseErrorVariants.WrongSyntax
 >;
+
 
 
 /**
@@ -103,11 +108,11 @@ export function parseErrorsFromIncomplete(
 	tokenMapping: Readonly<Array<number>>,
 ): Array<ParseError> {
 	const result = new Array(incomplete.length);
-
 	for (let errIdx = 0; errIdx < incomplete.length; errIdx++){
 		const err: IncompleteParseError = incomplete[errIdx];
 		const indexCount = err.filteredTokenIndexes.length;
-		const indexesCorrect = new Array(indexCount);
+
+		const indexesCorrect: Array<number> = new Array(indexCount);
 		for (let i = 0; i < indexCount; i++){
 			indexesCorrect[i] = tokenMapping[err.filteredTokenIndexes[i]];
 		}

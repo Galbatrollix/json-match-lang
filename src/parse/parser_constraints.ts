@@ -15,7 +15,7 @@ import * as lexer from "./../lex/lexer_main.ts"
 	or block =             and block , {OPERATOR_OR, and block}
 	and block =            term , {OPERATOR_AND, term}
 	term =                 negation | parenthesised block | atom
-	negation =             OPERATOR_NOT, (parenthesised block | atom)
+	negation =             OPERATOR_NOT, (negation | parenthesised block | atom)
 	parenthesized block =  PARENTHESIS_LEFT, or block ,PARENTHESIS_RIGHT
 	atom =                 KEY_NAKED | KEY_QUOTED| (... and other single-token constraints)
 
@@ -215,10 +215,8 @@ function parseOrBlock(
 }
 
 
-
-
-const parseParenthesizedBlockOrAtom: ParseFunction = combinatorOr(
-	[parseAtom, parseParenthesizedBlock]
+const parseNegationImpl: ParseFunction = combinatorOr(
+	[parseNegation, parseAtom, parseParenthesizedBlock]
 );
 
 function parseNegation(
@@ -238,7 +236,7 @@ function parseNegation(
 	
 	const childTree: Array<ConstraintTreeNode> = [];
 	
-	const [consumed, matched] = parseParenthesizedBlockOrAtom(
+	const [consumed, matched] = parseNegationImpl(
 		tokens,
 		start + 1,
 		childTree,

@@ -104,25 +104,21 @@ function nextPair(
 	}catch(e){
 		return nextPairErrorResult(stackOverflowError(constraintStart));
 	}
-
+	
 	// both parsed properly, just return valid values
-	if (constraintResult.success && combinatorResult.success){
+	if (combinatorResult.success && constraintResult.success){
 		return {
 			pair: [combinatorResult.combinator,  constraintResult.constraint],
-			consumed: constraintStart + constraintResult.consumed,
+			consumed: constraintStart - start + constraintResult.consumed,
 			err: [],
 		};
-	}
-	else if (! combinatorResult.success){
-		return nextPairErrorResult(decideErrorType(
-			[constraintStart, constraintStart + constraintResult.consumed]
+	} 
+	else {
+		return nextPairErrorResult(syntaxError(
+			constraintStart + constraintResult.consumed - 1,
 		));
 	}
-	else { //if (! constraintResult.success){
-		return nextPairErrorResult(decideErrorType(
-			[constraintStart, constraintStart + constraintResult.consumed]
-		));
-	}
+
 }
 
 /**
@@ -138,21 +134,25 @@ function nextPairErrorResult(err: IncompleteParseError): NextPairResult {
 }
 /**
 	Constructs a new IncompleteParseError of target kind stack overflow
-	with provided lastIndex in filteredTokenIndexes collection.
+	with provided tokenIndex in filteredTokenIndexes collection.
 */
-function stackOverflowError(lastIndex: number): IncompleteParseError {
+function stackOverflowError(tokenIndex: number): IncompleteParseError {
 	return {
 		targetKind: ParseErrorKind.STACK_OVERFLOW,
-		filteredTokenIndexes: [lastIndex],
+		filteredTokenIndexes: [tokenIndex],
 	};
 }
 
-
-// subject to change
-function decideErrorType(indexes: Array<number>): IncompleteParseError {
+/**
+	Constructs a new IncompleteParseError of target kind wrong syntax
+	with provided tokenIndex in filteredTokenIndexes collection.
+*/
+function syntaxError(
+	tokenIndex: number,
+): IncompleteParseError {
 	return {
 		targetKind: ParseErrorKind.WRONG_SYNTAX,
-		filteredTokenIndexes: indexes,
+		filteredTokenIndexes: [tokenIndex],
 	};
 }
 
