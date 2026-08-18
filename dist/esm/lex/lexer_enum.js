@@ -75,8 +75,12 @@ export var TokenKindUtils;
         return (TokenKind.OPERATOR_CHILD <= t && t <= TokenKind.OPERATOR_PARENT);
     }
     TokenKindUtils.isOperatorParentChild = isOperatorParentChild;
-    function isValue(t) {
+    function isConstraint(t) {
+        return (TokenKind.KEY_QUOTED <= t && t <= TokenKind.VALUE_EXACT_STRING);
+    }
+    TokenKindUtils.isConstraint = isConstraint;
+    function isValueConstraint(t) {
         return (TokenKind.VALUE_TYPE_WILDCARD <= t && t <= TokenKind.VALUE_EXACT_STRING);
     }
-    TokenKindUtils.isValue = isValue;
+    TokenKindUtils.isValueConstraint = isValueConstraint;
 })(TokenKindUtils || (TokenKindUtils = {}));

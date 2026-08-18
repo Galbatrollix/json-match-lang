@@ -52,6 +52,7 @@ export declare namespace TokenKindUtils {
     function isOperatorLogical(t: TokenKind): boolean;
     function isOperatorSibling(t: TokenKind): boolean;
     function isOperatorParentChild(t: TokenKind): boolean;
-    function isValue(t: TokenKind): boolean;
+    function isConstraint(t: TokenKind): boolean;
+    function isValueConstraint(t: TokenKind): boolean;
 }
 //# sourceMappingURL=lexer_enum.d.ts.map

@@ -104,7 +104,7 @@ export type IncompleteParseError = {
 	via inverse index mapping from filtered to original token tape tokens.
 */
 export function parseErrorsFromIncomplete(
-	incomplete: Array<IncompleteParseError>,
+	incomplete: Readonly<Array<IncompleteParseError>>,
 	tokenMapping: Readonly<Array<number>>,
 ): Array<ParseError> {
 	const result = new Array(incomplete.length);

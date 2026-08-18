@@ -1,6 +1,6 @@
 import {
 	ConstraintTreeNodeKind,
-	type ConstraintTreeNode,
+	type RawConstraintTreeNode,
 } from "./parser_types.ts"
 
 import * as lexer from "./../lex/lexer_main.ts"
@@ -41,7 +41,7 @@ import * as lexer from "./../lex/lexer_main.ts"
 type ParseFunction = (
 	tokens: Readonly<Array<lexer.TokenKind>>,
  	start: number,
-	outputTree: Array<ConstraintTreeNode>,
+	outputTree: Array<RawConstraintTreeNode>,
 ) => [consumed: number, matched: boolean];
 
 
@@ -49,15 +49,15 @@ type ParseFunction = (
 	Top level function that will be called by the main 
 	parser once a constraint block must be handled.
 	
-	If parse succeded, returns: {ConstraintTreeNode, consumedTokens}
+	If parse succeded, returns: {RawConstraintTreeNode, consumedTokens}
 	If parse failed, returns: undefined
 	
 */
 export function parseConstraintsTopLevel(
 	tokens: Readonly<Array<lexer.TokenKind>>,
 	start: number,
-): { constraint: ConstraintTreeNode, consumed: number, success: boolean} {
-	const dummyTreeNode: Array<ConstraintTreeNode> = []
+): { constraint: RawConstraintTreeNode, consumed: number, success: boolean} {
+	const dummyTreeNode: Array<RawConstraintTreeNode> = []
 	// todo report consumed characters on fail for error purposes
 	const [consumed, success] = parseOrBlock(tokens, start, dummyTreeNode);
 
@@ -75,7 +75,7 @@ export function parseConstraintsTopLevel(
 function parseAtom(
 	tokens: Readonly<Array<lexer.TokenKind>>,
  	start: number,
-	outputTree: Array<ConstraintTreeNode>,
+	outputTree: Array<RawConstraintTreeNode>,
 ): [number, boolean] {
 	if (start == tokens.length){
 		return [0, false];
@@ -87,7 +87,7 @@ function parseAtom(
 	}
 	
 	// success, emitting AST node
-	const newNode: ConstraintTreeNode = {
+	const newNode: RawConstraintTreeNode = {
 		kind: ConstraintTreeNodeKind.ATOM,
 		range: [start, start + 1],
 		children: [],
@@ -115,9 +115,9 @@ const parseParenthesizedBlockInternal: ParseFunction = combinatorChain([
 function parseParenthesizedBlock(
 	tokens: Readonly<Array<lexer.TokenKind>>,
  	start: number,
-	outputTree: Array<ConstraintTreeNode>,
+	outputTree: Array<RawConstraintTreeNode>,
 ): [number, boolean] {
-	const childTree: Array<ConstraintTreeNode> = [];
+	const childTree: Array<RawConstraintTreeNode> = [];
 	const [consumed, matched] = parseParenthesizedBlockInternal(tokens, start, childTree);
 	
 	if (! matched){
@@ -125,7 +125,7 @@ function parseParenthesizedBlock(
 	}
 	
 	// inner function matched, construct output
-	const newNode: ConstraintTreeNode = {
+	const newNode: RawConstraintTreeNode = {
 		kind: ConstraintTreeNodeKind.PARENS,
 		range: [start, start + consumed],
 		children: childTree,
@@ -155,9 +155,9 @@ const parseAndBlockInternal: ParseFunction = combinatorChain([
 function parseAndBlock(
 	tokens: Readonly<Array<lexer.TokenKind>>,
  	start: number,
-	outputTree: Array<ConstraintTreeNode>,
+	outputTree: Array<RawConstraintTreeNode>,
 ): [number, boolean] {
-	const childTree: Array<ConstraintTreeNode> = [];
+	const childTree: Array<RawConstraintTreeNode> = [];
 	const [consumed, matched] = parseAndBlockInternal(tokens, start, childTree);
 	
 	if (! matched){
@@ -165,7 +165,7 @@ function parseAndBlock(
 	}
 
 	// inner function matched, construct output
-	const newNode: ConstraintTreeNode = {
+	const newNode: RawConstraintTreeNode = {
 		kind: ConstraintTreeNodeKind.AND,
 		range: [start, start + consumed],
 		children: childTree,
@@ -194,9 +194,9 @@ const parseOrBlockInternal: ParseFunction = combinatorChain([
 function parseOrBlock(
 	tokens: Readonly<Array<lexer.TokenKind>>,
  	start: number,
-	outputTree: Array<ConstraintTreeNode>,
+	outputTree: Array<RawConstraintTreeNode>,
 ): [number, boolean] {
-	const childTree: Array<ConstraintTreeNode> = [];
+	const childTree: Array<RawConstraintTreeNode> = [];
 	const [consumed, matched] = parseOrBlockInternal(tokens, start, childTree);
 	
 	if (! matched){
@@ -204,7 +204,7 @@ function parseOrBlock(
 	}
 	
 	// inner function matched, construct output
-	const newNode: ConstraintTreeNode = {
+	const newNode: RawConstraintTreeNode = {
 		kind: ConstraintTreeNodeKind.OR,
 		range: [start, start + consumed],
 		children: childTree,
@@ -216,13 +216,13 @@ function parseOrBlock(
 
 
 const parseNegationImpl: ParseFunction = combinatorOr(
-	[parseNegation, parseAtom, parseParenthesizedBlock]
+	[parseAtom, parseParenthesizedBlock, parseNegation]
 );
 
 function parseNegation(
 	tokens: Readonly<Array<lexer.TokenKind>>,
  	start: number,
-	outputTree: Array<ConstraintTreeNode>,
+	outputTree: Array<RawConstraintTreeNode>,
 ): [number, boolean] {
 	
 	if (start == tokens.length){
@@ -234,7 +234,7 @@ function parseNegation(
 		return [0, false];
 	}
 	
-	const childTree: Array<ConstraintTreeNode> = [];
+	const childTree: Array<RawConstraintTreeNode> = [];
 	
 	const [consumed, matched] = parseNegationImpl(
 		tokens,
@@ -249,7 +249,7 @@ function parseNegation(
 	}
 
 	// inner function matched, construct output
-	const newNode: ConstraintTreeNode = {
+	const newNode: RawConstraintTreeNode = {
 		kind: ConstraintTreeNodeKind.NOT,
 		range: [start, start + consumed + 1],
 		children: childTree,
@@ -285,7 +285,7 @@ function combinatorOr(funcList: Array<ParseFunction>): ParseFunction {
 	const resultFunc = function(
 		tokens: Readonly<Array<lexer.TokenKind>>,
 	 	start: number,
-		outputTree: Array<ConstraintTreeNode>,
+		outputTree: Array<RawConstraintTreeNode>,
 	): [number, boolean]{
 		let maxConsumed = 0;
 	
@@ -315,14 +315,14 @@ function combinatorOr(funcList: Array<ParseFunction>): ParseFunction {
 */
 function combinatorChain(funcList: Array<ParseFunction>): ParseFunction {
 	// alias for length reassign operation so its obvious what it is
-	function rollbackTree(outputTree: Array<ConstraintTreeNode>, initialLength: number){
+	function rollbackTree(outputTree: Array<RawConstraintTreeNode>, initialLength: number){
 		outputTree.length = initialLength;
 	}
 
 	const resultFunc = function(
 		tokens: Readonly<Array<lexer.TokenKind>>,
 	 	start: number,
-		outputTree: Array<ConstraintTreeNode>,
+		outputTree: Array<RawConstraintTreeNode>,
 	): [number, boolean]{
 		const initialTreeLength = outputTree.length;
 
@@ -361,7 +361,7 @@ function combinatorOptionalRepeat(func: ParseFunction): ParseFunction {
 	const resultFunc = function(
 		tokens: Readonly<Array<lexer.TokenKind>>,
 		start: number,
-		outputTree: Array<ConstraintTreeNode>,
+		outputTree: Array<RawConstraintTreeNode>,
 	): [number, boolean]{
 		let matched: boolean = false;
 		let consumedTotal: number = 0;
@@ -390,7 +390,7 @@ function createSingleTokenParse(token: lexer.TokenKind): ParseFunction {
 	const resultFunc = function(
 		tokens: Readonly<Array<lexer.TokenKind>>,
 	 	start: number,
-		outputTree: Array<ConstraintTreeNode>,
+		outputTree: Array<RawConstraintTreeNode>,
 	): [number, boolean]{
 		//@ts-ignore
 		const _unused = outputTree;

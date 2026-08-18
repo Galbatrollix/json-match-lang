@@ -34,9 +34,9 @@ var __importStar = (this && this.__importStar) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.preprocessFindInvalidTokens = preprocessFindInvalidTokens;
+exports.preprocessFilterWhitespace = preprocessFilterWhitespace;
 const lexer = __importStar(require("./../lex/lexer_main.js"));
 const parser_errors_ts_1 = require("./parser_errors.js");
-// import {type ParseWarning} from "./parser_warnings.ts"
 /**
     A parser preprocessing function that scans token tape for critical problems
     with supplied tokens such as:
@@ -66,25 +66,49 @@ function preprocessFindInvalidTokens(tape) {
     const foundErrors = [];
     // some code repetition below, but making a generic mechanism 
     // for three 4-line blocks is more trouble than its worth 
-    if (errorTokenIdx) {
+    if (errorTokenIdx.length) {
         foundErrors.push({
             kind: parser_errors_ts_1.ParseErrorKind.FOUND_ERROR_TOKENS,
             tokenIndexes: Object.freeze(errorTokenIdx),
         });
     }
-    if (indexOverflowIdx) {
+    if (indexOverflowIdx.length) {
         foundErrors.push({
             kind: parser_errors_ts_1.ParseErrorKind.INDEX_OUT_OF_BOUNDS,
             tokenIndexes: Object.freeze(indexOverflowIdx),
         });
     }
-    if (wrongStringIdx) {
+    if (wrongStringIdx.length) {
         foundErrors.push({
             kind: parser_errors_ts_1.ParseErrorKind.STRING_NOT_VALID_JSON,
             tokenIndexes: Object.freeze(wrongStringIdx),
         });
     }
     return foundErrors;
+}
+/**
+    Parser preprocessing function that based on lexer.TokenTape
+    makes a new array of tokens with whitespace filtered.
+
+    Returns new array with whitespace filtered and mapping
+    that maps indexes in filtered array to indexes in original TokenTape.
+*/
+function preprocessFilterWhitespace(tape) {
+    // preallocating arrays 
+    const tokens = new Array(tape.tokenCount);
+    const mapping = new Array(tape.tokenCount);
+    let filteredIndex = 0;
+    for (let i = 0; i < tape.tokenCount; i++) {
+        const kind = tape.tokenKind[i];
+        if (kind == lexer.TokenKind.WHITESPACE) {
+            continue;
+        }
+        tokens[filteredIndex] = kind;
+        mapping[filteredIndex] = i;
+        filteredIndex += 1;
+    }
+    tokens.length = mapping.length = filteredIndex;
+    return { tokens, mapping };
 }
 /**
     Returns true if given token string and kind combination
@@ -115,7 +139,10 @@ function isWrongString(tokenKind, tokenString) {
             return false;
     }
 }
-/** s is assumed to be a decimal digit sequence with no leading zeros */
+/**
+    s is assumed to be a decimal digit sequence with no leading zeros
+    just as token index is defined by the lexer
+*/
 function fitsU32MinusOneAsNumber(s) {
     const u32Max = 4294967295;
     const breakpointDigits = 10;

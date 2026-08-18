@@ -20,14 +20,18 @@ export enum ExpressionCombinator {
 	Each node in constraint tree must be one one of the following kinds.
 */
 export enum ConstraintTreeNodeKind {
-	ATOM,         // has always 0 children
-	PARENS,       // has always 1 child
-	NOT,          // has always 1 child
-	AND,          // has at least 1 child
-	OR,           // has at least 1 child
+	ATOM,             // has always 0 children
+	PARENS,           // has always 1 child
+	NOT,              // has always 1 child
+	AND,              // has at least 1 child
+	OR,               // has at least 1 child
+	IMPLICIT,         // has always 0 children
 }
 
 /**
+	Represents raw form of constraint tree that is outputed
+	by the parser implementation.
+	
 	Kind describes type of the tree node.
 
 	Range describes (filtered) index range of tokens
@@ -35,10 +39,10 @@ export enum ConstraintTreeNodeKind {
 	
 	Children array describes 0 or more children of the current node.
 */
-export type ConstraintTreeNode = {
+export type RawConstraintTreeNode = {
 	kind: ConstraintTreeNodeKind,
 	range: [number, number],
-	children: Array<ConstraintTreeNode>,	
+	children: Array<RawConstraintTreeNode>,	
 }
 
 
@@ -58,22 +62,65 @@ export type ConstraintTreeNode = {
 		constraint[i] is constraint following the combinator at combinator[i]
 
 */
-export type ExpressionParseTape = {
+export type RawExpressionParseTape = {
 	combinators: Array<ExpressionCombinator>,
-	constraints: Array<ConstraintTreeNode>,
+	constraints: Array<RawConstraintTreeNode>,
 }
 
 
-export namespace ExpressionParseTapeUtils{
+/**
+	Represents flattened and processed form of constraint tree
+	formed from RawConstraintTreeNode after further processing.
+
+	TokenIdx in atom kind item refers to an index in original
+	token tape, not a filtered token index. 
+
+*/
+export type ConstraintTreeNode = Readonly<
+	{
+		kind: ConstraintTreeNodeKind.OR,
+		children: Readonly<Array<ConstraintTreeNode>>,
+	} |	{
+		kind: ConstraintTreeNodeKind.AND,
+		children: Readonly<Array<ConstraintTreeNode>>,
+	} | {
+		kind: ConstraintTreeNodeKind.NOT,
+		child: ConstraintTreeNode,
+	} | {
+		kind: ConstraintTreeNodeKind.ATOM,
+		tokenIdx: number,
+	} | {
+		kind: ConstraintTreeNodeKind.IMPLICIT
+	}
+>
+
+/**
+	Same as raw expression parse tape, but containing
+	processed constraint trees.
+
+	Exists only in readonly format and is closed to extension.
+	
+	pairCount == combinators.length == constraints.length
+	
+*/
+export type ExpressionParseTape = Readonly<{
+	pairCount: number,
+	combinators: Readonly<Array<ExpressionCombinator>>,
+	constraints: Readonly<Array<ConstraintTreeNode>>,
+}> & { _?: never };
+
+
+
+export namespace RawExpressionParseTapeUtils{
 	export namespace Display {
-		export function asTree(tape: ExpressionParseTape): string {
+		export function asTree(tape: RawExpressionParseTape): string {
 			const trees: Array<string> = []
 		
 			for (let i = 0; i < tape.constraints.length; i++){
 				const combinator: string = ExpressionCombinator[tape.combinators[i]]
 
-				const root: ConstraintTreeNode = tape.constraints[i];
-				const obj: any = ConstraintTreeNodeUtils.Display.treeifyRepr(root);
+				const root: RawConstraintTreeNode = tape.constraints[i];
+				const obj: any = RawConstraintTreeNodeUtils.Display.treeifyRepr(root);
 				
 				trees.push(combinator);
 				trees.push(treeifyObject(obj, true));
@@ -82,7 +129,7 @@ export namespace ExpressionParseTapeUtils{
 			return trees.join("\n");
 		}
 		export function asTreeFull(
-			tape: ExpressionParseTape,
+			tape: RawExpressionParseTape,
 			tokenStrings: Readonly<Array<string>>,
 			tokenMapping: Readonly<Array<number>>,
 		): string {
@@ -91,8 +138,8 @@ export namespace ExpressionParseTapeUtils{
 			for (let i = 0; i < tape.constraints.length; i++){
 				const combinator: string = ExpressionCombinator[tape.combinators[i]]
 
-				const root: ConstraintTreeNode = tape.constraints[i];
-				const obj: any = ConstraintTreeNodeUtils.Display.treeifyReprFull(
+				const root: RawConstraintTreeNode = tape.constraints[i];
+				const obj: any = RawConstraintTreeNodeUtils.Display.treeifyReprFull(
 					root, tokenStrings, tokenMapping,
 				);
 				
@@ -105,13 +152,13 @@ export namespace ExpressionParseTapeUtils{
 	}
 }
 
-export namespace ConstraintTreeNodeUtils {
+export namespace RawConstraintTreeNodeUtils {
 	export namespace Display {		
 		/**
 			Converts a consraint tree node into nested object representation 
 			that will be possible to display as string with treeify.
 		*/
-		export function treeifyRepr(node: ConstraintTreeNode): any {
+		export function treeifyRepr(node: RawConstraintTreeNode): any {
 			const [rootIdx, rootVal] = nodeToTreeifyImpl(node);
 			return {[rootIdx]: rootVal};
 		}
@@ -122,7 +169,7 @@ export namespace ConstraintTreeNodeUtils {
 			Unlike function treeifyRepr, includes atom token values in the result
 		*/
 		export function treeifyReprFull(
-			node: ConstraintTreeNode,
+			node: RawConstraintTreeNode,
 			tokenStrings: Readonly<Array<string>>,
 			tokenMapping: Readonly<Array<number>>,
 		): any {
@@ -131,9 +178,8 @@ export namespace ConstraintTreeNodeUtils {
 			);
 
 			// handling special case for "implicit wildcard" constraint
-			// which has uniquely special property of range[0] == range[1]
 			
-			if (node.range[0] == node.range[1]){
+			if (node.kind == ConstraintTreeNodeKind.IMPLICIT){
 				return {[rootIdx]: "(implicit) *"};
 			}else{
 				return {[rootIdx]: rootVal};
@@ -144,7 +190,7 @@ export namespace ConstraintTreeNodeUtils {
 		/**
 			Recursive function that constructs result for the nodeToTreeify function.
 		*/
-		function nodeToTreeifyImpl(node: ConstraintTreeNode): [string, any] {
+		function nodeToTreeifyImpl(node: RawConstraintTreeNode): [string, any] {
 			const kindStr: string = ConstraintTreeNodeKind[node.kind];
 			const rangeStr = ` [${node.range[0]}, ${node.range[1]}]`;
 
@@ -161,7 +207,7 @@ export namespace ConstraintTreeNodeUtils {
 		}
 
 		function nodeToTreeifyFullImpl(
-			node: ConstraintTreeNode,
+			node: RawConstraintTreeNode,
 			tokenStrings: Readonly<Array<string>>,
 			tokenMapping: Readonly<Array<number>>,
 		): [string, any]{

@@ -10,4 +10,15 @@ import { type ParseError } from "./parser_errors.ts";
     If no error was found, empty array is returned.
 */
 export declare function preprocessFindInvalidTokens(tape: lexer.TokenTape): Array<ParseError>;
+/**
+    Parser preprocessing function that based on lexer.TokenTape
+    makes a new array of tokens with whitespace filtered.
+
+    Returns new array with whitespace filtered and mapping
+    that maps indexes in filtered array to indexes in original TokenTape.
+*/
+export declare function preprocessFilterWhitespace(tape: lexer.TokenTape): {
+    tokens: Array<lexer.TokenKind>;
+    mapping: Array<number>;
+};
 //# sourceMappingURL=parser_preprocess.d.ts.map

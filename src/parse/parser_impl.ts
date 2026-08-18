@@ -3,8 +3,8 @@ import * as lexer from "./../lex/lexer_main.ts"
 import {
 	ExpressionCombinator,
 	ConstraintTreeNodeKind,
-	type ConstraintTreeNode,
-	type ExpressionParseTape,
+	type RawConstraintTreeNode,
+	type RawExpressionParseTape,
 } from "./parser_types.ts"
 
 import {
@@ -25,12 +25,12 @@ import {parseConstraintsTopLevel} from "./parser_constraints.ts"
 	If tokens were parsed properly, errors will be an empty array
 	and parseTape will contain a complete result.
 */
-export function generateExpressionParseTape(
+export function generateRawExpressionParseTape(
 	filteredTokens: Readonly<Array<lexer.TokenKind>>
-): {parseTape: ExpressionParseTape, errors: Array<IncompleteParseError>} {
+): {parseTape: RawExpressionParseTape, errors: Array<IncompleteParseError>} {
 
 	const combinators: Array<ExpressionCombinator> = [];
-	const constraints: Array<ConstraintTreeNode> = [];
+	const constraints: Array<RawConstraintTreeNode> = [];
 	
 	let tokensConsumed = 0;
 	const tokensTotal = filteredTokens.length;
@@ -47,7 +47,7 @@ export function generateExpressionParseTape(
 		}
 		// with no errors returned pair must not be undefined
 		const pairCombinator: ExpressionCombinator = pair![0];
-		const pairConstraint: ConstraintTreeNode = pair![1];
+		const pairConstraint: RawConstraintTreeNode = pair![1];
 
 		combinators.push(pairCombinator);
 		constraints.push(pairConstraint);
@@ -75,7 +75,7 @@ export function generateExpressionParseTape(
 	Read nextPair for more info.
 */
 type NextPairResult = {
-	pair: [ExpressionCombinator, ConstraintTreeNode] | undefined,
+	pair: [ExpressionCombinator, RawConstraintTreeNode] | undefined,
 	consumed: number,
 	err: Array<IncompleteParseError>,
 };
@@ -273,14 +273,14 @@ function combinatorMatchFail(): {
 	, then resulting constraint node is implicitly a wildcard constraint 
 	and consumes 0 tokens.
 
-	If parse succeded, returns: {ConstraintTreeNode, consumedTokens}
+	If parse succeded, returns: {RawConstraintTreeNode, consumedTokens}
 	If parse failed, returns: undefined
 
 */
 function parseExpressionConstraint(
 	tokens: Readonly<Array<lexer.TokenKind>>,
 	start: number
-): { constraint: ConstraintTreeNode, consumed: number, success: boolean} {
+): { constraint: RawConstraintTreeNode, consumed: number, success: boolean} {
 
 	// implicit wildcard if tape is out of tokens
 	if (start == tokens.length){
@@ -310,10 +310,10 @@ function parseExpressionConstraint(
 	which corresponding to implicit wildcard case.
 */
 function implicitWildcardConstraintResult(currentIndex: number): 
-	{constraint: ConstraintTreeNode, consumed: number, success: boolean} {
+	{constraint: RawConstraintTreeNode, consumed: number, success: boolean} {
 
-	const node: ConstraintTreeNode = {
-		kind: ConstraintTreeNodeKind.ATOM,
+	const node: RawConstraintTreeNode = {
+		kind: ConstraintTreeNodeKind.IMPLICIT,
 		range: [currentIndex, currentIndex],
 		children: [],
 	}

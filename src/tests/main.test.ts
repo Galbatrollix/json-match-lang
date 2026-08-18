@@ -23,8 +23,8 @@ const expr9 = `!((!(!!!( dupa & {0}))))`
 const expr10 = `meh & keh & (dupa !&! kupa)`;
 const expr11 = `(`.repeat(100000);
 
-const expr12 = `dupa >> +  czort  !!!!!!kupa  & dupa`; 
-const expr = expr9
+const expr12 = `dupa >> +  czort  !!!!!kupa  & dupa`; 
+const expr = expr12
 const startTime = performance.now()
 
 const tokenized = lexer.tokenizeExpressionString(expr);

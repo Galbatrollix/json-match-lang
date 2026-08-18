@@ -8,10 +8,10 @@ import {
 	preprocessFindInvalidTokens,
 	preprocessFilterWhitespace,
 } from "./parser_preprocess.ts"
-import {generateExpressionParseTape} from "./parser_impl.ts"
+import {generateRawExpressionParseTape} from "./parser_impl.ts"
 import {
-	type ExpressionParseTape, 
-	ExpressionParseTapeUtils,
+	type RawExpressionParseTape, 
+	RawExpressionParseTapeUtils,
 } from "./parser_types.ts"
 
 import {
@@ -45,15 +45,15 @@ export function parseExpressionTokens(lexTape: lexer.TokenTape): ParseResult {
 	const filteredTokens: Array<lexer.TokenKind> = filterResult.tokens;
 	const originalIndexMapping: Array<number> = filterResult.mapping;
 
-	const parseOutput = generateExpressionParseTape(filteredTokens);
-	const parseTape: ExpressionParseTape = parseOutput.parseTape;
+	const parseOutput = generateRawExpressionParseTape(filteredTokens);
+	const parseTape: RawExpressionParseTape = parseOutput.parseTape;
 	const incompleteErrors: Array<IncompleteParseError> = parseOutput.errors;
 
 	const errors: Array<ParseError> = parseErrorsFromIncomplete(
 		incompleteErrors,
 		originalIndexMapping
 	);
-	console.log(originalIndexMapping);
+
 	console.log(errors);
 	console.log(lexer.TokenTapeUtils.Display.asStr(lexTape));
 
@@ -64,13 +64,13 @@ export function parseExpressionTokens(lexTape: lexer.TokenTape): ParseResult {
 	};
 	// TODO: HERE COLLECT WARNINGS FROM RAW AST
 
-	console.log(ExpressionParseTapeUtils.Display.asTreeFull(
+	console.log(RawExpressionParseTapeUtils.Display.asTreeFull(
 		parseTape,
 		lexTape.tokenString,
 		originalIndexMapping,
 	));
 	postprocessCollapseTreesInPlace(parseTape);
-	console.log(ExpressionParseTapeUtils.Display.asTreeFull(
+	console.log(RawExpressionParseTapeUtils.Display.asTreeFull(
 		parseTape,
 		lexTape.tokenString,
 		originalIndexMapping,

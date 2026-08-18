@@ -151,22 +151,16 @@ function combinatorChain(lexerList) {
         let at = start;
         // loop doesnt perform bound checks on charList as some lex functions
         // can return true with 0 tokens consumed (optionals)
-        let fnIndex = 0;
-        for (; fnIndex < lexerList.length; fnIndex++) {
+        for (let fnIndex = 0; fnIndex < lexerList.length; fnIndex++) {
             const [consumed, matched] = lexerList[fnIndex](charList, at, end);
             if (!matched) {
                 return [0, false];
             }
             at += consumed;
         }
+        // all functions passed
         const consumedTotal = at - start;
-        const allFunctionsPassed = (fnIndex == lexerList.length);
-        if (allFunctionsPassed) {
-            return [consumedTotal, true];
-        }
-        else {
-            return [0, false];
-        }
+        return [consumedTotal, true];
     };
     return resultFunc;
 }
@@ -333,7 +327,7 @@ const matchOpenBracket = createMatchExact(OperatorsSyntax.L_BRACKET);
 const matchClosedBracket = createMatchExact(OperatorsSyntax.R_BRACKET);
 const matchOpenBrace = createMatchExact(OperatorsSyntax.L_BRACE);
 const matchClosedBrace = createMatchExact(OperatorsSyntax.R_BRACE);
-const matchVALUEPrefix = createMatchExact(OperatorsSyntax.VALUE);
+const matchValuePrefix = createMatchExact(OperatorsSyntax.VALUE);
 /**
     A bunch of things that together represent a finite state machine
     designed to parse valid JSON numbers, designed to be also usable
@@ -569,8 +563,8 @@ export var funcs;
     funcs.lexIndexArray = combinatorChain([matchOpenBracket, matchInteger, matchClosedBracket]);
     funcs.lexIndexObject = combinatorChain([matchOpenBrace, matchInteger, matchClosedBrace]);
     funcs.lexKeyQuoted = matchString;
-    funcs.lexValueExactString = combinatorChain([matchVALUEPrefix, matchString]);
-    funcs.lexValueExactNumber = combinatorChain([matchVALUEPrefix, matchJsonNumber]);
+    funcs.lexValueExactString = combinatorChain([matchValuePrefix, matchString]);
+    funcs.lexValueExactNumber = combinatorChain([matchValuePrefix, matchJsonNumber]);
     /**
         Incomplete error functions currently utilize a hacky approach
         which kind-of hardcodes end of string into alternative imeplementations
@@ -592,8 +586,8 @@ export var funcs;
         createMatchIncompleteExact(OperatorsSyntax.VALUE + "false"),
         createMatchIncompleteExact(OperatorsSyntax.VALUE + OperatorsSyntax.L_BRACKET + OperatorsSyntax.R_BRACKET),
         createMatchIncompleteExact(OperatorsSyntax.VALUE + OperatorsSyntax.L_BRACE + OperatorsSyntax.R_BRACE),
-        combinatorChain([matchVALUEPrefix, matchIncompleteString]),
-        combinatorChain([matchVALUEPrefix, matchIncompleteJsonNumber]),
+        combinatorChain([matchValuePrefix, matchIncompleteString]),
+        combinatorChain([matchValuePrefix, matchIncompleteJsonNumber]),
     ]);
     funcs.lexErrorIncompleteArray = combinatorOr([
         createMatchIncompleteExact(OperatorsSyntax.L_BRACKET
