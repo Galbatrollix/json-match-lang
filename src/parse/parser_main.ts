@@ -10,12 +10,16 @@ import {
 } from "./parser_preprocess.ts"
 import {generateRawExpressionParseTape} from "./parser_impl.ts"
 import {
-	type RawExpressionParseTape, 
+	type RawExpressionParseTape,
+	type ExpressionParseTape,
+
 	RawExpressionParseTapeUtils,
+	ExpressionParseTapeUtils,
 } from "./parser_types.ts"
 
 import {
-	postprocessCollapseTreesInPlace
+	postprocessCollapseTreesInPlace,
+	postprocessTransformRawTapeToFinal,
 } from "./parser_postprocess.ts"
 
 
@@ -54,15 +58,11 @@ export function parseExpressionTokens(lexTape: lexer.TokenTape): ParseResult {
 		originalIndexMapping
 	);
 
-	console.log(errors);
-	console.log(lexer.TokenTapeUtils.Display.asStr(lexTape));
-
 	if (errors.length){
 		return assembleParseResult(
 			emptyCompiledExpression(), errors
 		);
 	};
-	// TODO: HERE COLLECT WARNINGS FROM RAW AST
 
 	console.log(RawExpressionParseTapeUtils.Display.asTreeFull(
 		parseTape,
@@ -70,11 +70,25 @@ export function parseExpressionTokens(lexTape: lexer.TokenTape): ParseResult {
 		originalIndexMapping,
 	));
 	postprocessCollapseTreesInPlace(parseTape);
+	
+
 	console.log(RawExpressionParseTapeUtils.Display.asTreeFull(
 		parseTape,
 		lexTape.tokenString,
 		originalIndexMapping,
 	));
+
+	// transform converts type of parseTape 
+	//      from RawExpressionParseTape to ExpressionParseTape
+	// previous item is invalidated and converted in place, hence:
+	//      the hard type cast is necessary
+	postprocessTransformRawTapeToFinal(parseTape, originalIndexMapping);
+	const parseTapeResult = parseTape as unknown as ExpressionParseTape;
+
+	console.log(ExpressionParseTapeUtils.Display.asTree(
+		parseTapeResult, lexTape, true
+	));
+	
 	// todo: postprocess errors to transform the filtered token indexes 
 	// into original token indexes
 	

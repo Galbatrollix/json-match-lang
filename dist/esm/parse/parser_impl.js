@@ -12,7 +12,7 @@ import { parseConstraintsTopLevel } from "./parser_constraints.js";
     If tokens were parsed properly, errors will be an empty array
     and parseTape will contain a complete result.
 */
-export function generateExpressionParseTape(filteredTokens) {
+export function generateRawExpressionParseTape(filteredTokens) {
     const combinators = [];
     const constraints = [];
     let tokensConsumed = 0;
@@ -195,7 +195,7 @@ function combinatorMatchFail() {
     , then resulting constraint node is implicitly a wildcard constraint
     and consumes 0 tokens.
 
-    If parse succeded, returns: {ConstraintTreeNode, consumedTokens}
+    If parse succeded, returns: {RawConstraintTreeNode, consumedTokens}
     If parse failed, returns: undefined
 
 */
@@ -226,7 +226,7 @@ function parseExpressionConstraint(tokens, start) {
 */
 function implicitWildcardConstraintResult(currentIndex) {
     const node = {
-        kind: ConstraintTreeNodeKind.ATOM,
+        kind: ConstraintTreeNodeKind.IMPLICIT,
         range: [currentIndex, currentIndex],
         children: [],
     };

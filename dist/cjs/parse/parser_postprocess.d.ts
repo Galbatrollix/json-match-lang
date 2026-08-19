@@ -1,4 +1,4 @@
-import { type ExpressionParseTape } from "./parser_types.ts";
+import { type RawExpressionParseTape, type ExpressionParseTape } from "./parser_types.ts";
 /**
     This function runs through each constraint abstract syntax tree
     in the tape and elliminates redundant nodes. A node is redundant if:
@@ -16,8 +16,26 @@ import { type ExpressionParseTape } from "./parser_types.ts";
     Applies multiple transformations on the tree in an order that ensures
     end result has no redundant nodes as per above description.
     
-    Modifies parse tape in place. Returns nothing.
+    Modifies raw parse tape in place. Returns nothing.
     
 */
-export declare function postprocessCollapseTreesInPlace(parseTape: ExpressionParseTape): void;
+export declare function postprocessCollapseTreesInPlace(parseTape: RawExpressionParseTape): void;
+/**
+    DESTROYS provided RawExpressionParseTape and uses it to construct
+    a regular (frozen, output version) of ExpressionParseTape.
+
+    Token mapping array is used as a translation map between filtered token indexes
+    contained withtin rawTape and original token indexes that must be held
+    inside a transformed parse tape.
+    
+    Returns a fully frozen instance of ExpressionParseTape type.
+    Raw tape given as input is DESTROYED because the algorithm implemented
+    by this function operates completely in place.
+
+    WARNING: This function makes a bitch out of the type system. Quite
+    some "unsafe" stuff is performed here in the conversion process.
+    Constraint array is basically transformed in-place into another type and
+    subsequently casted. Nothing of honor is here, tread carefully.
+*/
+export declare function postprocessTransformRawTapeToFinal(rawTape: RawExpressionParseTape, tokenMapping: Readonly<Array<number>>): ExpressionParseTape;
 //# sourceMappingURL=parser_postprocess.d.ts.map

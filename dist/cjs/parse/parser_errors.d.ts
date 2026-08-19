@@ -84,5 +84,5 @@ export type IncompleteParseError = {
     Transforms an incomplete errors array into a proper parse error instances
     via inverse index mapping from filtered to original token tape tokens.
 */
-export declare function parseErrorsFromIncomplete(incomplete: Array<IncompleteParseError>, tokenMapping: Readonly<Array<number>>): Array<ParseError>;
+export declare function parseErrorsFromIncomplete(incomplete: Readonly<Array<IncompleteParseError>>, tokenMapping: Readonly<Array<number>>): Array<ParseError>;
 //# sourceMappingURL=parser_errors.d.ts.map

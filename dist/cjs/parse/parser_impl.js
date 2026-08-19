@@ -33,7 +33,7 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.generateExpressionParseTape = generateExpressionParseTape;
+exports.generateRawExpressionParseTape = generateRawExpressionParseTape;
 const lexer = __importStar(require("./../lex/lexer_main.js"));
 const parser_types_ts_1 = require("./parser_types.js");
 const parser_errors_ts_1 = require("./parser_errors.js");
@@ -48,7 +48,7 @@ const parser_constraints_ts_1 = require("./parser_constraints.js");
     If tokens were parsed properly, errors will be an empty array
     and parseTape will contain a complete result.
 */
-function generateExpressionParseTape(filteredTokens) {
+function generateRawExpressionParseTape(filteredTokens) {
     const combinators = [];
     const constraints = [];
     let tokensConsumed = 0;
@@ -231,7 +231,7 @@ function combinatorMatchFail() {
     , then resulting constraint node is implicitly a wildcard constraint
     and consumes 0 tokens.
 
-    If parse succeded, returns: {ConstraintTreeNode, consumedTokens}
+    If parse succeded, returns: {RawConstraintTreeNode, consumedTokens}
     If parse failed, returns: undefined
 
 */
@@ -262,7 +262,7 @@ function parseExpressionConstraint(tokens, start) {
 */
 function implicitWildcardConstraintResult(currentIndex) {
     const node = {
-        kind: parser_types_ts_1.ConstraintTreeNodeKind.ATOM,
+        kind: parser_types_ts_1.ConstraintTreeNodeKind.IMPLICIT,
         range: [currentIndex, currentIndex],
         children: [],
     };

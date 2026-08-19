@@ -1,3 +1,4 @@
+import * as lexer from "./../lex/lexer_main.ts";
 /**
     Enum representing all possible combinators (aka relations between
     adjacent contraint blocks in the json match lang expression)
@@ -20,9 +21,13 @@ export declare enum ConstraintTreeNodeKind {
     PARENS = 1,// has always 1 child
     NOT = 2,// has always 1 child
     AND = 3,// has at least 1 child
-    OR = 4
+    OR = 4,// has at least 1 child
+    IMPLICIT = 5
 }
 /**
+    Represents raw form of constraint tree that is outputed
+    by the parser implementation.
+    
     Kind describes type of the tree node.
 
     Range describes (filtered) index range of tokens
@@ -30,10 +35,10 @@ export declare enum ConstraintTreeNodeKind {
     
     Children array describes 0 or more children of the current node.
 */
-export type ConstraintTreeNode = {
+export type RawConstraintTreeNode = {
     kind: ConstraintTreeNodeKind;
     range: [number, number];
-    children: Array<ConstraintTreeNode>;
+    children: Array<RawConstraintTreeNode>;
 };
 /**
     Structure representing a successful parse output
@@ -51,30 +56,84 @@ export type ConstraintTreeNode = {
         constraint[i] is constraint following the combinator at combinator[i]
 
 */
-export type ExpressionParseTape = {
+export type RawExpressionParseTape = {
     combinators: Array<ExpressionCombinator>;
-    constraints: Array<ConstraintTreeNode>;
+    constraints: Array<RawConstraintTreeNode>;
 };
+/**
+    Represents flattened and processed form of constraint tree
+    formed from RawConstraintTreeNode after further processing.
+
+    TokenIdx in atom kind item refers to an index in original
+    token tape, not a filtered token index.
+
+*/
+export type ConstraintTreeNode = Readonly<{
+    kind: ConstraintTreeNodeKind.OR;
+    children: Readonly<Array<ConstraintTreeNode>>;
+} | {
+    kind: ConstraintTreeNodeKind.AND;
+    children: Readonly<Array<ConstraintTreeNode>>;
+} | {
+    kind: ConstraintTreeNodeKind.NOT;
+    child: ConstraintTreeNode;
+} | {
+    kind: ConstraintTreeNodeKind.ATOM;
+    tokenIdx: number;
+} | {
+    kind: ConstraintTreeNodeKind.IMPLICIT;
+}>;
+/**
+    Same as raw expression parse tape, but containing
+    processed constraint trees.
+
+    Exists only in readonly format and is closed to extension.
+    
+    pairCount == combinators.length == constraints.length
+    
+*/
+export type ExpressionParseTape = Readonly<{
+    pairCount: number;
+    combinators: Readonly<Array<ExpressionCombinator>>;
+    constraints: Readonly<Array<ConstraintTreeNode>>;
+}> & {
+    _?: never;
+};
+/**
+    Contains additional functions for handling expression parse tape values.
+*/
 export declare namespace ExpressionParseTapeUtils {
     namespace Display {
-        function asTree(tape: ExpressionParseTape): string;
-        function asTreeFull(tape: ExpressionParseTape, tokenStrings: Readonly<Array<string>>, tokenMapping: Readonly<Array<number>>): string;
+        function asTree(parseTape: ExpressionParseTape, tokenTape: lexer.TokenTape, showAtomKinds?: boolean): string;
     }
 }
 export declare namespace ConstraintTreeNodeUtils {
     namespace Display {
-        /**
-            Converts a consraint tree node into nested object representation
-            that will be possible to display as string with treeify.
-        */
-        function treeifyRepr(node: ConstraintTreeNode): any;
+        function treeifyRepr(node: ConstraintTreeNode, tokenTape: lexer.TokenTape, showAtomKinds: boolean): any;
+    }
+}
+/**
+    Functions for displaying raw variant of
+    expression parse tape. Only for testing or debug,
+    shall not be exported in parser index file.
+*/
+export declare namespace RawExpressionParseTapeUtils {
+    namespace Display {
+        function asTreeFull(tape: RawExpressionParseTape, tokenStrings: Readonly<Array<string>>, tokenMapping: Readonly<Array<number>>): string;
+    }
+}
+/**
+    Functions for displaying raw variant of
+    constraint tree node, only for testing or debug,
+    shall not be exported in parser index file.
+*/
+export declare namespace RawConstraintTreeNodeUtils {
+    namespace Display {
         /**
             Converts a constraint tree nde into nested object representation
             that will be possible to display as string with treeify.
-
-            Unlike function treeifyRepr, includes atom token values in the result
         */
-        function treeifyReprFull(node: ConstraintTreeNode, tokenStrings: Readonly<Array<string>>, tokenMapping: Readonly<Array<number>>): any;
+        function treifyRepr(node: RawConstraintTreeNode, tokenStrings: Readonly<Array<string>>, tokenMapping: Readonly<Array<number>>): any;
     }
 }
 //# sourceMappingURL=parser_types.d.ts.map

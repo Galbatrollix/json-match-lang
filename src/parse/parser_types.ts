@@ -1,5 +1,7 @@
 import {treeifyObject} from "./../vendored/treeify.ts"
 
+import * as lexer from "./../lex/lexer_main.ts"
+
 /**
 	Enum representing all possible combinators (aka relations between
 	adjacent contraint blocks in the json match lang expression)
@@ -109,18 +111,26 @@ export type ExpressionParseTape = Readonly<{
 	constraints: Readonly<Array<ConstraintTreeNode>>,
 }> & { _?: never };
 
-
-
-export namespace RawExpressionParseTapeUtils{
+/**
+	Contains additional functions for handling expression parse tape values.
+*/
+export namespace ExpressionParseTapeUtils {
 	export namespace Display {
-		export function asTree(tape: RawExpressionParseTape): string {
-			const trees: Array<string> = []
-		
-			for (let i = 0; i < tape.constraints.length; i++){
-				const combinator: string = ExpressionCombinator[tape.combinators[i]]
+		export function asTree(
+			parseTape: ExpressionParseTape,
+			tokenTape: lexer.TokenTape,
+			showAtomKinds?: boolean,
+		): string {
+			showAtomKinds = !!showAtomKinds;
+			const trees: Array<string> = [];
 
-				const root: RawConstraintTreeNode = tape.constraints[i];
-				const obj: any = RawConstraintTreeNodeUtils.Display.treeifyRepr(root);
+			for (let i = 0; i < parseTape.constraints.length; i++){
+				const combinator: string = ExpressionCombinator[parseTape.combinators[i]]
+
+				const root: ConstraintTreeNode = parseTape.constraints[i];
+				const obj: any = ConstraintTreeNodeUtils.Display.treeifyRepr(
+					root, tokenTape, showAtomKinds
+				);
 				
 				trees.push(combinator);
 				trees.push(treeifyObject(obj, true));
@@ -128,18 +138,94 @@ export namespace RawExpressionParseTapeUtils{
 			}
 			return trees.join("\n");
 		}
+	}
+}
+
+export namespace ConstraintTreeNodeUtils {
+	export namespace Display {
+		export function treeifyRepr(
+			node: ConstraintTreeNode,
+			tokenTape: lexer.TokenTape,
+			showAtomKinds: boolean,
+		): any {
+			let [rootIdx, rootVal] = treeifyReprImpl(
+				node, tokenTape, showAtomKinds, 0
+			);
+			return {[rootIdx]: rootVal};
+			
+		}
+
+
+		function treeifyReprImpl(
+			node: ConstraintTreeNode,
+			tokenTape: lexer.TokenTape,
+			showAtomKinds: boolean,
+			childIndex: number,
+		): [string, any] {	
+			const kindStr: string = ConstraintTreeNodeKind[node.kind];
+			const indexStr = `(${childIndex})`;
+			let atomKindStr: string = '';
+			
+			if (showAtomKinds && node.kind == ConstraintTreeNodeKind.ATOM){
+				atomKindStr = " " + lexer.TokenKind[tokenTape.tokenKind[node.tokenIdx]];
+			}
+
+			const identifier = kindStr + atomKindStr + " " + indexStr;
+
+			// atom case 
+			if (node.kind == ConstraintTreeNodeKind.ATOM){
+				const token: string = tokenTape.tokenString[node.tokenIdx];
+				return [identifier, token];
+			}
+
+			// implicit case
+			if (node.kind == ConstraintTreeNodeKind.IMPLICIT){
+				return [identifier, "(implicit) *"];
+			}	
+			
+			// remaining cases that have children
+			let children: Readonly<Array<ConstraintTreeNode>> = [];
+			if (node.kind == ConstraintTreeNodeKind.NOT){
+				children = [node.child];
+			}else{ // and, or cases
+				children = node.children;
+			}
+	
+			// constructing result from children recursively
+			const result: any = {};
+			
+			for(let i = 0; i < children.length; i++){
+				const child = children[i];
+				const [childId, childObj] = treeifyReprImpl(
+					child, tokenTape, showAtomKinds, i
+				);
+				result[childId] = childObj;
+			}
+	
+			return [identifier, result];
+		}
+	}
+}
+
+/**
+	Functions for displaying raw variant of
+	expression parse tape. Only for testing or debug, 
+	shall not be exported in parser index file.
+*/
+export namespace RawExpressionParseTapeUtils{
+	export namespace Display {
 		export function asTreeFull(
 			tape: RawExpressionParseTape,
 			tokenStrings: Readonly<Array<string>>,
 			tokenMapping: Readonly<Array<number>>,
 		): string {
-			const trees: Array<string> = []
+			const trees: Array<string> = [];
 		
 			for (let i = 0; i < tape.constraints.length; i++){
 				const combinator: string = ExpressionCombinator[tape.combinators[i]]
 
 				const root: RawConstraintTreeNode = tape.constraints[i];
-				const obj: any = RawConstraintTreeNodeUtils.Display.treeifyReprFull(
+				const obj: any = RawConstraintTreeNodeUtils.Display.treifyRepr(
 					root, tokenStrings, tokenMapping,
 				);
 				
@@ -152,28 +238,24 @@ export namespace RawExpressionParseTapeUtils{
 	}
 }
 
+
+/**
+	Functions for displaying raw variant of
+	constraint tree node, only for testing or debug, 
+	shall not be exported in parser index file.
+*/
 export namespace RawConstraintTreeNodeUtils {
 	export namespace Display {		
 		/**
-			Converts a consraint tree node into nested object representation 
-			that will be possible to display as string with treeify.
-		*/
-		export function treeifyRepr(node: RawConstraintTreeNode): any {
-			const [rootIdx, rootVal] = nodeToTreeifyImpl(node);
-			return {[rootIdx]: rootVal};
-		}
-		/**
 			Converts a constraint tree nde into nested object representation
 			that will be possible to display as string with treeify.
-
-			Unlike function treeifyRepr, includes atom token values in the result
 		*/
-		export function treeifyReprFull(
+		export function treifyRepr(
 			node: RawConstraintTreeNode,
 			tokenStrings: Readonly<Array<string>>,
 			tokenMapping: Readonly<Array<number>>,
 		): any {
-			const [rootIdx, rootVal] = nodeToTreeifyFullImpl(
+			const [rootIdx, rootVal] = treifyReprImpl(
 				node, tokenStrings, tokenMapping
 			);
 
@@ -187,26 +269,7 @@ export namespace RawConstraintTreeNodeUtils {
 
 		}		
 
-		/**
-			Recursive function that constructs result for the nodeToTreeify function.
-		*/
-		function nodeToTreeifyImpl(node: RawConstraintTreeNode): [string, any] {
-			const kindStr: string = ConstraintTreeNodeKind[node.kind];
-			const rangeStr = ` [${node.range[0]}, ${node.range[1]}]`;
-
-			const identifier = kindStr + rangeStr;
-
-			const result: any = {};
-			
-			for(const child of node.children){
-				const [childId, childObj] = nodeToTreeifyImpl(child);
-				result[childId] = childObj;
-			}
-	
-			return [identifier, result];
-		}
-
-		function nodeToTreeifyFullImpl(
+		function treifyReprImpl(
 			node: RawConstraintTreeNode,
 			tokenStrings: Readonly<Array<string>>,
 			tokenMapping: Readonly<Array<number>>,
@@ -227,7 +290,7 @@ export namespace RawConstraintTreeNodeUtils {
 			const result: any = {};
 			
 			for(const child of node.children){
-				const [childId, childObj] = nodeToTreeifyFullImpl(
+				const [childId, childObj] = treifyReprImpl(
 					child, tokenStrings, tokenMapping
 				);
 				result[childId] = childObj;
@@ -238,16 +301,3 @@ export namespace RawConstraintTreeNodeUtils {
 		}
 	}
 }
-
-// {
-//     oranges: {
-//         'mandarin': {                       
-//             clementine: null,               
-//             tangerine: 'so cheap and juicy!'
-//         }                                   
-//     },                                      
-//     apples: {                               
-//         'gala': null,                       
-//         'pink lady': null
-//     }
-// }

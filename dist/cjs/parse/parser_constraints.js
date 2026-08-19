@@ -40,7 +40,7 @@ const lexer = __importStar(require("./../lex/lexer_main.js"));
     Top level function that will be called by the main
     parser once a constraint block must be handled.
     
-    If parse succeded, returns: {ConstraintTreeNode, consumedTokens}
+    If parse succeded, returns: {RawConstraintTreeNode, consumedTokens}
     If parse failed, returns: undefined
     
 */
@@ -150,7 +150,7 @@ function parseOrBlock(tokens, start, outputTree) {
     outputTree.push(newNode);
     return [consumed, true];
 }
-const parseNegationImpl = combinatorOr([parseNegation, parseAtom, parseParenthesizedBlock]);
+const parseNegationImpl = combinatorOr([parseAtom, parseParenthesizedBlock, parseNegation]);
 function parseNegation(tokens, start, outputTree) {
     if (start == tokens.length) {
         return [0, false];

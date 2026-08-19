@@ -1,5 +1,5 @@
 import * as lexer from "./../lex/lexer_main.ts";
-import { type ExpressionParseTape } from "./parser_types.ts";
+import { type RawExpressionParseTape } from "./parser_types.ts";
 import { type IncompleteParseError } from "./parser_errors.ts";
 /**
     Generates expression parse tape from array of tokens
@@ -11,8 +11,8 @@ import { type IncompleteParseError } from "./parser_errors.ts";
     If tokens were parsed properly, errors will be an empty array
     and parseTape will contain a complete result.
 */
-export declare function generateExpressionParseTape(filteredTokens: Readonly<Array<lexer.TokenKind>>): {
-    parseTape: ExpressionParseTape;
+export declare function generateRawExpressionParseTape(filteredTokens: Readonly<Array<lexer.TokenKind>>): {
+    parseTape: RawExpressionParseTape;
     errors: Array<IncompleteParseError>;
 };
 //# sourceMappingURL=parser_impl.d.ts.map
