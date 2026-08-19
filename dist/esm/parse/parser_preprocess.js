@@ -1,4 +1,4 @@
-import * as lexer from "./../lex/lexer_main.js";
+import * as lexer from "./../lex/lexer_a_index.js";
 import { ParseErrorKind } from "./parser_errors.js";
 /**
     A parser preprocessing function that scans token tape for critical problems

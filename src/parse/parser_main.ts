@@ -1,4 +1,4 @@
-import * as lexer from "./../lex/lexer_main.ts"
+import * as lexer from "./../lex/lexer_a_index.ts"
 import {
 	type ParseError,
 	type IncompleteParseError,
@@ -23,10 +23,8 @@ import {
 } from "./parser_postprocess.ts"
 
 
-export type CompiledExpression = undefined;
-
 export type ParseResult = Readonly<{
-	output: CompiledExpression,
+	parseTape: ExpressionParseTape,
 	errors: Readonly<Array<ParseError>>,
 }>;
 
@@ -40,7 +38,7 @@ export function parseExpressionTokens(lexTape: lexer.TokenTape): ParseResult {
 	const preprocessingErrors: Array<ParseError> = preprocessFindInvalidTokens(lexTape);
 	if (preprocessingErrors.length){
 		return assembleParseResult(
-			emptyCompiledExpression(), preprocessingErrors 
+			emptyParseTape(), preprocessingErrors 
 		);
 	}
 
@@ -50,7 +48,7 @@ export function parseExpressionTokens(lexTape: lexer.TokenTape): ParseResult {
 	const originalIndexMapping: Array<number> = filterResult.mapping;
 
 	const parseOutput = generateRawExpressionParseTape(filteredTokens);
-	const parseTape: RawExpressionParseTape = parseOutput.parseTape;
+	const rawParseTape: RawExpressionParseTape = parseOutput.parseTape;
 	const incompleteErrors: Array<IncompleteParseError> = parseOutput.errors;
 
 	const errors: Array<ParseError> = parseErrorsFromIncomplete(
@@ -60,44 +58,45 @@ export function parseExpressionTokens(lexTape: lexer.TokenTape): ParseResult {
 
 	if (errors.length){
 		return assembleParseResult(
-			emptyCompiledExpression(), errors
+			emptyParseTape(), errors
 		);
 	};
 
 	console.log(RawExpressionParseTapeUtils.Display.asTreeFull(
-		parseTape,
+		rawParseTape,
 		lexTape.tokenString,
 		originalIndexMapping,
 	));
-	postprocessCollapseTreesInPlace(parseTape);
+	postprocessCollapseTreesInPlace(rawParseTape);
 	
 
-	console.log(RawExpressionParseTapeUtils.Display.asTreeFull(
-		parseTape,
-		lexTape.tokenString,
-		originalIndexMapping,
-	));
+	// console.log(RawExpressionParseTapeUtils.Display.asTreeFull(
+	// 	rawParseTape,
+	// 	lexTape.tokenString,
+	// 	originalIndexMapping,
+	// ));
 
-	// transform converts type of parseTape 
+	// transform converts type of rawParseTape 
 	//      from RawExpressionParseTape to ExpressionParseTape
 	// previous item is invalidated and converted in place, hence:
 	//      the hard type cast is necessary
-	postprocessTransformRawTapeToFinal(parseTape, originalIndexMapping);
-	const parseTapeResult = parseTape as unknown as ExpressionParseTape;
+	postprocessTransformRawTapeToFinal(rawParseTape, originalIndexMapping);
+	const parseTape = rawParseTape as unknown as ExpressionParseTape;
 
 	console.log(ExpressionParseTapeUtils.Display.asTree(
-		parseTapeResult, lexTape, true
+		parseTape, lexTape, true
 	));
 	
-	// todo: postprocess errors to transform the filtered token indexes 
-	// into original token indexes
-	
-	return assembleParseResult(emptyCompiledExpression(), errors);
+	return assembleParseResult(parseTape, []);
 }
 
 
-function emptyCompiledExpression(): CompiledExpression {
-	return undefined;
+function emptyParseTape(): ExpressionParseTape {
+	return Object.freeze({
+		pairCount: 0,
+		combinators: Object.freeze([]),
+		constraints: Object.freeze([]),
+	});
 }
 
 /**
@@ -107,11 +106,11 @@ function emptyCompiledExpression(): CompiledExpression {
 	Arrays given as parameters may be modified (frozen)
 */
 function assembleParseResult(
-	output: CompiledExpression,
+	output: ExpressionParseTape,
 	errors: Array<ParseError>,
 ): ParseResult{
 	return {
-		output: output,
+		parseTape: output,
 		errors: Object.freeze(errors),
 	}
 }

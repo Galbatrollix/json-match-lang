@@ -1,5 +1,5 @@
 import { ConstraintTreeNodeKind, } from "./parser_types.js";
-import * as lexer from "./../lex/lexer_main.js";
+import * as lexer from "./../lex/lexer_a_index.js";
 /**
     Top level function that will be called by the main
     parser once a constraint block must be handled.

@@ -34,7 +34,7 @@ var __importStar = (this && this.__importStar) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.generateRawExpressionParseTape = generateRawExpressionParseTape;
-const lexer = __importStar(require("./../lex/lexer_main.js"));
+const lexer = __importStar(require("./../lex/lexer_a_index.js"));
 const parser_types_ts_1 = require("./parser_types.js");
 const parser_errors_ts_1 = require("./parser_errors.js");
 const parser_constraints_ts_1 = require("./parser_constraints.js");

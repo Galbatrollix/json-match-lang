@@ -1,5 +1,5 @@
 import { type RawConstraintTreeNode } from "./parser_types.ts";
-import * as lexer from "./../lex/lexer_main.ts";
+import * as lexer from "./../lex/lexer_a_index.ts";
 /**
     Top level function that will be called by the main
     parser once a constraint block must be handled.

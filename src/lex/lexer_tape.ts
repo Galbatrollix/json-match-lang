@@ -11,7 +11,7 @@ import {tokenizeExpressionString} from "./lexer_tokenize.ts"
 		tt.tokenString.join("") === originalInput
 */
 export type TokenTape = Readonly <{
-	tokenCount:   Readonly<number>;
+	tokenCount:   number;
 
 	tokenKind:    Readonly<Array<TokenKind>>;
 	tokenString:  Readonly<Array<string>>;

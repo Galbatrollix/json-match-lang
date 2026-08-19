@@ -11,23 +11,34 @@
 
 </head>
 
-<body>
-	<textarea placeholder="Put Expression here" name="path" rows="5" cols="33" oninput="echo_to_div()"></textarea>
-	<div></div>
+<body style="display:flex;">
+	<div style = "flex:50%"> 
+		<textarea placeholder="Put Expression here" name="path" rows="5" cols="33" oninput="echo_to_div()"></textarea>
+		<div class="colored-output"></div>
+	</div>
+	<pre style="flex:50%; font-size:20px;" class=tree-output>
+	
+	</pre>
 </body>
 <!-- <script type="module" src="./esm/main.js"></script> -->
 <script type=module >
-	import {lexer} from "./../../dist/esm/main.js"
+	import {lexer, parser} from "./../../dist/esm/main.js"
 	function echo_to_div() {
   		let content = document.getElementsByTagName("textarea")[0].value;
-		const tape = lexer.tokenizeExpressionString(content);
-		//console.log(tape)
-		const asHtml = lexer.TokenTapeUtils.Display.asHtml(tape);
-		const readableKinds = lexer.TokenTapeUtils.Display.asReadableKinds(
-			tape.tokenKind, "tk."
+		const tokenTape = lexer.tokenizeExpressionString(content);
+		const asHtml = lexer.TokenTapeUtils.Display.asHtml(tokenTape);
+		const {parseTape, errors} = parser.parseExpressionTokens(tokenTape);
+		const treeString = parser.ExpressionParseTapeUtils.Display.asTree(
+			parseTape, tokenTape, true
 		);
-		console.log(readableKinds);
-		document.getElementsByTagName("div")[0].innerHTML = asHtml;
+		// const readableKinds = lexer.TokenTapeUtils.Display.asReadableKinds(
+		// 	tokenTape.tokenKind, "tk."
+		// );
+		// console.log(readableKinds);
+		document.getElementsByClassName("colored-output")[0].innerHTML = asHtml;
+		if(errors.length == 0){
+			document.getElementsByClassName("tree-output")[0].innerHTML = treeString;
+		}
 	}
 	window.echo_to_div = echo_to_div;
 </script>

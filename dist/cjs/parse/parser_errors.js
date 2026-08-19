@@ -32,7 +32,7 @@ function parseErrorsFromIncomplete(incomplete, tokenMapping) {
             kind: err.targetKind,
             tokenIndexes: indexesCorrect,
         };
-        result[errIdx] = properError;
+        result[errIdx] = Object.freeze(properError);
     }
     return result;
 }

@@ -1,4 +1,4 @@
-import * as lexer from "./../lex/lexer_main.ts";
+import * as lexer from "./../lex/lexer_a_index.ts";
 import { type RawExpressionParseTape } from "./parser_types.ts";
 import { type IncompleteParseError } from "./parser_errors.ts";
 /**

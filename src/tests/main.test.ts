@@ -3,7 +3,7 @@ import {runAllUnitTests} from "./unit/unit_main.test.ts"
 
 
 import {lexer} from "./../main.ts"
-import {parseExpressionTokens} from "./../parse/parser_main.ts"
+import {parser} from "./../main.ts"
 
 
 runAllUnitTests();
@@ -29,11 +29,11 @@ const expr = expr13
 const startTime = performance.now()
 
 const tokenized = lexer.tokenizeExpressionString(expr);
-const parsed = parseExpressionTokens(tokenized);
+const parsed = parser.parseExpressionTokens(tokenized);
 // console.log(tokenized, parsed, lexer.TokenTapeUtils.Display.asStr(tokenized))
 // console.log(parsed);
 const endTime = performance.now()
 
 console.log(`Call to doSomething took ${endTime - startTime} milliseconds`)
 
-// runAllFuzzTests();
+runAllFuzzTests();

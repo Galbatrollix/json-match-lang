@@ -1,8 +1,8 @@
-import * as lexer from "./../lex/lexer_main.ts";
+import * as lexer from "./../lex/lexer_a_index.ts";
 import { type ParseError } from "./parser_errors.ts";
-export type CompiledExpression = undefined;
+import { type ExpressionParseTape } from "./parser_types.ts";
 export type ParseResult = Readonly<{
-    output: CompiledExpression;
+    parseTape: ExpressionParseTape;
     errors: Readonly<Array<ParseError>>;
 }>;
 export declare function parseExpressionTokens(lexTape: lexer.TokenTape): ParseResult;

@@ -1,4 +1,4 @@
-import * as lexer from "./../lex/lexer_main.js";
+import * as lexer from "./../lex/lexer_a_index.js";
 import { ExpressionCombinator, ConstraintTreeNodeKind, } from "./parser_types.js";
 import { ParseErrorKind, } from "./parser_errors.js";
 import { parseConstraintsTopLevel } from "./parser_constraints.js";

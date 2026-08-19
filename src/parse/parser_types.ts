@@ -1,6 +1,6 @@
 import {treeifyObject} from "./../vendored/treeify.ts"
 
-import * as lexer from "./../lex/lexer_main.ts"
+import * as lexer from "./../lex/lexer_a_index.ts"
 
 /**
 	Enum representing all possible combinators (aka relations between

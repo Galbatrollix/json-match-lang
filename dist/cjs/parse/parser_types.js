@@ -35,7 +35,7 @@ var __importStar = (this && this.__importStar) || (function () {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.RawConstraintTreeNodeUtils = exports.RawExpressionParseTapeUtils = exports.ConstraintTreeNodeUtils = exports.ExpressionParseTapeUtils = exports.ConstraintTreeNodeKind = exports.ExpressionCombinator = void 0;
 const treeify_ts_1 = require("./../vendored/treeify.js");
-const lexer = __importStar(require("./../lex/lexer_main.js"));
+const lexer = __importStar(require("./../lex/lexer_a_index.js"));
 /**
     Enum representing all possible combinators (aka relations between
     adjacent contraint blocks in the json match lang expression)

@@ -1,5 +1,5 @@
 import { treeifyObject } from "./../vendored/treeify.js";
-import * as lexer from "./../lex/lexer_main.js";
+import * as lexer from "./../lex/lexer_a_index.js";
 /**
     Enum representing all possible combinators (aka relations between
     adjacent contraint blocks in the json match lang expression)

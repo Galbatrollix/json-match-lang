@@ -1,4 +1,4 @@
-import * as lexer from "./../lex/lexer_main.ts"
+import * as lexer from "./../lex/lexer_a_index.ts"
 
 import {
 	ExpressionCombinator,

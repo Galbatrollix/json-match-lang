@@ -35,7 +35,7 @@ var __importStar = (this && this.__importStar) || (function () {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.parseConstraintsTopLevel = parseConstraintsTopLevel;
 const parser_types_ts_1 = require("./parser_types.js");
-const lexer = __importStar(require("./../lex/lexer_main.js"));
+const lexer = __importStar(require("./../lex/lexer_a_index.js"));
 /**
     Top level function that will be called by the main
     parser once a constraint block must be handled.

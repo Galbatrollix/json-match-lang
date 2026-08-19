@@ -35,7 +35,7 @@ var __importStar = (this && this.__importStar) || (function () {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.preprocessFindInvalidTokens = preprocessFindInvalidTokens;
 exports.preprocessFilterWhitespace = preprocessFilterWhitespace;
-const lexer = __importStar(require("./../lex/lexer_main.js"));
+const lexer = __importStar(require("./../lex/lexer_a_index.js"));
 const parser_errors_ts_1 = require("./parser_errors.js");
 /**
     A parser preprocessing function that scans token tape for critical problems

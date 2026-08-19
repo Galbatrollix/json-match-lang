@@ -12,35 +12,41 @@ function parseExpressionTokens(lexTape) {
     // find any critical and easy to spot errors with supplied token lexTape
     const preprocessingErrors = (0, parser_preprocess_ts_1.preprocessFindInvalidTokens)(lexTape);
     if (preprocessingErrors.length) {
-        return assembleParseResult(emptyCompiledExpression(), preprocessingErrors);
+        return assembleParseResult(emptyParseTape(), preprocessingErrors);
     }
     const filterResult = (0, parser_preprocess_ts_1.preprocessFilterWhitespace)(lexTape);
     const filteredTokens = filterResult.tokens;
     const originalIndexMapping = filterResult.mapping;
     const parseOutput = (0, parser_impl_ts_1.generateRawExpressionParseTape)(filteredTokens);
-    const parseTape = parseOutput.parseTape;
+    const rawParseTape = parseOutput.parseTape;
     const incompleteErrors = parseOutput.errors;
     const errors = (0, parser_errors_ts_1.parseErrorsFromIncomplete)(incompleteErrors, originalIndexMapping);
     if (errors.length) {
-        return assembleParseResult(emptyCompiledExpression(), errors);
+        return assembleParseResult(emptyParseTape(), errors);
     }
     ;
-    console.log(parser_types_ts_1.RawExpressionParseTapeUtils.Display.asTreeFull(parseTape, lexTape.tokenString, originalIndexMapping));
-    (0, parser_postprocess_ts_1.postprocessCollapseTreesInPlace)(parseTape);
-    console.log(parser_types_ts_1.RawExpressionParseTapeUtils.Display.asTreeFull(parseTape, lexTape.tokenString, originalIndexMapping));
-    // transform converts type of parseTape 
+    console.log(parser_types_ts_1.RawExpressionParseTapeUtils.Display.asTreeFull(rawParseTape, lexTape.tokenString, originalIndexMapping));
+    (0, parser_postprocess_ts_1.postprocessCollapseTreesInPlace)(rawParseTape);
+    // console.log(RawExpressionParseTapeUtils.Display.asTreeFull(
+    // 	rawParseTape,
+    // 	lexTape.tokenString,
+    // 	originalIndexMapping,
+    // ));
+    // transform converts type of rawParseTape 
     //      from RawExpressionParseTape to ExpressionParseTape
     // previous item is invalidated and converted in place, hence:
     //      the hard type cast is necessary
-    (0, parser_postprocess_ts_1.postprocessTransformRawTapeToFinal)(parseTape, originalIndexMapping);
-    const parseTapeResult = parseTape;
-    console.log(parser_types_ts_1.ExpressionParseTapeUtils.Display.asTree(parseTapeResult, lexTape, true));
-    // todo: postprocess errors to transform the filtered token indexes 
-    // into original token indexes
-    return assembleParseResult(emptyCompiledExpression(), errors);
+    (0, parser_postprocess_ts_1.postprocessTransformRawTapeToFinal)(rawParseTape, originalIndexMapping);
+    const parseTape = rawParseTape;
+    console.log(parser_types_ts_1.ExpressionParseTapeUtils.Display.asTree(parseTape, lexTape, true));
+    return assembleParseResult(parseTape, []);
 }
-function emptyCompiledExpression() {
-    return undefined;
+function emptyParseTape() {
+    return Object.freeze({
+        pairCount: 0,
+        combinators: Object.freeze([]),
+        constraints: Object.freeze([]),
+    });
 }
 /**
     Turns parse result parts and assembles them into final
@@ -50,7 +56,7 @@ function emptyCompiledExpression() {
 */
 function assembleParseResult(output, errors) {
     return {
-        output: output,
+        parseTape: output,
         errors: Object.freeze(errors),
     };
 }

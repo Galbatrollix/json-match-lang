@@ -33,5 +33,6 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.lexer = void 0;
-exports.lexer = __importStar(require("./lex/lexer_main.js"));
+exports.parser = exports.lexer = void 0;
+exports.lexer = __importStar(require("./lex/lexer_a_index.js"));
+exports.parser = __importStar(require("./parse/parser_a_index.js"));

@@ -120,7 +120,7 @@ export function parseErrorsFromIncomplete(
 			kind: err.targetKind,
 			tokenIndexes: indexesCorrect, 
 		}
-		result[errIdx] = properError;
+		result[errIdx] = Object.freeze(properError);
 	}
 	return result;
 }
