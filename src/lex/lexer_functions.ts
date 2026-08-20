@@ -18,7 +18,7 @@
 		consumed <= end - start
 */
 export type LexFunction = (
-	charList: Array<string>,
+	charList: Readonly<Array<string>>,
  	start: number,
 	end: number
 ) => [consumed: number, matched: boolean];
@@ -72,7 +72,7 @@ function isAsciiLetterChar(c: string): boolean {
 	return ( code >= 65 && code <= 90 || code >= 97 && code <= 122 );
 }
 
-const allOperators = Object.values(OperatorsSyntax) as Array<string>;
+const allOperators = Object.values(OperatorsSyntax) as Readonly<Array<string>>;
 const allOperatorsJoined = allOperators.join("");
 // only for single characters
 function isOperatorChar(c: string): boolean {
@@ -98,7 +98,7 @@ function isNonWhitespaceNonOperatorChar(c: string): boolean {
 */
 function createMatchTestSequence(test: (c: string) => boolean): LexFunction {
 	const resultFunc = function(
-		charList: Array<string>,
+		charList: Readonly<Array<string>>,
 		start: number,
 		end: number
 	): [number, boolean] {
@@ -127,10 +127,10 @@ function createMatchTestSequence(test: (c: string) => boolean): LexFunction {
 		characters or will fail and return [0, false]
 */
 function createMatchExact(pattern: string): LexFunction {
-	const patternCodepoints: Array<string> = Array.from(pattern);
+	const patternCodepoints: Readonly<Array<string>> = Array.from(pattern);
 
 	const resultFunc = function(
-		charList: Array<string>,
+		charList: Readonly<Array<string>>,
 		start: number,
 		end: number
 	): [number, boolean] {
@@ -168,10 +168,10 @@ function createMatchExact(pattern: string): LexFunction {
 			 which must be equal to [end - start, true].
 */
 function createMatchIncompleteExact(pattern: string): LexFunction {
-	const patternCodepoints: Array<string> = Array.from(pattern);
+	const patternCodepoints: Readonly<Array<string>> = Array.from(pattern);
 
 	const resultFunc = function(
-		charList: Array<string>,
+		charList: Readonly<Array<string>>,
 		start: number,
 		end: number
 	): [number, boolean] {
@@ -212,7 +212,7 @@ function createMatchIncompleteExact(pattern: string): LexFunction {
 function combinatorChain(lexerList: Array<LexFunction> ): LexFunction {
 
 	const resultFunc = function(
-		charList: Array<string>,
+		charList: Readonly<Array<string>>,
 		start: number,
 		end: number
 	): [number, boolean] {
@@ -247,7 +247,7 @@ function combinatorChain(lexerList: Array<LexFunction> ): LexFunction {
 function combinatorOr(lexerList: Array<LexFunction> ): LexFunction {
 
 	const resultFunc = function(
-		charList: Array<string>,
+		charList: Readonly<Array<string>>,
 		start: number,
 		end: number
 	): [number, boolean] {
@@ -271,7 +271,7 @@ function combinatorOr(lexerList: Array<LexFunction> ): LexFunction {
 */
 // function combinatorOptional(lexerFunc: LexFunction): LexFunction {
 // 	const resultFunc = function(
-// 		charList: Array<string>,
+// 		charList: Readonly<Array<string>>,
 // 		start: number,
 // 		end: number
 // 	): [number, boolean] {
@@ -298,7 +298,7 @@ function combinatorOr(lexerList: Array<LexFunction> ): LexFunction {
 	Matches if and only if end == start, consumes 0 characters
 */
 function matchEndOfStream(
-	charList: Array<string>,
+	charList: Readonly<Array<string>>,
 	start: number,
 	end: number
 ): [number, boolean] {
@@ -322,7 +322,7 @@ const matchDigitSequence: LexFunction = createMatchTestSequence(isDigitChar);
 	of characters stream.
 */
 function matchInteger(
-	charList: Array<string>,
+	charList: Readonly<Array<string>>,
 	start: number,
 	end: number
 ): [number, boolean] {
@@ -349,7 +349,7 @@ function matchInteger(
 	But some invalid strings (such as having nonsense \escapes) will be too. 
 */
 function matchString(
-	charList: Array<string>,
+	charList: Readonly<Array<string>>,
 	start: number,
 	end: number
 ): [number, boolean] {
@@ -396,7 +396,7 @@ function matchString(
 	after the normal string function determined there is no complete string match.
 */
 function matchIncompleteString(
-	charList: Array<string>,
+	charList: Readonly<Array<string>>,
 	start: number,
 	end: number
 ): [number, boolean] {
@@ -583,7 +583,7 @@ namespace numberFSM {
 	trying to go as far as possible when matching.
 */
 function matchJsonNumber(
-	charList: Array<string>,
+	charList: Readonly<Array<string>>,
  	start: number,
 	end: number
 ): [number, boolean] {
@@ -618,7 +618,7 @@ function matchJsonNumber(
 	throw an error. 
 */
 function matchIncompleteJsonNumber(
-	charList: Array<string>,
+	charList: Readonly<Array<string>>,
  	start: number,
 	end: number
 ): [number, boolean] {
@@ -816,7 +816,7 @@ export namespace funcs {
 		Runs forward looking until a whitespace or significant character is enocuntered.
 		Always consumes at least 1 character and always matches.
 	*/
-	export function lexError(charList: Array<string>, start: number, end: number): [number, boolean] {
+	export function lexError(charList: Readonly<Array<string>>, start: number, end: number): [number, boolean] {
 		const matchUntilReset = createMatchTestSequence(isNonWhitespaceNonOperatorChar);
 
 		const [consumed, matched] = matchUntilReset(

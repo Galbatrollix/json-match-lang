@@ -192,7 +192,7 @@ function combinatorOr(lexerList) {
 */
 // function combinatorOptional(lexerFunc: LexFunction): LexFunction {
 // 	const resultFunc = function(
-// 		charList: Array<string>,
+// 		charList: Readonly<Array<string>>,
 // 		start: number,
 // 		end: number
 // 	): [number, boolean] {

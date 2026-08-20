@@ -16,7 +16,7 @@ export type MatchToken = {
 	prepends a dummy element to the result.
 	Dummy element is of kind WHITESPACE and its endIdx is always 0.
 */
-export function lexExpressionCodepoints(characterList: Array<string>): Array<MatchToken> {
+export function lexExpressionCodepoints(characterList: Readonly<Array<string>>): Array<MatchToken> {
 	let charactersConsumed = 0;
 	const charactersTotal = characterList.length;
 	// initializing result array with a dummy whitespace element to simplify code 
@@ -103,7 +103,7 @@ const LexFunctionsCollection: Array<{fn: LexFunction, kind: TokenKind}> = [
 	If that doesnt happen, it means program is ill-formed.
 	In event of such failure error gets thrown.
 */
-function nextToken(charList: Array<string>, current: number): MatchToken {
+function nextToken(charList: Readonly<Array<string>>, current: number): MatchToken {
 	const end = charList.length;
 	for (const {fn, kind} of LexFunctionsCollection) {
 		const [consumed, success] = fn(charList, current, end);

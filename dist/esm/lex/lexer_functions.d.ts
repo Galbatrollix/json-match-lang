@@ -16,7 +16,7 @@
         start >= 0
         consumed <= end - start
 */
-export type LexFunction = (charList: Array<string>, start: number, end: number) => [consumed: number, matched: boolean];
+export type LexFunction = (charList: Readonly<Array<string>>, start: number, end: number) => [consumed: number, matched: boolean];
 export declare namespace funcs {
     const lexOperatorChild: LexFunction;
     const lexOperatorParent: LexFunction;
@@ -65,6 +65,6 @@ export declare namespace funcs {
     const lexErrorIncompleteValue: LexFunction;
     const lexErrorIncompleteArray: LexFunction;
     const lexErrorIncompleteObject: LexFunction;
-    function lexError(charList: Array<string>, start: number, end: number): [number, boolean];
+    function lexError(charList: Readonly<Array<string>>, start: number, end: number): [number, boolean];
 }
 //# sourceMappingURL=lexer_functions.d.ts.map

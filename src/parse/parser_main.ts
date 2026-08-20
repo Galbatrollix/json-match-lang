@@ -12,9 +12,6 @@ import {generateRawExpressionParseTape} from "./parser_impl.ts"
 import {
 	type RawExpressionParseTape,
 	type ExpressionParseTape,
-
-	RawExpressionParseTapeUtils,
-	ExpressionParseTapeUtils,
 } from "./parser_types.ts"
 
 import {
@@ -62,20 +59,8 @@ export function parseExpressionTokens(lexTape: lexer.TokenTape): ParseResult {
 		);
 	};
 
-	console.log(RawExpressionParseTapeUtils.Display.asTreeFull(
-		rawParseTape,
-		lexTape.tokenString,
-		originalIndexMapping,
-	));
 	postprocessCollapseTreesInPlace(rawParseTape);
 	
-
-	// console.log(RawExpressionParseTapeUtils.Display.asTreeFull(
-	// 	rawParseTape,
-	// 	lexTape.tokenString,
-	// 	originalIndexMapping,
-	// ));
-
 	// transform converts type of rawParseTape 
 	//      from RawExpressionParseTape to ExpressionParseTape
 	// previous item is invalidated and converted in place, hence:
@@ -83,9 +68,6 @@ export function parseExpressionTokens(lexTape: lexer.TokenTape): ParseResult {
 	postprocessTransformRawTapeToFinal(rawParseTape, originalIndexMapping);
 	const parseTape = rawParseTape as unknown as ExpressionParseTape;
 
-	console.log(ExpressionParseTapeUtils.Display.asTree(
-		parseTape, lexTape, true
-	));
 	
 	return assembleParseResult(parseTape, []);
 }

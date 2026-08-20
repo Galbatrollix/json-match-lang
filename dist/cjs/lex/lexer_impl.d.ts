@@ -13,5 +13,5 @@ export type MatchToken = {
     prepends a dummy element to the result.
     Dummy element is of kind WHITESPACE and its endIdx is always 0.
 */
-export declare function lexExpressionCodepoints(characterList: Array<string>): Array<MatchToken>;
+export declare function lexExpressionCodepoints(characterList: Readonly<Array<string>>): Array<MatchToken>;
 //# sourceMappingURL=lexer_impl.d.ts.map
