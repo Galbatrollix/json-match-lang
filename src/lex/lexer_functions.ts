@@ -10,6 +10,11 @@
 	
 	first return - consumed - is count of consumed characters on lexer match,
 	second return - matched - is true if lex matched or false otherwise
+	
+	On successful match function should return:
+		[charactersConsumed, true]
+	On match fail function should return:
+		[charactersConsumedUntilFail, false]
 
 	Constraints:
 		start <= end
@@ -93,7 +98,6 @@ function isNonWhitespaceNonOperatorChar(c: string): boolean {
 
 */
 
-
 /**
 	Parser generator that produces a lex function that:
 		tries to match longest string containing only characters
@@ -106,8 +110,7 @@ function createMatchTestSequence(test: (c: string) => boolean): LexFunction {
 		start: number,
 		end: number
 	): [number, boolean] {
-		let at = start;
-		for (;at < end; at++) {
+		for (var at = start; at < end; at++) {
 			const c = charList[at];	
 			if (! test(c)){
 				break;
@@ -124,54 +127,12 @@ function createMatchTestSequence(test: (c: string) => boolean): LexFunction {
 	return  resultFunc;
 }
 
-
 /**
 	Parser generator that produces a lex function that:
 		will either exactly match pattern string by consuming pattern.length 
-		characters or will fail and return [0, false]
+		characters or will fail and return [charactersConsumedUntilFail, false]
 */
 function createMatchExact(pattern: string): LexFunction {
-	const patternCodepoints: Readonly<Array<string>> = Array.from(pattern);
-
-	const resultFunc = function(
-		charList: Readonly<Array<string>>,
-		start: number,
-		end: number
-	): [number, boolean] {
-		const remaining = end - start;
-
-		// cannot possibly match if there is not enough available characters
-		if (remaining < patternCodepoints.length){
-			return [0, false];
-		}
-		
-		for (let i = 0; i < patternCodepoints.length; i++){
-			const at = i + start;
-			if (patternCodepoints[i] != charList[at]){
-				return [0, false];
-			}
-		}
-		
-		return [patternCodepoints.length, true];
-	}
-
-	return resultFunc;
-}
-
-/**
-	Parser generator that produces a lex function that:
-		will either  match a non-empty and non-full prefix of pattern string 
-		by consuming <1, pattern.length - 1> characters until characters in charList
-		are exhausted.
-		
-		If the entire pattern string can match, function will throw an error.
-		If not a single character can match, function will return [0, false].
-		If a valid prefix matches, but not all characters are consumed, 
-			function will also fail and will return [0, false]
-		Otherwise: function will return [prefixLength, true],
-			 which must be equal to [end - start, true].
-*/
-function createMatchIncompleteExact(pattern: string): LexFunction {
 	const patternCodepoints: Readonly<Array<string>> = Array.from(pattern);
 
 	const resultFunc = function(
@@ -192,22 +153,30 @@ function createMatchIncompleteExact(pattern: string): LexFunction {
 			const at = i + start;
 			
 			if (patternCodepoints[i] != charList[at]){
-				return [0, false];
+				return [i, false];
 			}
 		}	
 	
 		//all chars to scan matched
 		if (charsToScan == patternCodepoints.length){
-			throw new Error("Match incomplete exact matched a complete pattern")
+			return [patternCodepoints.length, true];
 		}else{
-			return [remaining, true];
+			return [remaining, false];
 		}
-		
 	}
-
 	return resultFunc;
 }
 
+/**
+	Parser generator that produces a lex function that
+	will match if and only if a non-empty and non-full prefix of pattern string matches
+	by consuming <1, pattern.length - 1> characters until characters in charList
+	are exhausted.
+			
+*/
+function createMatchIncompleteExact(pattern: string): LexFunction {
+	return combinatorIncomplete(createMatchExact(pattern));
+}
 
 /**
 	Parser combinator that tranforms an array of lex functions into a single lex
@@ -226,7 +195,7 @@ function combinatorChain(lexerList: Array<LexFunction> ): LexFunction {
 		for (let fnIndex = 0; fnIndex < lexerList.length; fnIndex++) {
 			const [consumed, matched] = lexerList[fnIndex](charList, at, end);
 			if (! matched){
-				return [0, false];
+				return [at - start + consumed, false];
 			}
 			at += consumed;
 		}
@@ -238,7 +207,6 @@ function combinatorChain(lexerList: Array<LexFunction> ): LexFunction {
 
 	return resultFunc;
 }
-
 
 /**
 	Parser combinator that tranforms an array of lex functions into a single lex
@@ -255,19 +223,48 @@ function combinatorOr(lexerList: Array<LexFunction> ): LexFunction {
 		start: number,
 		end: number
 	): [number, boolean] {
+		let maxConsumed = 0;
+
 		for (const fn of lexerList){
 			const [consumed, matched] = fn(charList, start, end);
 			if (matched){
 				return [consumed, true];
 			}
-		}	
+			maxConsumed = maxConsumed > consumed ? maxConsumed : consumed;
+		}
+		
 		// not a single one matched
-		return [0, false]
+		return [maxConsumed, false];
 	}
 
 	return resultFunc;
 }
 
+/**
+	Parser combinator that tranforms a lex function into another lex
+	function that matches only if given lex function fails to match, but
+	reaches the end of character list. Used for generating incomplete tokens.
+*/
+function combinatorIncomplete(lexFunc: LexFunction): LexFunction {
+	const resultFunc = function(
+		charList: Readonly<Array<string>>,
+		start: number,
+		end: number
+	): [number, boolean] {
+		const charsRemaining = end - start;
+
+		const [consumed, matched] = lexFunc(charList, start, end);
+		
+		if (! matched && consumed == charsRemaining){
+			return [consumed, true];
+		}else{
+			return [consumed, false];
+		}
+		
+	}
+	return resultFunc;
+
+}
 
 /*
 
@@ -275,22 +272,6 @@ function combinatorOr(lexerList: Array<LexFunction> ): LexFunction {
 
 */
 
-/** 
-	Matches if and only if end == start, consumes 0 characters
-*/
-function matchEndOfStream(
-	charList: Readonly<Array<string>>,
-	start: number,
-	end: number
-): [number, boolean] {
-	// @ts-ignore
-	const _unused = charList;
-	if (end == start){
-		return [0, true];
-	}else{
-		return [0, false];
-	}
-}
 
 /**
 	Matches a sequence of at least 1 consecutive digits.
@@ -335,9 +316,9 @@ function matchString(
 	end: number
 ): [number, boolean] {
 	
-	// must at least have room for 2 " characters
+	// must at least have room for opening " character.
 	const remaining = end - start;
-	if (remaining < 2){
+	if (remaining < 1){
 		return [0, false];
 	}
 	// must start with a " character.
@@ -365,61 +346,8 @@ function matchString(
 	}
 	
 	// charList ran out of characters without matching the string, match failed
-	return [0, false];
+	return [end - start, false];
 }
-
-/**
- 	Similar to matchString, except it matches only incomplete strings -
-	that is strings that have opening quote and do not run into
-	closing qote before running out of characters in charList.
-
-	Will throw error if it matches a complete string. It should be called
-	after the normal string function determined there is no complete string match.
-*/
-function matchIncompleteString(
-	charList: Readonly<Array<string>>,
-	start: number,
-	end: number
-): [number, boolean] {
-	
-	// must at least have room for " character
-	const remaining = end - start;
-	if (remaining < 1){
-		return [0, false];
-	}
-	// must start with a " character.
-	if (charList[start] != '"'){
-		return [0, false];
-	}
-
-	//moving pointer past first doublequote
-	let at = start + 1;
-
-	let precedingBackslashes = 0;
-	for (;at < end; at++) {
-		const c = charList[at];	
-
-		const escaped: boolean = precedingBackslashes % 2 == 1
-		if (c == '"' && !escaped ){
-			throw new Error(
-				"Fatal error: incomplete string match called on complete string"+
-				" Make sure to verify complete string doesnt match first!"
-			);
-		}
-
-		if (c == '\\'){
-			precedingBackslashes += 1;	
-		}else{
-			precedingBackslashes = 0;
-		}
-	}
-	
-	// charList ran out of characters without matching the string,
-	// this means that the incomplete string match condition is fulfilled
-	return [end - start, true];
-}
-
-
 
 const matchOpenBracket = createMatchExact(OperatorsSyntax.L_BRACKET);
 const matchClosedBracket = createMatchExact(OperatorsSyntax.R_BRACKET);
@@ -557,7 +485,6 @@ namespace numberFSM {
 		}
 	}
 }
-
 /**
 	Lex function that matches any JSON conformant number, 
 	trying to go as far as possible when matching.
@@ -576,7 +503,7 @@ function matchJsonNumber(
 		if(fsm.mainState == numberFSM.states.FINISHED){
 			return [at - start, true];
 		}else if (fsm.mainState == numberFSM.states.FAILED){
-			return [0, false];
+			return [at - start, false];
 		}
 		
 	}
@@ -585,50 +512,8 @@ function matchJsonNumber(
 	if(fsm.mainState == numberFSM.states.FINISHED){
 		return [end - start, true];
 	}else{
-		return [0, false];
+		return [end - start, false];
 	}	
-}
-/**
-	Similar to matchJsonNumber, but will match only
-	if after consuming last character from the list the parsed
-	number is not valid (such as 1.3e) as if there is e, valid number
-	MUST have digits after e.
-
-	If this function happens to parse a complete number it will
-	throw an error. 
-*/
-function matchIncompleteJsonNumber(
-	charList: Readonly<Array<string>>,
- 	start: number,
-	end: number
-): [number, boolean] {
-
-	const fsm: numberFSM.FSM = numberFSM.init();
-	for (let at = start; at < end; at++){
-		const c = charList[at];
-		
-		numberFSM.progress(fsm, c);
-		if(fsm.mainState == numberFSM.states.FINISHED){
-			throw new Error(
-				"Fatal error: incomplete number match called on complete number"+
-				" Make sure to verify complete number doesnt match first!"
-			);
-		}else if (fsm.mainState == numberFSM.states.FAILED){
-			return [0, false];
-		}
-		
-	}
-	// ran out of characters, so push a terminating char and read result.
-	numberFSM.progress(fsm, " ");	
-	if(fsm.mainState == numberFSM.states.FINISHED){
-		throw new Error(
-			"Fatal error: incomplete number match called on complete number"+
-			" Make sure to verify complete number doesnt match first!"
-		);
-	}else{ 
-		return [end - start, true];
-	}
-
 }
 
 /*
@@ -730,19 +615,9 @@ export namespace funcs {
 		[matchValuePrefix, matchJsonNumber]
 	);
 	
-
-	/**
-		Incomplete error functions currently utilize a hacky approach
-		which kind-of hardcodes end of string into alternative imeplementations
-		of lex functions. It is correct but revolves around code repetition.
-
-		Best solution would most likely be: each function when failing
-		returns how many characters it reached before determining it doesnt match.
-		This can be easily chained and can be decoded at the end to check whether
-		function hit end of file or not. That would require modifying all lexers
-		and combinators to work though.
-	*/
-	export const lexErrorIncompleteKey: LexFunction = matchIncompleteString;
+	export const lexErrorIncompleteKey: LexFunction = combinatorIncomplete(
+		matchString,
+	);
 	
 	export const lexErrorIncompleteValue: LexFunction = combinatorOr([
 		createMatchIncompleteExact(OperatorsSyntax.VALUE + "string"),
@@ -758,10 +633,10 @@ export namespace funcs {
 			OperatorsSyntax.VALUE + OperatorsSyntax.L_BRACE + OperatorsSyntax.R_BRACE,
 		),
 		combinatorChain(
-		 	[matchValuePrefix, matchIncompleteString],
+		 	[matchValuePrefix, combinatorIncomplete(matchString)],
 		),
 		combinatorChain(
-			[matchValuePrefix, matchIncompleteJsonNumber],
+			[matchValuePrefix, combinatorIncomplete(matchJsonNumber)],
 		),
 	]);
 	
@@ -771,11 +646,7 @@ export namespace funcs {
 			+ OperatorsSyntax.WILDCARD 
 			+ OperatorsSyntax.R_BRACKET
 		),
-		combinatorChain([
-			createMatchExact(OperatorsSyntax.L_BRACKET), 
-			matchInteger, 
-			matchEndOfStream,
-		]),
+		combinatorIncomplete(lexIndexArray),
 	]);
 	
 	export const lexErrorIncompleteObject: LexFunction = combinatorOr([
@@ -784,11 +655,7 @@ export namespace funcs {
 			+ OperatorsSyntax.WILDCARD 
 			+ OperatorsSyntax.R_BRACE
 		),
-		combinatorChain([
-			createMatchExact(OperatorsSyntax.L_BRACE), 
-			matchInteger, 
-			matchEndOfStream,
-		]),
+		combinatorIncomplete(lexIndexObject),
 	]);
 	
 	/**
