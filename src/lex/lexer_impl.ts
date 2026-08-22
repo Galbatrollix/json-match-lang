@@ -118,7 +118,7 @@ function nextToken(charList: Readonly<Array<string>>, current: number): MatchTok
 	
 }
 
-/*
+/**
 	Function performing postprocessing of token stream.
 	Merges consecutive error tokens in the array of MatchTokens.	
 	sequence: 

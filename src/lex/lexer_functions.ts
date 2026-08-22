@@ -23,7 +23,11 @@ export type LexFunction = (
 	end: number
 ) => [consumed: number, matched: boolean];
 
-
+/**
+	A collection of constants that constitute
+	special syntax in expression language,
+	be it operators or other separators.
+*/
 const OperatorsSyntax = {
 	CHILD:               ">",
 	PARENT:              "<",
@@ -236,7 +240,7 @@ function combinatorChain(lexerList: Array<LexFunction> ): LexFunction {
 }
 
 
-/*
+/**
 	Parser combinator that tranforms an array of lex functions into a single lex
 	function that matches if at least one of the given functions matches.
 
@@ -264,33 +268,10 @@ function combinatorOr(lexerList: Array<LexFunction> ): LexFunction {
 	return resultFunc;
 }
 
-/*
-	Parse combinator that tranforms a single lex function into a new one.
-	Returned function passes with identical results if provided function passes.
-	If provided function fails, returned function passes with 0 characters consumed.
-*/
-// function combinatorOptional(lexerFunc: LexFunction): LexFunction {
-// 	const resultFunc = function(
-// 		charList: Readonly<Array<string>>,
-// 		start: number,
-// 		end: number
-// 	): [number, boolean] {
-// 		const [consumed, matched] = lexerFunc(charList, start, end);
-		
-// 		if (matched) {
-// 			return [consumed, matched];
-// 		}else{
-// 			return [0, true];	
-// 		}
-// 	}
-
-// 	return resultFunc;
-
-// }
 
 /*
 
-	PARSER VALUES
+	PARSER PRIMITIVES
 
 */
 
@@ -316,7 +297,7 @@ function matchEndOfStream(
 */
 const matchDigitSequence: LexFunction = createMatchTestSequence(isDigitChar);
 
-/*
+/**
 	Matches sequence of consecutive digits if it has no leading zeros.
 	A single zero will match if followed by non-digit character or end 
 	of characters stream.
@@ -454,7 +435,6 @@ const matchValuePrefix = createMatchExact(OperatorsSyntax.VALUE);
 */
 namespace numberFSM {
 	/*
-		https://www.poppastring.com/blog/json-numbers-changed-with-leading-zeros
 		https://www.json.org/json-en.html
 		https://ecma-international.org/wp-content/uploads/ECMA-404_2nd_edition_december_2017.pdf
 		
@@ -811,7 +791,7 @@ export namespace funcs {
 		]),
 	]);
 	
-	/*
+	/**
 		Always the last lex function to be called.
 		Runs forward looking until a whitespace or significant character is enocuntered.
 		Always consumes at least 1 character and always matches.

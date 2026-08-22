@@ -1,17 +1,19 @@
 import * as lexUnitTests from "./lex/unit_lex_all.test.ts"
-
+import * as parseUnitTests from "./parse/unit_parse_all.test.ts"
 type unitTestFunc = () => boolean;
 
-// trap for situations where some of imported test files have exported a function
+// explicit type here is handy to trap for situations 
+// where some of imported test files have exported a function
 // with wrong signature
 const lexTests: Array<unitTestFunc> = Object.values(lexUnitTests);
-
-/*
+const parseTests: Array<unitTestFunc> = Object.values(parseUnitTests);
+/**
 	Serially executes all unit tests, returns number of unit tests that failed
 */
 export function runAllUnitTests(): number {
 	const lexFailed: number = runUnitTestsFor(lexTests, "lexer");
-	return lexFailed
+	const parseFailed: number = runUnitTestsFor(parseTests, "parser");
+	return lexFailed + parseFailed;
 }
 
 
