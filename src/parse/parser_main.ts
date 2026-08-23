@@ -20,6 +20,12 @@ import {
 } from "./parser_postprocess.ts"
 
 
+/**
+	Type returned by parseExpressionTokens function.
+	
+	parseTape value is garbage (0-length) if
+	errors.length != 0.
+*/
 export type ParseResult = Readonly<{
 	parseTape: ExpressionParseTape,
 	errors: Readonly<Array<ParseError>>,
@@ -39,7 +45,7 @@ export function parseExpressionTokens(lexTape: lexer.TokenTape): ParseResult {
 	const filterResult = preprocessFilterWhitespace(lexTape);
 
 	const filteredTokens: Array<lexer.TokenKind> = filterResult.tokens;
-	const originalIndexMapping: Array<number> = filterResult.mapping;
+	const originalIndexMapping: Readonly<Array<number>> = filterResult.mapping;
 
 	const parseOutput = generateRawExpressionParseTape(filteredTokens);
 	const rawParseTape: RawExpressionParseTape = parseOutput.parseTape;
@@ -60,16 +66,19 @@ export function parseExpressionTokens(lexTape: lexer.TokenTape): ParseResult {
 	
 	// transform converts type of rawParseTape 
 	//      from RawExpressionParseTape to ExpressionParseTape
-	// previous item is invalidated and converted in place, hence:
-	//      the hard type cast is necessary
-	postprocessTransformRawTapeToFinal(rawParseTape, originalIndexMapping);
-	const parseTape = rawParseTape as unknown as ExpressionParseTape;
+	// rawParseTape variable is no longer valid beyond this point.
+	const parseTape: ExpressionParseTape = postprocessTransformRawTapeToFinal(
+		rawParseTape, originalIndexMapping
+	);
 
-	
+
 	return assembleParseResult(parseTape, []);
 }
 
-
+/**
+	Assembles a new, empty parse tape to return alongside
+	fatal errors.
+*/
 function emptyParseTape(): ExpressionParseTape {
 	return Object.freeze({
 		pairCount: 0,
@@ -88,8 +97,8 @@ function assembleParseResult(
 	output: ExpressionParseTape,
 	errors: Array<ParseError>,
 ): ParseResult{
-	return {
+	return Object.freeze({
 		parseTape: output,
 		errors: Object.freeze(errors),
-	}
+	});
 }

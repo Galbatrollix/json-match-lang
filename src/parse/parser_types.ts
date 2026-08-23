@@ -19,7 +19,7 @@ export enum ExpressionCombinator {
 }
 
 /**
-	Each node in constraint tree must be one one of the following kinds.
+	Each node in raw constraint tree must be one one of the following kinds.
 */
 export enum ConstraintTreeNodeKind {
 	ATOM,             // has always 0 children
@@ -97,13 +97,13 @@ export type ConstraintTreeNode = Readonly<
 >
 
 /**
-	Same as raw expression parse tape, but containing
-	processed constraint trees.
+	Primary, immutable output type returned by the parser.	
+	It has a structure of list of pairs [combinator, constraint]. 
+	It is encoded as such:
+	SoA of 2 arrays with .length equal to ExpressionParseTape.pairCount property:
+		combinators[i]: ExpressionCombinator enum value for i-th pair.
+		constraints[i]: ConstraintTreeNode - root of constraint tree for i-th pair.
 
-	Exists only in readonly format and is closed to extension.
-	
-	pairCount == combinators.length == constraints.length
-	
 */
 export type ExpressionParseTape = Readonly<{
 	pairCount: number,
@@ -115,7 +115,20 @@ export type ExpressionParseTape = Readonly<{
 	Contains additional functions for handling expression parse tape values.
 */
 export namespace ExpressionParseTapeUtils {
+	/**
+		Contains functions for display purposes.
+	*/
 	export namespace Display {
+		/**
+			Assembles a readable tree representation of expression parse tape.
+			Requires its corresponding lexer.TokenTape to be provided as parameter.
+
+			Third parameter - showAtomKinds is optional - if false or not provided,
+			the result will have laconic description for ATOM nodes in the tree. If
+			true is given, exact token kinds of each ATOM node will be displayed.
+
+			Returns a string with newline separators that can be directly printed.
+		*/
 		export function asTree(
 			parseTape: ExpressionParseTape,
 			tokenTape: lexer.TokenTape,
@@ -140,9 +153,19 @@ export namespace ExpressionParseTapeUtils {
 		}
 	}
 }
-
+/**
+	Contains additional functions for handling ConstraintTreeNode values.
+*/
 export namespace ConstraintTreeNodeUtils {
+	/**
+		Contains functions for display purposes.
+	*/
 	export namespace Display {
+		/**
+			Converts a constraint tree node into a nested object representation
+			that will be possible to display as string with treeify. Or print as 
+			an object.
+		*/
 		export function treeifyRepr(
 			node: ConstraintTreeNode,
 			tokenTape: lexer.TokenTape,
