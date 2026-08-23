@@ -19,6 +19,12 @@ export type TokenTape = Readonly <{
 }> & { _?: never };
 
 
+/**
+	Main function of the lexer.
+	Splits given input string into tokens and returns a read-only
+	TokenTape instance that holds all split 
+	token kinds and their respective strings. 
+*/
 export function tokenizeExpressionString(input: string): TokenTape {
 	//codepoints are not always length one, cuz surrogate pairs!
 	const codepointList: Array<string> = Array.from(input);
@@ -248,8 +254,14 @@ export namespace TokenTapeUtils {
 		
 	}
 
-
+	/**
+		Contains functions for purposes of debugging and checking 
+		validity of TokenTape instances.
+	*/
 	export namespace Debug {
+		/**
+			Returns true only if basic TokenTape structure is well-formed.
+		*/
 		export function integrityCheckBasic(tape: TokenTape): boolean {
 			return (
 				soaOk(tape) 
@@ -259,11 +271,20 @@ export namespace TokenTapeUtils {
 				incomplesOnlyInLastSlot(tape)
 			);
 		}	
-
+		/**
+			Returns true if basic TokenTape structure is well-formed and if
+			all token kind and token string pairs are matching as expected.
+		*/
 		export function integrityCheckDeep(tape: TokenTape): boolean {
 			return integrityCheckBasic(tape) && recursiveOk(tape);
 		}
 
+		/**
+			Performs a complex, deep checks to determine if TokenTape is well-formed
+			and properly represents original input string used to generate it.
+		
+			Returns true only if all checks available pass.
+		*/
 		export function integrityCheckFull(tape: TokenTape, originalInput: string): boolean {
 			return (
 				integrityCheckDeep(tape) 
@@ -366,9 +387,6 @@ export namespace TokenTapeUtils {
 					|| recursiveTape.tokenString[0] != s
 					|| recursiveTape.tokenKind[0] != kind 
 				){
-					// console.log(`FAILED AT STRING: ${i}: ${s}`);
-					// console.log("GOT: ", recursiveTape);
-					// console.log("Fault at token:" + String(i));
 					return false;
 				}
 			}

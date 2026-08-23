@@ -94,7 +94,7 @@ function nextToken(charList, current) {
     throw new Error("Lexer encountered a fatal internal error." +
         " End of nextToken function reached");
 }
-/*
+/**
     Function performing postprocessing of token stream.
     Merges consecutive error tokens in the array of MatchTokens.
     sequence:

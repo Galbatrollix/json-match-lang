@@ -9,6 +9,11 @@
     
     first return - consumed - is count of consumed characters on lexer match,
     second return - matched - is true if lex matched or false otherwise
+    
+    On successful match function should return:
+        [charactersConsumed, true]
+    On match fail function should return:
+        [charactersConsumedUntilFail, false]
 
     Constraints:
         start <= end
@@ -50,21 +55,15 @@ export declare namespace funcs {
     const lexKeyQuoted: LexFunction;
     const lexValueExactString: LexFunction;
     const lexValueExactNumber: LexFunction;
-    /**
-        Incomplete error functions currently utilize a hacky approach
-        which kind-of hardcodes end of string into alternative imeplementations
-        of lex functions. It is correct but revolves around code repetition.
-
-        Best solution would most likely be: each function when failing
-        returns how many characters it reached before determining it doesnt match.
-        This can be easily chained and can be decoded at the end to check whether
-        function hit end of file or not. That would require modifying all lexers
-        and combinators to work though.
-    */
     const lexErrorIncompleteKey: LexFunction;
     const lexErrorIncompleteValue: LexFunction;
     const lexErrorIncompleteArray: LexFunction;
     const lexErrorIncompleteObject: LexFunction;
+    /**
+        Always the last lex function to be called.
+        Runs forward looking until a whitespace or significant character is enocuntered.
+        Always consumes at least 1 character and always matches.
+    */
     function lexError(charList: Readonly<Array<string>>, start: number, end: number): [number, boolean];
 }
 //# sourceMappingURL=lexer_functions.d.ts.map

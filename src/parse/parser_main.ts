@@ -26,9 +26,6 @@ export type ParseResult = Readonly<{
 }>;
 
 
-//todo: go over lexer and maybe reorganize it so it makes more sense, update docstrings and
-// names perhaps too
-
 export function parseExpressionTokens(lexTape: lexer.TokenTape): ParseResult {
 	
 	// find any critical and easy to spot errors with supplied token lexTape
