@@ -30,11 +30,13 @@ const OperatorsSyntax = {
     VALUE: "#",
     STRING: `"`,
 };
-// only for single characters 
+/*
+    Below functions are helpers used only for determining whether
+    a single codepoint string belongs to a class of characters.
+*/
 function isDigitChar(c) {
     return (c >= '0' && c <= '9');
 }
-// only for single characters
 // potential for improvement here
 // https://en.wikipedia.org/wiki/Whitespace_character
 // https://langdev.stackexchange.com/questions/1/which-horizontal-whitespace-should-be-supported
@@ -42,14 +44,12 @@ function isDigitChar(c) {
 function isWhitespaceChar(c) {
     return " \f\n\r\t\v\u00A0\u2028\u2029".includes(c);
 }
-// only for single characters
 function isAsciiLetterChar(c) {
     const code = c.charCodeAt(0);
     return (code >= 65 && code <= 90 || code >= 97 && code <= 122);
 }
 const allOperators = Object.values(OperatorsSyntax);
 const allOperatorsJoined = allOperators.join("");
-// only for single characters
 function isOperatorChar(c) {
     return allOperatorsJoined.includes(c);
 }
@@ -209,7 +209,7 @@ function matchInteger(charList, start, end) {
     }
     const firstIsZero = charList[start] == '0';
     if (firstIsZero && consumed != 1) {
-        return [0, false];
+        return [1, false];
     }
     else {
         return [consumed, true];

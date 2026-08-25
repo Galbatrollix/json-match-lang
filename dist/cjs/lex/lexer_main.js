@@ -4,6 +4,12 @@ exports.TokenTapeUtils = void 0;
 exports.tokenizeExpressionString = tokenizeExpressionString;
 const lexer_impl_ts_1 = require("./lexer_impl.js");
 const lexer_enum_ts_1 = require("./lexer_enum.js");
+/**
+    Main function of the lexer.
+    Splits given input string into tokens and returns a read-only
+    TokenTape instance that holds all split
+    token kinds and their respective strings.
+*/
 function tokenizeExpressionString(input) {
     //codepoints are not always length one, cuz surrogate pairs!
     const codepointList = Array.from(input);
@@ -202,8 +208,15 @@ var TokenTapeUtils;
             return s.replace(/[\f\n\r\t\v\u00A0\u2028\u2029]/g, " ");
         }
     })(Display = TokenTapeUtils.Display || (TokenTapeUtils.Display = {}));
+    /**
+        Contains functions for purposes of debugging and checking
+        validity of TokenTape instances.
+    */
     let Debug;
     (function (Debug) {
+        /**
+            Returns true only if basic TokenTape structure is well-formed.
+        */
         function integrityCheckBasic(tape) {
             return (soaOk(tape)
                 &&
@@ -212,10 +225,20 @@ var TokenTapeUtils;
                     incomplesOnlyInLastSlot(tape));
         }
         Debug.integrityCheckBasic = integrityCheckBasic;
+        /**
+            Returns true if basic TokenTape structure is well-formed and if
+            all token kind and token string pairs are matching as expected.
+        */
         function integrityCheckDeep(tape) {
             return integrityCheckBasic(tape) && recursiveOk(tape);
         }
         Debug.integrityCheckDeep = integrityCheckDeep;
+        /**
+            Performs a complex, deep checks to determine if TokenTape is well-formed
+            and properly represents original input string used to generate it.
+        
+            Returns true only if all checks available pass.
+        */
         function integrityCheckFull(tape, originalInput) {
             return (integrityCheckDeep(tape)
                 &&
@@ -298,9 +321,6 @@ var TokenTapeUtils;
                 else if (recursiveTape.tokenCount != 1
                     || recursiveTape.tokenString[0] != s
                     || recursiveTape.tokenKind[0] != kind) {
-                    // console.log(`FAILED AT STRING: ${i}: ${s}`);
-                    // console.log("GOT: ", recursiveTape);
-                    // console.log("Fault at token:" + String(i));
                     return false;
                 }
             }

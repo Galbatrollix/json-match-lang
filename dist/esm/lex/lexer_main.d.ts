@@ -15,6 +15,12 @@ export type TokenTape = Readonly<{
 }> & {
     _?: never;
 };
+/**
+    Main function of the lexer.
+    Splits given input string into tokens and returns a read-only
+    TokenTape instance that holds all split
+    token kinds and their respective strings.
+*/
 export declare function tokenizeExpressionString(input: string): TokenTape;
 /**
     Bundle of utility functions for handling TokenTape values.
@@ -76,9 +82,26 @@ export declare namespace TokenTapeUtils {
         */
         function asReadableKinds(kinds: Readonly<Array<TokenKind>>, prefix?: string): string;
     }
+    /**
+        Contains functions for purposes of debugging and checking
+        validity of TokenTape instances.
+    */
     namespace Debug {
+        /**
+            Returns true only if basic TokenTape structure is well-formed.
+        */
         function integrityCheckBasic(tape: TokenTape): boolean;
+        /**
+            Returns true if basic TokenTape structure is well-formed and if
+            all token kind and token string pairs are matching as expected.
+        */
         function integrityCheckDeep(tape: TokenTape): boolean;
+        /**
+            Performs a complex, deep checks to determine if TokenTape is well-formed
+            and properly represents original input string used to generate it.
+        
+            Returns true only if all checks available pass.
+        */
         function integrityCheckFull(tape: TokenTape, originalInput: string): boolean;
     }
 }

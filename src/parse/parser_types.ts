@@ -152,6 +152,84 @@ export namespace ExpressionParseTapeUtils {
 			return trees.join("\n");
 		}
 	}
+
+	/**
+		Contains functions for purposes of debugging and checking 
+		validity of ExpressionParseTape instances.
+	*/
+	export namespace Debug {
+		export function integrityCheckBasic(parseTape: ExpressionParseTape): boolean {
+			return (
+				soaOk(parseTape)
+				&&
+				constraintsOk(parseTape, Infinity)
+				&&
+				pairsOk(parseTape)
+			);
+		}
+
+		export function integrityCheckDeep(
+			parseTape: ExpressionParseTape,
+			tokenTape: lexer.TokenTape,
+		): boolean {
+			return (
+				soaOk(parseTape)
+				&&
+				constraintsOk(parseTape, tokenTape.tokenCount)
+				&&
+				pairsOk(parseTape)
+			);
+
+		}
+		
+		/**
+			Returns true only if basic ExpressionParseTape structure is well-formed.
+		*/
+		function soaOk(parseTape: ExpressionParseTape): boolean {
+			return (
+				parseTape.pairCount == parseTape.constraints.length
+				&&
+				parseTape.pairCount == parseTape.combinators.length
+			);
+		}
+
+		/**
+			Returns true only if all constraint trees in parse tape
+			are well formed and contain token indexes lesser than tokenCount.
+		*/
+		function constraintsOk(
+			parseTape: ExpressionParseTape,
+			tokenCount: number,
+		): boolean {
+			for (let i = 0; i < parseTape.pairCount; i++){
+				const valid: boolean = ConstraintTreeNodeUtils.Debug.integrityCheck(
+					parseTape.constraints[i], tokenCount - 1
+				);
+				if (! valid) return false;
+			}
+			
+			return true;
+		}
+		/**
+			Returns true only if parse tape contains no invalid pairs
+			Only invalid pair is implicit descednant combinator paired
+			with implicit constraint. No such pair should ever be emitted.
+		*/
+		function pairsOk(parseTape: ExpressionParseTape): boolean {
+			for (let i = 0; i < parseTape.pairCount; i++){
+				const constraint = parseTape.constraints[i];
+				const combinator = parseTape.combinators[i];
+				const fail: boolean = (
+					combinator == ExpressionCombinator.DESCENDANT
+					&&
+					constraint.kind == ConstraintTreeNodeKind.IMPLICIT
+				);
+				if (fail) return false;
+			}
+			return true;
+		}
+
+	}
 }
 /**
 	Contains additional functions for handling ConstraintTreeNode values.
@@ -228,7 +306,258 @@ export namespace ConstraintTreeNodeUtils {
 			return [identifier, result];
 		}
 	}
+
+	/**
+		Contains functions for purposes of debugging and checking 
+		validity of ConstraintTreeNode instances.
+	*/
+	export namespace Debug {
+		/**
+			Returns true if constraint tree structure and contents
+			are well-formed. Expects token count of token tape as a second
+			parameter to perform additional checks.
+		*/
+		export function integrityCheck(
+			root: ConstraintTreeNode,
+			tokenCount: number,
+		): boolean {
+			if (validImplicitNode(root)){
+				return true;
+			}else{
+				return traverseAndVerify(root, tokenCount - 1);
+			}
+		}
+		
+		/**
+			Traverses entire constraint tree and looks for anomalies.
+			Returns true only if tree structure is organized properly and no
+			token index within tree is outside of range <0, maxTokenIdx>.
+		
+			Performs "explosive DFS traversal" algorithm using explicit stack 
+			to not run into a risk of function call stack overflow 
+		*/
+		function traverseAndVerify(
+			root: ConstraintTreeNode, 
+			maxTokenIdx: number
+		): boolean {
+			const stack: Array<[
+				node: ConstraintTreeNode,
+				parentKind: ConstraintTreeNodeKind,
+			]> = [];
+		
+			let top = 0;
+			// parens kind is used as a root's parent dummy item that won't
+			// get into conflict with function's logic. 
+			stack[top++] = [root, ConstraintTreeNodeKind.PARENS];
+
+			// keep processing until all nodes have been visited and stack becomes empty
+			while(top){
+				const [node, parentKind] = stack[--top];
+	
+				// early exit if a problem is found.
+				if (!verifyNode(node, parentKind, maxTokenIdx)){
+					return false;
+				}
+				
+				// push all children onto the stack
+				top = pushChildrenToStack(stack, node, top);
+			}
+			
+			// traversed entire tree without finding erors, everything OK
+			return true;
+		}
+
+
+		/**	
+			Takes all children of node and writes them to the stack array
+			starting at position pointed to by a top parameter.
+			Returns a number that points to first slot past the last written child.
+			(returned value is essentially a new top)
+		*/
+		function pushChildrenToStack(
+			stack: Array<[ConstraintTreeNode, ConstraintTreeNodeKind]>,
+			node: ConstraintTreeNode,
+			top: number,
+		): number {
+			switch(node.kind){
+			case ConstraintTreeNodeKind.NOT:
+				stack[top++] = [node.child, node.kind];
+				return top;
+			case ConstraintTreeNodeKind.AND:
+			case ConstraintTreeNodeKind.OR:
+				for (const child of node.children){
+					stack[top++] = [child, node.kind];
+				}
+				return top;
+			default:
+				return top;
+			}
+			
+		}
+		
+		/**
+			Returns true if contents of a node are well formed internally
+			and in relation to its parent node (kind) and maximum token index
+			that is expected in the tree.
+		
+			If at least 1 aspect is not well-formed, returns false.
+			This function re-asserts typescript's type signature because
+			constraint trees are constructed by bypassing type system.
+		*/
+		function verifyNode(
+			node: ConstraintTreeNode,
+			parentKind: ConstraintTreeNodeKind,
+			maxTokenIdx: number,
+		): boolean {
+			if (typeof node != 'object' || node === null){
+				return false;
+			}
+			
+			const hasKind: boolean = Object.keys(node).includes("kind");
+			if (! hasKind){
+				return false;
+			}
+			if (! Object.isFrozen(node)){
+				return false;
+			}
+			
+			switch (node.kind){
+			case ConstraintTreeNodeKind.NOT:
+				return verifyNodeNot(node, parentKind);
+			case ConstraintTreeNodeKind.AND:
+			case ConstraintTreeNodeKind.OR:
+				return verifyNodeAndOr(node, parentKind);
+			case ConstraintTreeNodeKind.ATOM:
+				return verifyNodeAtom(node, maxTokenIdx);
+			// implicit cannot exist deep in the tree, it is handled at top level only
+			case ConstraintTreeNodeKind.IMPLICIT:
+				return false;
+			default:
+				node satisfies never;
+				return false;
+			}
+
+		}
+		/**
+			Verifies integrity of NOT constraint tree node
+			beyond TS typesystem "guarantees".	
+		*/
+		function verifyNodeNot(
+			node: ConstraintTreeNode, 
+			parentKind: ConstraintTreeNodeKind
+		): boolean {
+			if (parentKind == ConstraintTreeNodeKind.NOT){
+				return false;
+			}
+			const keys = Object.keys(node);
+			if (keys.length != 2){
+				return false;
+			}
+
+			if (! keys.includes('child')){
+				return false;
+			}
+			return true;
+		}
+		/**
+			Verifies integrity of OR, AND constraint tree nodes
+			beyond TS typesystem "guarantees".	
+		*/
+		function verifyNodeAndOr(
+			node: ConstraintTreeNode, 
+			parentKind: ConstraintTreeNodeKind
+		): boolean {
+			if (parentKind == node.kind){
+				return false;
+			}
+			const keys = Object.keys(node);
+			if (keys.length != 2){
+				return false;
+			}
+
+			if (! keys.includes('children')){
+				return false;
+			}
+			//@ts-expect-error
+			if (! Array.isArray(node.children)){
+				return false;
+			}
+			//@ts-expect-error
+			if (node.children.length < 1){
+				return false;
+			}
+			
+			return true;
+		}
+		/**
+			Verifies integrity of ATOM constraint tree node
+			beyond TS typesystem "guarantees".	
+		*/
+		function verifyNodeAtom(
+			node: ConstraintTreeNode, 
+			maxTokenIdx: number,
+		): boolean {
+			const keys = Object.keys(node);
+			if (keys.length != 2){
+				return false;
+			}
+
+			if (! keys.includes('tokenIdx')){
+				return false;
+			}
+
+			//@ts-expect-error
+			if (! Number.isInteger(node.tokenIdx)){
+				return false;
+			}
+			
+			//@ts-expect-error
+			if (node.tokenIdx > maxTokenIdx || node.tokenIdx < 0){
+				return false;
+			}
+			
+			return true;
+		}
+		/**
+			Returns true if given constraint tree node is a valid
+			implicit node. Shall be called outside tree traversal.
+ 
+			Verifies integrity beyond TS type system "guarantees".
+		*/
+		function validImplicitNode(node: ConstraintTreeNode): boolean {
+			if (typeof node != 'object' || node === null){
+				return false;
+			}
+
+			if (! Object.isFrozen(node)){
+				return false;
+			}
+
+			const keys = Object.keys(node);
+			const hasKind: boolean = keys.includes("kind");
+			if (! hasKind){
+				return false;
+			}
+
+			if (keys.length != 1){
+				return false;
+			}
+
+			if (node.kind != ConstraintTreeNodeKind.IMPLICIT){
+				return false;
+			}
+			return true;
+		}
+	}
 }
+
+
+/*
+
+	UNEXPORTED STUFF ONLY FOR DEBUGGING BELOW
+
+*/
+
 
 /**
 	Functions for displaying raw variant of
@@ -245,7 +574,7 @@ export namespace RawExpressionParseTapeUtils{
 			const trees: Array<string> = [];
 		
 			for (let i = 0; i < tape.constraints.length; i++){
-				const combinator: string = ExpressionCombinator[tape.combinators[i]]
+				const combinator: string = ExpressionCombinator[tape.combinators[i]];
 
 				const root: RawConstraintTreeNode = tape.constraints[i];
 				const obj: any = RawConstraintTreeNodeUtils.Display.treifyRepr(

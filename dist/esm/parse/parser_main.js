@@ -4,8 +4,6 @@ import { preprocessFindInvalidTokens, preprocessFilterWhitespace, } from "./pars
 import { generateRawExpressionParseTape } from "./parser_impl.js";
 import {} from "./parser_types.js";
 import { postprocessCollapseTreesInPlace, postprocessTransformRawTapeToFinal, } from "./parser_postprocess.js";
-//todo: go over lexer and maybe reorganize it so it makes more sense, update docstrings and
-// names perhaps too
 export function parseExpressionTokens(lexTape) {
     // find any critical and easy to spot errors with supplied token lexTape
     const preprocessingErrors = preprocessFindInvalidTokens(lexTape);
@@ -26,12 +24,14 @@ export function parseExpressionTokens(lexTape) {
     postprocessCollapseTreesInPlace(rawParseTape);
     // transform converts type of rawParseTape 
     //      from RawExpressionParseTape to ExpressionParseTape
-    // previous item is invalidated and converted in place, hence:
-    //      the hard type cast is necessary
-    postprocessTransformRawTapeToFinal(rawParseTape, originalIndexMapping);
-    const parseTape = rawParseTape;
+    // rawParseTape variable is no longer valid beyond this point.
+    const parseTape = postprocessTransformRawTapeToFinal(rawParseTape, originalIndexMapping);
     return assembleParseResult(parseTape, []);
 }
+/**
+    Assembles a new, empty parse tape to return alongside
+    fatal errors.
+*/
 function emptyParseTape() {
     return Object.freeze({
         pairCount: 0,
@@ -46,8 +46,8 @@ function emptyParseTape() {
     Arrays given as parameters may be modified (frozen)
 */
 function assembleParseResult(output, errors) {
-    return {
+    return Object.freeze({
         parseTape: output,
         errors: Object.freeze(errors),
-    };
+    });
 }

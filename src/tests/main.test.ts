@@ -38,4 +38,5 @@ console.log(`Call to doSomething took ${endTime - startTime} milliseconds`);
 console.log(lexer.TokenTapeUtils.Display.asStr(tokenTape));
 console.log(parser.ExpressionParseTapeUtils.Display.asTree(parseTape, tokenTape, true));
 console.log(errors);
+console.log(parser.ExpressionParseTapeUtils.Debug.integrityCheckBasic(parseTape))
 runAllFuzzTests();

@@ -14,7 +14,7 @@ export declare enum ExpressionCombinator {
     SIBLING_ANY = 7
 }
 /**
-    Each node in constraint tree must be one one of the following kinds.
+    Each node in raw constraint tree must be one one of the following kinds.
 */
 export declare enum ConstraintTreeNodeKind {
     ATOM = 0,// has always 0 children
@@ -84,13 +84,13 @@ export type ConstraintTreeNode = Readonly<{
     kind: ConstraintTreeNodeKind.IMPLICIT;
 }>;
 /**
-    Same as raw expression parse tape, but containing
-    processed constraint trees.
+    Primary, immutable output type returned by the parser.
+    It has a structure of list of pairs [combinator, constraint].
+    It is encoded as such:
+    SoA of 2 arrays with .length equal to ExpressionParseTape.pairCount property:
+        combinators[i]: ExpressionCombinator enum value for i-th pair.
+        constraints[i]: ConstraintTreeNode - root of constraint tree for i-th pair.
 
-    Exists only in readonly format and is closed to extension.
-    
-    pairCount == combinators.length == constraints.length
-    
 */
 export type ExpressionParseTape = Readonly<{
     pairCount: number;
@@ -103,13 +103,57 @@ export type ExpressionParseTape = Readonly<{
     Contains additional functions for handling expression parse tape values.
 */
 export declare namespace ExpressionParseTapeUtils {
+    /**
+        Contains functions for display purposes.
+    */
     namespace Display {
+        /**
+            Assembles a readable tree representation of expression parse tape.
+            Requires its corresponding lexer.TokenTape to be provided as parameter.
+
+            Third parameter - showAtomKinds is optional - if false or not provided,
+            the result will have laconic description for ATOM nodes in the tree. If
+            true is given, exact token kinds of each ATOM node will be displayed.
+
+            Returns a string with newline separators that can be directly printed.
+        */
         function asTree(parseTape: ExpressionParseTape, tokenTape: lexer.TokenTape, showAtomKinds?: boolean): string;
     }
+    /**
+        Contains functions for purposes of debugging and checking
+        validity of ExpressionParseTape instances.
+    */
+    namespace Debug {
+        function integrityCheckBasic(parseTape: ExpressionParseTape): boolean;
+        function integrityCheckDeep(parseTape: ExpressionParseTape, tokenTape: lexer.TokenTape): boolean;
+    }
 }
+/**
+    Contains additional functions for handling ConstraintTreeNode values.
+*/
 export declare namespace ConstraintTreeNodeUtils {
+    /**
+        Contains functions for display purposes.
+    */
     namespace Display {
+        /**
+            Converts a constraint tree node into a nested object representation
+            that will be possible to display as string with treeify. Or print as
+            an object.
+        */
         function treeifyRepr(node: ConstraintTreeNode, tokenTape: lexer.TokenTape, showAtomKinds: boolean): any;
+    }
+    /**
+        Contains functions for purposes of debugging and checking
+        validity of ConstraintTreeNode instances.
+    */
+    namespace Debug {
+        /**
+            Returns true if constraint tree structure and contents
+            are well-formed. Expects token count of token tape as a second
+            parameter to perform additional checks.
+        */
+        function integrityCheck(root: ConstraintTreeNode, tokenCount: number): boolean;
     }
 }
 /**
