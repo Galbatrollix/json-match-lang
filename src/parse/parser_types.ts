@@ -92,9 +92,9 @@ export type ConstraintTreeNode = Readonly<
 		kind: ConstraintTreeNodeKind.ATOM,
 		tokenIdx: number,
 	} | {
-		kind: ConstraintTreeNodeKind.IMPLICIT
+		kind: ConstraintTreeNodeKind.IMPLICIT,
 	}
->
+>;
 
 /**
 	Primary, immutable output type returned by the parser.	
@@ -203,7 +203,7 @@ export namespace ExpressionParseTapeUtils {
 		): boolean {
 			for (let i = 0; i < parseTape.pairCount; i++){
 				const valid: boolean = ConstraintTreeNodeUtils.Debug.integrityCheck(
-					parseTape.constraints[i], tokenCount - 1
+					parseTape.constraints[i], tokenCount,
 				);
 				if (! valid) return false;
 			}

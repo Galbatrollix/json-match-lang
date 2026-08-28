@@ -25,7 +25,7 @@ const expr11 = `(`.repeat(100000);
 const expr12 = `dupa >> +  czort  !!!!!kupa  & dupa`;
 const expr13 = `a | b | !!!( c | !!d | (1 | 2 & 3)) + #"s t r i n g" | #-3.13e1`
 const expr14 = `foo ! > bar`
-const expr = expr13
+const expr = `((dupa)) | siki`
 const startTime = performance.now()
 
 const tokenTape = lexer.tokenizeExpressionString(expr);
@@ -40,6 +40,7 @@ console.log(lexer.TokenTapeUtils.Display.asStr(tokenTape));
 console.log(parser.ExpressionParseTapeUtils.Display.asTree(parseTape, tokenTape, true));
 console.log(errors);
 console.log(parser.ExpressionParseTapeUtils.Debug.integrityCheckBasic(parseTape))
+console.log(parser.ExpressionParseTapeUtils.Debug.integrityCheckDeep(parseTape, tokenTape))
 //runAllFuzzTests();
 
 
