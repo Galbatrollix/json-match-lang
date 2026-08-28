@@ -549,6 +549,66 @@ export namespace ConstraintTreeNodeUtils {
 			return true;
 		}
 	}
+		
+	/**
+		Contains general purpose utility functions such as
+		constraint tree iterator.
+	*/
+	export namespace Misc {
+
+		/**
+			Returns an iterator that traverses constraint tree using a stack-based 
+			explosive DFS. For each traversed node returns a pair of
+			the node itself and index of its parent node (in the iterable).
+
+			Performs pre-order traversal. When node has multiple children
+			the one with the lowest index is visited first.
+		
+			Parent of root is labeled as NaN. 
+			In the end the iterator returns a count of emitted nodes.
+		*/
+		export function * iter(
+			root: ConstraintTreeNode
+		): Generator<[ConstraintTreeNode, number], number, void> {
+			const stack: Array<[
+				node: ConstraintTreeNode,
+				parentIdx: number,
+			]> = [];
+		
+			let top = 0;
+			let nodesVisited = 0;
+			stack[top++] = [root, NaN];
+			
+			while (top){
+				// pop the item from stack and emit it
+				const [node, parentIdx] = stack[--top];
+				yield [node, parentIdx];
+				
+				// obtain all children of popped node
+				let children: Readonly<Array<ConstraintTreeNode>> = [];
+				switch(node.kind){
+				case ConstraintTreeNodeKind.NOT:
+					children = [node.child];
+					break;
+				case ConstraintTreeNodeKind.OR:
+				case ConstraintTreeNodeKind.AND:
+					children = node.children;
+					break;
+				default:
+					children = [];
+				}
+				// append children to the stack in reverse order.
+				for (let i = children.length - 1; i >= 0; i--){
+					stack[top++] = [children[i], nodesVisited];
+				}
+				
+				// increment nodes visited by one for each popped item
+				nodesVisited += 1;
+			}
+
+			return nodesVisited;
+		} 
+	}
 }
 
 
