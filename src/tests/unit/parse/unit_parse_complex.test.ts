@@ -8,8 +8,8 @@ import {parser} from "../../../main.ts"
 	parent of root must be set to NaN.
 */
 type FlatConstraintTreeStructure = {
-	kinds: Array<parser.ConstraintTreeNodeKind>,
-	parents: Array<number>,
+	kinds: Readonly<Array<parser.ConstraintTreeNodeKind>>,
+	parents: Readonly<Array<number>>,
 }
 
 // alias for more laconic inline data
@@ -24,7 +24,7 @@ const ck = parser.ConstraintTreeNodeKind;
 */
 const expectedConstraintTreeStructures: Readonly<Array<{
 	expectedTreeOrder: FlatConstraintTreeStructure,
-	expressionStrings: Array<string>,
+	expressionStrings: Readonly<Array<string>>,
 }>> = [
 	{
 		expectedTreeOrder: {
@@ -173,7 +173,7 @@ export function parseTestConstraintsStructure(): boolean {
 		
 			// verify tree structure is as expected
 			const root: parser.ConstraintTreeNode = parseTape.constraints[0];
-			const structureOk = areTreeStructuresTheSame(root, expectedTreeOrder);
+			const structureOk = treeStructuresTheSame(root, expectedTreeOrder);
 			if (! structureOk){
 				return false;
 			}
@@ -191,7 +191,7 @@ export function parseTestConstraintsStructure(): boolean {
 
 	Returns true only if both structures match exactly.
 */
-function areTreeStructuresTheSame(
+function treeStructuresTheSame(
 	tree: parser.ConstraintTreeNode,
 	expected: FlatConstraintTreeStructure,
 ): boolean {
@@ -220,5 +220,271 @@ function areTreeStructuresTheSame(
 		atIndex += 1;
 	}
 	
+	return true;
+}
+// alias for more laconic inline data
+const ec = parser.ExpressionCombinator;
+/**
+	This collection pairs expected combinator arrays
+	with expression strings that are supposed to yield them
+*/
+const expectedCombinatorContents: Readonly<Array<{
+	expectedCombinators: Readonly<Array<parser.ExpressionCombinator>>,
+	expressionStrings: Readonly<Array<string>>,
+}>> = [
+	{
+		expectedCombinators: [ec.DESCENDANT],
+		expressionStrings: [
+			`{999}`,
+			`((B))`,
+			`( #string | !!{0})`,
+			`({0} | !!* | [*] | nothing)`,
+			`(!{*})`,
+			`(!(!!test))`,
+			` 1 & "5" | 2 & "3"`,
+			` !!dupa & kupa | (siki & !!czort)`,
+			`A | B & C | D & E`,
+			` (1 | 2) & ("A" | "B")`,
+		],
+	},
+	{
+		expectedCombinators: [ec.CHILD],
+		expressionStrings: [
+			`>`,
+			`>{999}`,
+			`>((B))`,
+			`>( #string | !!{0})`,
+			`>({0} | !!* | [*] | nothing)`,
+			`>(!{*})`,
+			`>(!(!!test))`,
+			`> 1 & "5" | 2 & "3"`,
+			`> !!dupa & kupa | (siki & !!czort)`,
+			`>A | B & C | D & E`,
+			`> (1 | 2) & ("A" | "B")`,
+		],
+	},
+	{
+		expectedCombinators: [ec.PARENT],
+		expressionStrings: [
+			`<`,
+			`<{999}`,
+			`<((B))`,
+			`<( #string | !!{0})`,
+			`<({0} | !!* | [*] | nothing)`,
+			`<(!{*})`,
+			`<(!(!!test))`,
+			`< 1 & "5" | 2 & "3"`,
+			`< !!dupa & kupa | (siki & !!czort)`,
+			`<A | B & C | D & E`,
+			`< (1 | 2) & ("A" | "B")`,
+		],
+	},
+	{
+		expectedCombinators: [ec.SIBLING_NEXT],
+		expressionStrings: [
+			`+`,
+			`+{999}`,
+			`+((B))`,
+			`+( #string | !!{0})`,
+			`+({0} | !!* | [*] | nothing)`,
+			`+(!{*})`,
+			`+(!(!!test))`,
+			`+ 1 & "5" | 2 & "3"`,
+			`+ !!dupa & kupa | (siki & !!czort)`,
+			`+A | B & C | D & E`,
+			`+ (1 | 2) & ("A" | "B")`,
+		],
+	},
+	{
+		expectedCombinators: [ec.SIBLING_PREV],
+		expressionStrings: [
+			`-`,
+			`-{999}`,
+			`-((B))`,
+			`-( #string | !!{0})`,
+			`-({0} | !!* | [*] | nothing)`,
+			`-(!{*})`,
+			`-(!(!!test))`,
+			`- 1 & "5" | 2 & "3"`,
+			`- !!dupa & kupa | (siki & !!czort)`,
+			`-A | B & C | D & E`,
+			`- (1 | 2) & ("A" | "B")`,
+		],
+	},
+	{
+		expectedCombinators: [ec.SIBLING_SUBSEQUENT],
+		expressionStrings: [
+			`++`,
+			`++{999}`,
+			`++((B))`,
+			`++( #string | !!{0})`,
+			`++({0} | !!* | [*] | nothing)`,
+			`++(!{*})`,
+			`++(!(!!test))`,
+			`++ 1 & "5" | 2 & "3"`,
+			`++ !!dupa & kupa | (siki & !!czort)`,
+			`++A | B & C | D & E`,
+			`++ (1 | 2) & ("A" | "B")`,
+		],
+	},
+	{
+		expectedCombinators: [ec.SIBLING_PRECEDING],
+		expressionStrings: [
+			`--`,
+			`--{999}`,
+			`--((B))`,
+			`--( #string | !!{0})`,
+			`--({0} | !!* | [*] | nothing)`,
+			`--(!{*})`,
+			`--(!(!!test))`,
+			`-- 1 & "5" | 2 & "3"`,
+			`-- !!dupa & kupa | (siki & !!czort)`,
+			`--A | B & C | D & E`,
+			`-- (1 | 2) & ("A" | "B")`,
+		],
+	},
+	{
+		expectedCombinators: [ec.SIBLING_ANY],
+		expressionStrings: [
+			`~`,
+			`~{999}`,
+			`~((B))`,
+			`~( #string | !!{0})`,
+			`~({0} | !!* | [*] | nothing)`,
+			`~(!{*})`,
+			`~(!(!!test))`,
+			`~ 1 & "5" | 2 & "3"`,
+			`~ !!dupa & kupa | (siki & !!czort)`,
+			`~A | B & C | D & E`,
+			`~ (1 | 2) & ("A" | "B")`,
+		],
+	},
+	{
+		expectedCombinators: [ec.CHILD, ec.DESCENDANT],
+		expressionStrings: [
+			`> #"descendant_after_this" lamao`,
+			`> #"descendant_after_this"{999}`,
+			`> #"descendant_after_this"((B))`,
+			`> #"descendant_after_this"( #string | !!{0})`,
+			`> #"descendant_after_this"({0} | !!* | [*] | nothing)`,
+			`> #"descendant_after_this"(!{*})`,
+			`> #"descendant_after_this"(!(!!test))`,
+			`> #"descendant_after_this" 1 & "5" | 2 & "3"`,
+			`> #"descendant_after_this" !!dupa & kupa | (siki & !!czort)`,
+			`> #"descendant_after_this"A | B & C | D & E`,
+			`> #"descendant_after_this" (1 | 2) & ("A" | "B")`,
+		],
+	},
+	{
+		expectedCombinators: [ec.CHILD, ec.CHILD, ec.CHILD],
+		expressionStrings: [
+			`>>>`,
+			`> dupa > kupa > siki`,
+			`> dupa | kupa > siki > czort & !targa`,
+		],
+	},
+	{
+		expectedCombinators: [ec.CHILD, ec.DESCENDANT],
+		expressionStrings: [
+			`> (1 | 2) & ("A" | "B") "string"`,
+			`>**`,
+			`> DUPA KUPA`,
+			` > SIKI | CZORT #0.1415e-314`,
+		],
+	},
+	{
+		expectedCombinators: [ec.SIBLING_SUBSEQUENT, ec.SIBLING_SUBSEQUENT],
+		expressionStrings: [
+			`++++`,
+			`++ ++`,
+			`++ dupa | kupa ++`,
+		],
+	},
+	{
+		expectedCombinators: [ec.SIBLING_PRECEDING, ec.SIBLING_PRECEDING],
+		expressionStrings: [
+			`----`,
+			`-- --`,
+			`-- dupa | kupa --`,
+		],
+	},
+	{
+		expectedCombinators: [ec.SIBLING_SUBSEQUENT, ec.SIBLING_SUBSEQUENT, ec.SIBLING_NEXT],
+		expressionStrings: [
+			`+++++`,
+			`++ ++ +`,
+			`++ BYTES ++ OR + "TYPES?"`,
+		],
+	},
+	{
+		expectedCombinators: [ec.SIBLING_PRECEDING, ec.SIBLING_PRECEDING, ec.SIBLING_PREV],
+		expressionStrings: [
+			`-----`,
+			`-- -- -`,
+			`-- TYPES & BYTES -- ANGELS & WRAITHS -`,
+		],
+	},
+	{
+		expectedCombinators: [ec.SIBLING_PREV, ec.SIBLING_PREV],
+		expressionStrings: [
+			`- -`,
+			`- item - anotheritem`,
+			`  - ((BAKA)) - "TORIX = NULL"`,
+		],
+	},
+	{
+		expectedCombinators: [],
+		expressionStrings: [
+			
+		],
+	},
+	// last is left empty for easy copypaste ))), it doesnt interfere with tests
+];
+
+/**
+	Verifies whether contents of parseTape combinator arrays are as expected
+	based on tables defined in expectedCombinatorContents.
+*/
+export function parseTestCombinatorsSequence(): boolean {
+	for (const {expectedCombinators, expressionStrings} of expectedCombinatorContents){
+		for (const exprString of expressionStrings){
+			const lexTape: lexer.TokenTape = lexer.tokenizeExpressionString(exprString);
+			const {parseTape, errors} = parser.parseExpressionTokens(lexTape);
+			
+			if (errors.length != 0){
+				return false;
+			}
+
+			// check if parseTape is well formed
+			const tapeOk = parser.ExpressionParseTapeUtils.Debug.integrityCheckDeep(
+				parseTape, lexTape,
+			);
+			if (! tapeOk){
+				return false;
+			}
+
+			if (! combinatorArraysTheSame(parseTape.combinators, expectedCombinators)){
+				return false;
+			}
+		}
+	}
+
+	return true;
+}
+
+function combinatorArraysTheSame(
+	arr1: Readonly<Array<parser.ExpressionCombinator>>,
+	arr2: Readonly<Array<parser.ExpressionCombinator>>,
+): boolean {
+	if (arr1.length != arr2.length){
+		return false;
+	}
+
+	for (let i = 0; i < arr1.length; i++){
+		if (arr1[i] != arr2[i]){
+			return false;
+		}
+	}
+
 	return true;
 }
