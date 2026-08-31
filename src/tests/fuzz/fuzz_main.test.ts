@@ -20,7 +20,7 @@ const allFuzzers: Readonly<Array<fuzzerFunc>> = lexFuzzers.concat(parseFuzzers);
 	This function never returns and must be halted by outside means. 
 */
 export function runAllFuzzTests(
-	batchSize: number = 10000, 
+	batchSize: number = 1000, 
 	logDirPath: string = "temp/tests/dumps",
 ): never {
 	console.log(`Running all fuzzers in parallel...`);

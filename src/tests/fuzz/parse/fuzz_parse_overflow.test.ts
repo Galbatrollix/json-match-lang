@@ -19,46 +19,44 @@ export function parseFuzzStackOverflow(batchSize: number, logDirPath: string): n
 		largestPassingString,
 		largestPassingDepth,
 		smallestFailingDepth,
+		chosenDepthStrategy,
 	] = resetComplicatedString();
-
-	let failures = 0;
 
 	for (let i = 0; i < batchSize; i++){
 		if (smallestFailingDepth - largestPassingDepth <= 1){
-			[largestPassingString,largestPassingDepth, smallestFailingDepth] = resetComplicatedString();
+			[largestPassingString,
+			 largestPassingDepth, 
+			 smallestFailingDepth,
+			 chosenDepthStrategy,] = resetComplicatedString();
 		}
 
 		const depthToTest = Math.floor((smallestFailingDepth - largestPassingDepth) / 2) + largestPassingDepth;
 		const stringToTest = makeComplicatedConstraintString(
-			depthToTest, largestPassingString, largestPassingDepth,
+			depthToTest, largestPassingString, largestPassingDepth, chosenDepthStrategy,
 		);	
-		console.log(/*stringToTest, */depthToTest);
+
+		//console.log(depthToTest);
+	
 		const tokenTape: lexer.TokenTape = lexer.tokenizeExpressionString(
 			stringToTest
 		);
 		
-		let fail: boolean = false;
 		try {
 			var parseResult = parser.parseExpressionTokens(tokenTape);
 		}catch(e){
-			fail = true;
-		}
-		
-
-		if (fail){
-			failures += 1;
 			dumpStringToUniqueFile(
 				logDirPath,
 				parseFuzzStackOverflow.name,
 				stringToTest,
 			);
-
-			[largestPassingString,largestPassingDepth, smallestFailingDepth] = resetComplicatedString();
+			
+			return 1;
 		}
+		
 		// if stack overflow properly reported, modify smallest failing,
 		// otherwise if passed - modify largest passing.
-		//@ts-expect-error
-		else if (parseResult.errors.length){
+
+		if (parseResult.errors.length){
 			smallestFailingDepth = depthToTest;
 		}else{
 			largestPassingDepth = depthToTest;
@@ -66,32 +64,125 @@ export function parseFuzzStackOverflow(batchSize: number, logDirPath: string): n
 		}
 	
 	}
-	return failures;
+	return 0;
 }
 
+/**
+	Conscruting deeply recursive string can be done with 
+	one of the following strategies.
+*/
+enum DepthStrategy {
+	ONLY_NOT = 0,
+	ONLY_PARENS = 1,
+	PARENS_AND_NOT = 2, 
+	MIXED = 3,
+}
+const depthStrategyCount = 4;
 
-function resetComplicatedString(): [string, number, number] {
-	const startingRange = [1, 100000];
-	return ["seed", startingRange[0], startingRange[1]];
+
+/**
+	Resets overflow boundary binary search state 
+	back to square one.
+	Make sure the overflow boundary lies in the starting range.
+*/
+function resetComplicatedString(): [string, number, number, DepthStrategy] {
+	const startingRange = [1, 30000];
+	const strategy = randomInRange([0, depthStrategyCount ]);
+
+	return ["seed", startingRange[0], startingRange[1], strategy];
 };
 
 /**
 	Creates a constraint-only expression string with depth approximately
-	equal to depth parameter. Tree can branch but its lateral grow is limited
-	to not run out of memory.
+	equal to depth parameter.
+
+	Returned string is built on top of a given "prevString" and its "prevDepth"
+	depth value.
+		
+	Depth strategy selects an algorithm for growing the tree depth.
+		
+ 	The constraint tree in returned string can branch 
+	but its lateral grow is highly limited to not run out of memory.
 */
 function makeComplicatedConstraintString(
-	depth: number, prevString: string, prevDepth: number
+	depth: number, prevString: string, prevDepth: number, strategy: DepthStrategy,
 ): string {
 	
-	return growComplicatedString(prevString, depth - prevDepth);
+	return growComplicatedString(prevString, depth - prevDepth, strategy);
 }
 
-function growComplicatedString(previous: string, additionalDepth: number): string {
+/**
+	See makeComplicatedConstraintString function for more info.
+*/
+function growComplicatedString(
+	previous: string, additionalDepth: number, strategy: DepthStrategy
+): string {
+	const [prefixReversed, postfix] = growFunctions[strategy](additionalDepth);
+
+	return prefixReversed.reverse().join('') + previous + postfix.join('');
+}
+
+
+/**
+	Associates each value of enum DepthStrategy with a function that
+	generates a prefix and suffix to a string in order to make it N steps deeper.
+*/
+const growFunctions = {
+	[DepthStrategy.ONLY_NOT]:       growDepthOnlyNot,
+	[DepthStrategy.ONLY_PARENS]:    growDepthOnlyParens,
+	[DepthStrategy.PARENS_AND_NOT]: growDepthParensNot,
+	[DepthStrategy.MIXED]:          growDepthMixed,
+} as const;
+
+function growDepthOnlyNot(depth: number): [Array<string>, Array<string>] {
 	const prefixReversed: Array<string> = [];
 	const postfix: Array<string> = [];
 
-	for (let i = 0; i < additionalDepth; i++){
+	for (let i = 0; i < depth; i++){
+		prefixReversed.push('!');
+	}
+
+	return [prefixReversed, postfix];
+}
+
+function growDepthOnlyParens(depth: number): [Array<string>, Array<string>] {
+	const prefixReversed: Array<string> = [];
+	const postfix: Array<string> = [];
+
+	for (let i = 0; i < depth; i++){
+		prefixReversed.push('(');
+		postfix.push(')');
+	}
+
+	return [prefixReversed, postfix];
+}
+
+function growDepthParensNot(depth: number): [Array<string>, Array<string>] {
+	const prefixReversed: Array<string> = [];
+	const postfix: Array<string> = [];
+
+	for (let i = 0; i < depth; i++){
+		const which = randomInRange([0, 2]);
+
+		switch (which){
+		case 0:  // NOT
+			prefixReversed.push('!');
+			break;
+		default: // PARENTHESIS
+			prefixReversed.push('(');
+			postfix.push(')');
+			break;
+		}
+	}
+
+	return [prefixReversed, postfix];
+}
+
+function growDepthMixed(depth: number): [Array<string>, Array<string>] {
+	const prefixReversed: Array<string> = [];
+	const postfix: Array<string> = [];
+
+	for (let i = 0; i < depth; i++){
 		const which = randomInRange([0, 4]);
 
 		switch (which){
@@ -113,5 +204,5 @@ function growComplicatedString(previous: string, additionalDepth: number): strin
 		}
 	}
 
-	return prefixReversed.reverse().join('') + previous + postfix.join('');
+	return [prefixReversed, postfix];
 }
