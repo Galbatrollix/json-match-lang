@@ -36,15 +36,9 @@ const endTime = performance.now();
 
 console.log(`Call to doSomething took ${endTime - startTime} milliseconds`);
 
-console.log(lexer.TokenTapeUtils.Display.asStr(tokenTape));
-console.log(parser.ExpressionParseTapeUtils.Display.asTree(parseTape, tokenTape, true));
+// console.log(lexer.TokenTapeUtils.Display.asStr(tokenTape));
+// console.log(parser.ExpressionParseTapeUtils.Display.asTree(parseTape, tokenTape, true));
 console.log(errors);
 console.log(parser.ExpressionParseTapeUtils.Debug.integrityCheckBasic(parseTape))
 console.log(parser.ExpressionParseTapeUtils.Debug.integrityCheckDeep(parseTape, tokenTape))
-//runAllFuzzTests();
-
-
-const iter = parser.ConstraintTreeNodeUtils.Misc.iter(parseTape.constraints[0]);
-for (const [node, parentIdx] of iter){
-	console.log(node, parentIdx);
-}
+runAllFuzzTests();

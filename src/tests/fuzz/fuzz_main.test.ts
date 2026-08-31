@@ -1,10 +1,14 @@
 import * as lexFuzzTests from "./lex/fuzz_lex_all.test.ts"
+import * as parseFuzzTests from "./parse/fuzz_parse_all.test.ts"
 
 type fuzzerFunc = (batchSize: number, logDirPath: string) => number;
 
 // trap for situations where some of imported test files have exported a function
 // with wrong signature
-const lexFuzzers: Array<fuzzerFunc> = Object.values(lexFuzzTests);
+const lexFuzzers: Readonly<Array<fuzzerFunc>> = Object.values(lexFuzzTests);
+const parseFuzzers: Readonly<Array<fuzzerFunc>> = Object.values(parseFuzzTests);
+
+const allFuzzers: Readonly<Array<fuzzerFunc>> = lexFuzzers.concat(parseFuzzers);
 
 /**	
 	Runs all fuzz tests in pararell, for ever.
@@ -22,7 +26,7 @@ export function runAllFuzzTests(
 	console.log(`Running all fuzzers in parallel...`);
 	let totalFailures = 0;
 	for(;;){
-		for (const fuzzer of lexFuzzers){
+		for (const fuzzer of allFuzzers){
 			const fuzzName = fuzzer.name;
 
 			const failures: number = fuzzer(batchSize, logDirPath);
