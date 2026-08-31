@@ -97,7 +97,7 @@ export var ExpressionParseTapeUtils;
         */
         function constraintsOk(parseTape, tokenCount) {
             for (let i = 0; i < parseTape.pairCount; i++) {
-                const valid = ConstraintTreeNodeUtils.Debug.integrityCheck(parseTape.constraints[i], tokenCount - 1);
+                const valid = ConstraintTreeNodeUtils.Debug.integrityCheck(parseTape.constraints[i], tokenCount);
                 if (!valid)
                     return false;
             }
@@ -372,6 +372,56 @@ export var ConstraintTreeNodeUtils;
             return true;
         }
     })(Debug = ConstraintTreeNodeUtils.Debug || (ConstraintTreeNodeUtils.Debug = {}));
+    /**
+        Contains general purpose utility functions such as
+        constraint tree iterator.
+    */
+    let Misc;
+    (function (Misc) {
+        /**
+            Returns an iterator that traverses constraint tree using a stack-based
+            explosive DFS. For each traversed node returns a pair of
+            the node itself and index of its parent node (in the iterable).
+
+            Performs pre-order traversal. When node has multiple children
+            the one with the lowest index is visited first.
+        
+            Parent of root is labeled as NaN.
+            In the end the iterator returns a count of emitted nodes.
+        */
+        function* iter(root) {
+            const stack = [];
+            let top = 0;
+            let nodesVisited = 0;
+            stack[top++] = [root, NaN];
+            while (top) {
+                // pop the item from stack and emit it
+                const [node, parentIdx] = stack[--top];
+                yield [node, parentIdx];
+                // obtain all children of popped node
+                let children = [];
+                switch (node.kind) {
+                    case ConstraintTreeNodeKind.NOT:
+                        children = [node.child];
+                        break;
+                    case ConstraintTreeNodeKind.OR:
+                    case ConstraintTreeNodeKind.AND:
+                        children = node.children;
+                        break;
+                    default:
+                        children = [];
+                }
+                // append children to the stack in reverse order.
+                for (let i = children.length - 1; i >= 0; i--) {
+                    stack[top++] = [children[i], nodesVisited];
+                }
+                // increment nodes visited by one for each popped item
+                nodesVisited += 1;
+            }
+            return nodesVisited;
+        }
+        Misc.iter = iter;
+    })(Misc = ConstraintTreeNodeUtils.Misc || (ConstraintTreeNodeUtils.Misc = {}));
 })(ConstraintTreeNodeUtils || (ConstraintTreeNodeUtils = {}));
 /*
 

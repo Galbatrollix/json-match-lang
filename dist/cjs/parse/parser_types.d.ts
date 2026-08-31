@@ -155,6 +155,24 @@ export declare namespace ConstraintTreeNodeUtils {
         */
         function integrityCheck(root: ConstraintTreeNode, tokenCount: number): boolean;
     }
+    /**
+        Contains general purpose utility functions such as
+        constraint tree iterator.
+    */
+    namespace Misc {
+        /**
+            Returns an iterator that traverses constraint tree using a stack-based
+            explosive DFS. For each traversed node returns a pair of
+            the node itself and index of its parent node (in the iterable).
+
+            Performs pre-order traversal. When node has multiple children
+            the one with the lowest index is visited first.
+        
+            Parent of root is labeled as NaN.
+            In the end the iterator returns a count of emitted nodes.
+        */
+        function iter(root: ConstraintTreeNode): Generator<[ConstraintTreeNode, number], number, void>;
+    }
 }
 /**
     Functions for displaying raw variant of

@@ -81,13 +81,12 @@ const depthStrategyCount = 4;
 
 
 /**
-	Resets overflow boundary binary search state 
-	back to square one.
-	Make sure the overflow boundary lies in the starting range.
+	Resets overflow boundary binary search state  back to square one.
+	Make sure the overflow boundary lies somewhere in the starting range.
 */
 function resetComplicatedString(): [string, number, number, DepthStrategy] {
 	const startingRange = [1, 30000];
-	const strategy = randomInRange([0, depthStrategyCount ]);
+	const strategy = randomInRange([0, depthStrategyCount]);
 
 	return ["seed", startingRange[0], startingRange[1], strategy];
 };
@@ -107,20 +106,13 @@ function resetComplicatedString(): [string, number, number, DepthStrategy] {
 function makeComplicatedConstraintString(
 	depth: number, prevString: string, prevDepth: number, strategy: DepthStrategy,
 ): string {
+	const depthDeficit = depth - prevDepth;
+
+	const [prefixReversed, postfix] = growFunctions[strategy](depthDeficit);
 	
-	return growComplicatedString(prevString, depth - prevDepth, strategy);
+	return prefixReversed.reverse().join('') + prevString + postfix.join('');
 }
 
-/**
-	See makeComplicatedConstraintString function for more info.
-*/
-function growComplicatedString(
-	previous: string, additionalDepth: number, strategy: DepthStrategy
-): string {
-	const [prefixReversed, postfix] = growFunctions[strategy](additionalDepth);
-
-	return prefixReversed.reverse().join('') + previous + postfix.join('');
-}
 
 
 /**

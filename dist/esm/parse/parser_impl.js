@@ -73,8 +73,7 @@ function nextPair(filteredTokens, start) {
         };
     }
     // at least one did not parse properly, returning a syntax error
-    //todo fiddle with returned index value to maybe compensate for combinator consumed
-    return nextPairErrorResult(syntaxError(constraintStart + constraintResult.consumed - 1));
+    return nextPairErrorResult(syntaxError(constraintStart, constraintResult.consumed, filteredTokens.length));
 }
 /**
     Constructs a full error-result for nextPair function
@@ -99,12 +98,17 @@ function stackOverflowError(tokenIndex) {
 }
 /**
     Constructs a new IncompleteParseError of target kind wrong syntax
-    with provided tokenIndex in filteredTokenIndexes collection.
+    based on metrics generated when parser failed.
 */
-function syntaxError(tokenIndex) {
+function syntaxError(constraintStart, constraintConsumed, filteredTokenCount) {
+    const idx = constraintStart + constraintConsumed;
+    let finalIdx = idx;
+    if (idx >= filteredTokenCount) {
+        finalIdx = filteredTokenCount - 1;
+    }
     return {
         targetKind: ParseErrorKind.WRONG_SYNTAX,
-        filteredTokenIndexes: [tokenIndex],
+        filteredTokenIndexes: [finalIdx],
     };
 }
 /**
