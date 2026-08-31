@@ -25,7 +25,7 @@ export function parseFuzzRandom(batchSize: number, logDirPath: string): number {
 	let failures = 0;
 
 	for (let i = 0; i < batchSize; i++){
-		const tokenTape: lexer.TokenTape = forgeTokenTape(maxTokenTapeLength);
+		const tokenTape: lexer.TokenTape = forgeTokenTape(0, maxTokenTapeLength);
 		
 		let fail: boolean = false;
 		try {
@@ -51,12 +51,57 @@ export function parseFuzzRandom(batchSize: number, logDirPath: string): number {
 
 }
 
+/**
+	Bombards parser with random token tapes containing some kind of error token
+	and checks whether it doesnt crash and produces expected errors.
+*/
+export function parseFuzzErrors(batchSize: number, logDirPath: string): number {
+	const maxTokenTapeLength = 1000;
+	
+	let failures = 0;
+
+	for (let i = 0; i < batchSize; i++){
+		const [
+			tokenTape, 
+			expectedErrorKind, 
+			expectedErrorIdx,
+		] = forgeTokenTapeWithErrors(maxTokenTapeLength);
+		
+		let fail: boolean = false;
+		try {
+			var parseResult = parser.parseExpressionTokens(tokenTape);
+			fail = ! verifyErrorTapeResult(
+				parseResult.parseTape,
+				parseResult.errors,
+				expectedErrorKind,
+				expectedErrorIdx,
+			);
+		}catch(e){
+			fail = true;
+		}
+		
+		if (fail){
+			failures += 1;
+			dumpStringToUniqueFile(
+				logDirPath,
+				parseFuzzErrors.name,
+				dumpTokensToString(tokenTape.tokenKind),
+			);
+		}		
+	
+	}
+	return failures;
+
+}
+
 
 /**
-	Creates an artificial possibly-empty lexer.TokenTape value out of random tokens.
+	Creates an artificial, lexer.TokenTape value out of random tokens.
 	Does not emit erroneous tokens, this includes overflown index,
 	invalid JSON string and other error tokens detectable at parser stage.
 	Length of generated token tape cannot exceed value passed by maxLength parameter.
+	Length of generated token tape cannot be smaller than value passed by minLength parameter.
+	If given minLength is 0, then result might be an empty token tape.
 
 	Resulted TokenTape is expected to pass at least the deep integrity check.
 
@@ -69,8 +114,8 @@ export function parseFuzzRandom(batchSize: number, logDirPath: string): number {
 	or emitting a different kind of error than the above
 	means there is an error in parser (or in this function).
 */
-function forgeTokenTape(maxLength: number): lexer.TokenTape {
-	const chosenSize = randomInRange([0, maxLength + 1]);
+function forgeTokenTape(minLength: number, maxLength: number): lexer.TokenTape {
+	const chosenSize = randomInRange([minLength, maxLength + 1]);
 	
 	const kinds: Array<lexer.TokenKind> = [];
 	const strings: Array<string> = [];
@@ -89,7 +134,75 @@ function forgeTokenTape(maxLength: number): lexer.TokenTape {
 }
 
 /**
-	Verified whether result of running parser on
+	Creates an artificial token tape containing 
+	a single errorneous token somewhere. Returs the token tape
+	alongside expected error kind and index where it exists.
+*/
+function forgeTokenTapeWithErrors(maxLength: number): 
+	[lexer.TokenTape, parser.ParseErrorKind, number] {
+	
+	// uses forge token tape and then modifies it after the fact to insert wrong token
+	const resultTape = forgeTokenTape(1, maxLength);
+	
+	const [tokenKind, str, errorKind] = errorTokenExamples[
+		randomInRange([0, errorTokenExamples.length])
+	];
+	
+
+	let replacementIdx: number = 0;
+	if (lexer.TokenKindUtils.isErrorIncomplete(tokenKind)){
+		replacementIdx = resultTape.tokenCount - 1;
+	}else{
+		replacementIdx = randomInRange([0, resultTape.tokenCount]);
+	}
+	
+	// dropping readonliness for a second, forged tape is not frozen
+	(resultTape as any).tokenKind[replacementIdx] = tokenKind;
+	(resultTape as any).tokenString[replacementIdx] = str;
+
+	return [resultTape, errorKind, replacementIdx];
+}
+
+/**
+	Verifies whether result of running parser on
+	a token tape forged by function forgeTokenTapeWithErrors
+	is well formed according to specification.
+*/
+function verifyErrorTapeResult(
+	parseTape: parser.ExpressionParseTape,
+	errors: Readonly<Array<parser.ParseError>>,
+	expectedErrorKind: parser.ParseErrorKind,
+	expectedErrorIdx: number,
+): boolean {
+	// parse tape must be empty
+	if (parseTape.pairCount != 0){
+		return false;
+	}
+	// there must be only on error
+	if (errors.length != 1){
+		return false;
+	}
+	
+	const err = errors[0];
+	
+	// the one error must be of expected kind
+	if (err.kind != expectedErrorKind){
+		return false;
+	}
+	
+	// the one error must have only one token index
+	if (err.tokenIndexes.length != 1){
+		return false;
+	}
+	// the one token index of the error must be what is expected.
+	if (err.tokenIndexes[0] != expectedErrorIdx){
+		return false;
+	}
+	
+	return true;
+}
+/**
+	Verifies whether result of running parser on
 	a token tape forged by function forgeTokenTape
 	is well formed according to specification.
 */
@@ -206,4 +319,20 @@ const validTokenExamples: ReadonlyArray<[lexer.TokenKind, string]> = [
 	[lexer.TokenKind.VALUE_EXACT_FALSE, `#false`],
 	[lexer.TokenKind.VALUE_EXACT_NUMBER, `#0.222e-14`],
 	[lexer.TokenKind.VALUE_EXACT_STRING, `#"str"`],
+];
+
+
+const errorTokenExamples: ReadonlyArray<
+	[lexer.TokenKind, string, parser.ParseErrorKind]
+> = [
+	[lexer.TokenKind.ERROR,`/////` ,parser.ParseErrorKind.FOUND_ERROR_TOKENS ],
+	[lexer.TokenKind.ERROR_INCOMPLETE_KEY,`"dup` ,parser.ParseErrorKind.FOUND_ERROR_TOKENS ],
+	[lexer.TokenKind.ERROR_INCOMPLETE_OBJECT,`{` ,parser.ParseErrorKind.FOUND_ERROR_TOKENS ],
+	[lexer.TokenKind.ERROR_INCOMPLETE_ARRAY,`[` ,parser.ParseErrorKind.FOUND_ERROR_TOKENS ],
+	[lexer.TokenKind.ERROR_INCOMPLETE_VALUE,`#tr` ,parser.ParseErrorKind.FOUND_ERROR_TOKENS ],
+	[lexer.TokenKind.KEY_QUOTED,String.raw`"unirip\u112"` ,parser.ParseErrorKind.STRING_NOT_VALID_JSON ],
+	[lexer.TokenKind.INDEX_ALL,`4294967295` ,parser.ParseErrorKind.INDEX_OUT_OF_BOUNDS ],
+	[lexer.TokenKind.INDEX_ARRAY,`[4294967295]` ,parser.ParseErrorKind.INDEX_OUT_OF_BOUNDS ],
+	[lexer.TokenKind.INDEX_OBJECT,`{4294967295}` ,parser.ParseErrorKind.INDEX_OUT_OF_BOUNDS ],
+	[lexer.TokenKind.VALUE_EXACT_STRING,String.raw`#"unirip\u112"` ,parser.ParseErrorKind.STRING_NOT_VALID_JSON ],
 ];
