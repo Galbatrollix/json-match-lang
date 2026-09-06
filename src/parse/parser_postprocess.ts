@@ -8,6 +8,7 @@ import {
 	ConstraintTreeNodeKind,
 } from "./parser_types.ts"
 
+import {arrayExtend} from "./../utils/utils_main.ts"
 
 /**
 	This function runs through each constraint abstract syntax tree
@@ -235,20 +236,4 @@ function collapseTreeStageThree(root: RawConstraintTreeNode): void {
 
 	// overwriting children of root with newly constructed flattened children
 	root.children = newChildren;
-}
-
-/**
-	unfucked version of base.push(...ext), no risk of stack overflow
-*/
-function arrayExtend<T>(base: Array<T>, ext: Readonly<Array<T>>){
-	const oldLength = base.length;
-	const newLength = base.length + ext.length;
-
-	// making more space	
-	base.length = newLength;
-	
-	// filling items from ext to base
-	for (let i = oldLength; i < newLength; i++){
-		base[i] = ext[i - oldLength];
-	}
 }

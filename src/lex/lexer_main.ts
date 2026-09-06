@@ -1,6 +1,7 @@
 import {type MatchToken, lexExpressionCodepoints} from "./lexer_impl.ts"
 import {TokenKind, TokenKindUtils} from "./lexer_enum.ts"
 
+import {primitiveArrayEquals} from "./../utils/utils_main.ts"
 
 /**
 	Immutable output of expression string tokenizer.
@@ -93,30 +94,11 @@ export namespace TokenTapeUtils {
 			return (
 				t1.tokenCount == t2.tokenCount
 				&&
-				tapeArrayEquals(t1.tokenKind, t2.tokenKind)
+				primitiveArrayEquals(t1.tokenKind, t2.tokenKind)
 				&&
-				tapeArrayEquals(t1.tokenString, t2.tokenString)
+				primitiveArrayEquals(t1.tokenString, t2.tokenString)
 			);
 		}
-
-		/**
-			A helper for comparing tape pararell arrays for equality. 
-			Returns true if both are equal
-		*/
-		function tapeArrayEquals<T>(arr1: Readonly<Array<T>>, arr2: Readonly<Array<T>>): boolean {
-			if (arr1.length != arr2.length){
-				return false;
-			}
-
-			for (let i = 0; i < arr1.length; i++){
-				if (arr1[i] != arr2[i]){
-					return false;
-				}
-			}
-
-			return true;
-		}
-
 	}
 	
 	/**

@@ -31,7 +31,11 @@ export type ParseResult = Readonly<{
 	errors: Readonly<Array<ParseError>>,
 }>;
 
+/**
 
+TODO WRITE IN-DEPTH DOCSTRING FOR THIS
+
+*/
 export function parseExpressionTokens(lexTape: lexer.TokenTape): ParseResult {
 	
 	// find any critical and easy to spot errors with supplied token lexTape

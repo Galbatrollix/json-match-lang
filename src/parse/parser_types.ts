@@ -612,6 +612,17 @@ export namespace ConstraintTreeNodeUtils {
 }
 
 
+export namespace ExpressionCombinatorUtils{
+	export function isSiblingCombinator(e: ExpressionCombinator): boolean {
+		return (
+			e >= ExpressionCombinator.SIBLING_NEXT 
+			&& 
+			e <= ExpressionCombinator.SIBLING_ANY
+		);
+	}
+}
+
+
 /*
 
 	UNEXPORTED STUFF ONLY FOR DEBUGGING BELOW
