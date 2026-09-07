@@ -270,7 +270,7 @@ export namespace TokenTapeUtils {
 		export function integrityCheckFull(tape: TokenTape, originalInput: string): boolean {
 			return (
 				integrityCheckDeep(tape) 
-				&& 
+				&&
 				stringSumOk(tape, originalInput)
 				&&
 				tokenizeAgainOk(tape, originalInput)

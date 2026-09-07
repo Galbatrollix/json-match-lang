@@ -26,7 +26,7 @@ const expr11 = `(`.repeat(100000);
 const expr12 = `dupa >> +  czort  !!!!!kupa  & dupa`;
 const expr13 = `a | b | !!!( c | !!d | (1 | 2 & 3)) + #"s t r i n g" | #-3.13e1`
 const expr14 = `foo ! > bar`
-const expr = ` a b c >>> d e <><>+- f +`
+const expr = `#{} +-(dupa | kupa) & czort+ a b c >>> d >e <123>!XD< {0}>+ #true- f +`
 const startTime = performance.now()
 
 const tokenTape = lexer.tokenizeExpressionString(expr);

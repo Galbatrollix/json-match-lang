@@ -18,6 +18,12 @@ export function compileExpression(
 	const mutParseTape = mutableParseTapeCopy(parseTape);
 	preprocessInPlace(mutParseTape);
 
+
+	const tree = parser.ExpressionParseTapeUtils.Display.asTree(
+		mutParseTape as parser.ExpressionParseTape, tokenTape,
+	);
+	console.log(tree);
+
 	return undefined;
 
 }
