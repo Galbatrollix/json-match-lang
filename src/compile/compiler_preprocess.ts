@@ -94,10 +94,10 @@ function hoistGroupsInRangeDepth(
 
 	const hoistGroups: Array<Array<number>> = [];	
 	const hoistDepthMembers = new Map<number, Array<number>>();
+	// relative root is initialized cuz element just before the range
+	// may become a hoist target: for example "DUPA >< kupa"
+	// (range starts after DUPA element)
 	// real root cannot be hoisted to, hence the edge case
-	// relative root is initialized cuz element just before
-	// the range may become a hoist target: for example "DUPA >< kupa"
-	// where range starts at child combinator
 	const relativeRootIdx = idxRange[0] - 1;
 	if (relativeRootIdx >= 0){
 		hoistDepthMembers.set(0, [relativeRootIdx]);
@@ -185,10 +185,10 @@ function hoistGroupsInRangeSiblings(
 	
 	const hoistGroups: Array<Array<number>> = [];	
 	const hoistDepthMembers = new Map<number, Array<number>>();
+	// relative root is initialized cuz element just before the range
+	// may become a hoist target: for example "DUPA +- kupa"
+	// (range starts after DUPA element)
 	// real root cannot be hoisted to, hence the edge case
-	// relative root is initialized cuz element just before
-	// the range may become a hoist target: for example "DUPA +- kupa"
-	// where range starts at child combinator
 	const relativeRootIdx = idxRange[0] - 1;
 	if (relativeRootIdx >= 0){
 		hoistDepthMembers.set(0, [relativeRootIdx]);
@@ -265,7 +265,7 @@ function hoistConstraintsInGroups(tape: MutableParseTape, groups: Array<Array<nu
 	}
 }
 /**
-	Creates a new implicit constraint tree node
+	Creates a new IMPLICIT constraint tree node
 	for replacing hoisted constraints.
 */
 function makeImplicitConstraintNode(): parser.ConstraintTreeNode {
@@ -274,7 +274,7 @@ function makeImplicitConstraintNode(): parser.ConstraintTreeNode {
 	};
 }
 /**
-	Creates a new and constraint tree node
+	Creates a new AND constraint tree node
 	for merging hoisted constraints.
 */
 function makeAndConstraintNode(
