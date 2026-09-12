@@ -9,6 +9,7 @@ import {
 	type CompiledConstraint,
 	type CompiledConstraintNode,
 	CompiledConstraintNodeKind,
+	constraintPropertiesKeys,
 } from "./compiler_types.ts"
 
 
@@ -38,6 +39,8 @@ function compileSingleConstraint(
 	root: parser.ConstraintTreeNode,
 	tokenTape: lexer.TokenTape,
 ): CompiledConstraint {
+
+	console.log(root);
 	const compiledConstraints: Array<CompiledConstraintNode> = [];
 
 	const [nodes, parents]: [
@@ -52,7 +55,17 @@ function compileSingleConstraint(
 	while(workingNodeCount){
 		const poppedNodeIdx = workingNodes[--workingNodeCount];
 		
-		
+		const compiled = compileConstraintNode(
+			poppedNodeIdx,
+			parents[poppedNodeIdx],
+			children[poppedNodeIdx],
+			nodes,
+			compiledConstraints,
+			tokenTape,
+		);
+		compiledConstraints[poppedNodeIdx] = compiled;
+
+		console.log(compiled.properties);
 
 		const parentIdx = parents[poppedNodeIdx];
 		incomingEdges[parentIdx] -= 1;
@@ -159,17 +172,17 @@ function compileConstraintNode(
 		break;
 	case parser.ConstraintTreeNodeKind.NOT:
 		[properties, newKind] = compileNodeNot(
-
+			outputNodes[children[0]].properties,
 		); 
 		break;
 	case parser.ConstraintTreeNodeKind.AND:
 		[properties, newKind] = compileNodeAnd(
-
+			children, outputNodes,
 		); 
 		break;
 	case parser.ConstraintTreeNodeKind.OR:
 		[properties, newKind] = compileNodeOr(
-
+			children, outputNodes,
 		); 
 		break;
 	case parser.ConstraintTreeNodeKind.IMPLICIT:
@@ -191,48 +204,176 @@ function compileConstraintNode(
 	
 }
 
-function compileNodeOr(): [CompiledConstraintProperties, CompiledConstraintNodeKind] {
-	//@ts-expect-error
-	return 0;
+type Writable<T> = { -readonly [Key in keyof T]: T[Key] };
+
+function compileNodeOr(
+	children: Readonly<Array<number>>,
+	outputNodes: Readonly<Array<CompiledConstraintNode>>,
+): [CompiledConstraintProperties, CompiledConstraintNodeKind] {
+	const kind = CompiledConstraintNodeKind.OR;
+	return [constraintPropertiesNeverInit(), kind];
 }
-function compileNodeAnd(): [CompiledConstraintProperties, CompiledConstraintNodeKind] {
-	//@ts-expect-error
-	return 0;
+function compileNodeAnd(
+	children: Readonly<Array<number>>,
+	outputNodes: Readonly<Array<CompiledConstraintNode>>,
+): [CompiledConstraintProperties, CompiledConstraintNodeKind] {
+	const kind = CompiledConstraintNodeKind.AND;
+	// handle wildcards first
+	const {nevers, wildcards, trivials} = childrenPropertiesStats(
+		children, outputNodes,
+	);
+	// if at least one never found, entire AND is never too
+	// if all children are wildcards, then entire AND is wildcard too.
+	if (nevers){
+		return [constraintPropertiesNeverInit(), kind];
+	}else if (wildcards == children.length){
+		return [constraintPropertiesWildcardInit(), kind];
+	}
+
+
+	const properties = constraintPropertiesWritableCopy(
+		outputNodes[children[0]].properties,
+	);
+	for (const key of constraintPropertiesKeys){
+		let prop = properties[key];
+		for (let childIdx = 1; childIdx < children.length; childIdx++){
+			const childProp = outputNodes[childIdx].properties[key];
+			prop = propertyResolutionAnd[prop][childProp];
+		}
+
+		properties[key] = prop;
+	}
+	
+	
+	properties.wildcard = PropertyStatus.UNDEFINED;
+	properties.trivial = trivials == children.length;
+
+	//todo check if result aint the never anyway
+
+	return [properties, kind];
 }
-function compileNodeNot(): [CompiledConstraintProperties, CompiledConstraintNodeKind] {
-	//@ts-expect-error
-	return 0;
+
+
+/**
+	Table for resolving AND
+*/
+const propertyResolutionAnd = {
+	[PropertyStatus.UNDEFINED] : {
+		[PropertyStatus.UNDEFINED]: PropertyStatus.UNDEFINED,
+		[PropertyStatus.MAY_PASS]: PropertyStatus.MAY_PASS,
+		[PropertyStatus.CANNOT_PASS]: PropertyStatus.CANNOT_PASS,
+	},
+	[PropertyStatus.MAY_PASS] : {
+		[PropertyStatus.UNDEFINED]: PropertyStatus.MAY_PASS,
+		[PropertyStatus.MAY_PASS]: PropertyStatus.MAY_PASS,
+		[PropertyStatus.CANNOT_PASS]: PropertyStatus.CANNOT_PASS,
+	},
+	[PropertyStatus.CANNOT_PASS] : {
+		[PropertyStatus.UNDEFINED]: PropertyStatus.CANNOT_PASS,
+		[PropertyStatus.MAY_PASS]: PropertyStatus.CANNOT_PASS,
+		[PropertyStatus.CANNOT_PASS]: PropertyStatus.CANNOT_PASS,
+	},
+} as const;
+
+
+function compileNodeNot(
+	childProps: CompiledConstraintProperties
+): [CompiledConstraintProperties, CompiledConstraintNodeKind] {
+	const kind = CompiledConstraintNodeKind.LEAF;
+	
+	// special cases for wildcards and nevers 
+	switch (childProps.wildcard){
+	case PropertyStatus.MAY_PASS:
+		return [constraintPropertiesNeverInit(), kind];
+	case PropertyStatus.CANNOT_PASS:
+		return [constraintPropertiesWildcardInit(), kind];
+	default:
+	}
+
+	// normal path
+	const properties = {} as Writable<CompiledConstraintProperties>;
+	properties.trivial = childProps.trivial;
+	properties.wildcard = PropertyStatus.UNDEFINED;
+	
+	for (const k of constraintPropertiesKeys){
+		switch(childProps[k]){
+		case PropertyStatus.UNDEFINED:
+			properties[k] = childProps[k];
+			break;
+		case PropertyStatus.MAY_PASS:
+			properties[k] = PropertyStatus.CANNOT_PASS;
+			break;
+		case PropertyStatus.CANNOT_PASS:
+			properties[k] = PropertyStatus.MAY_PASS;
+			break;
+		default:
+			childProps[k] satisfies never;
+		}
+	}
+
+	return [properties, kind];
 }
 function compileNodeImplicit(): [CompiledConstraintProperties, CompiledConstraintNodeKind] {
-	// re-uses the logic from atom constraint function because
 	// implicit must be the same as wildcard all for all intents and purposes.
-	const properties = atomConstraintProperties(lexer.TokenKind.WILDCARD_ALL);
+	const properties = constraintPropertiesWildcardInit();
 	return [properties, CompiledConstraintNodeKind.LEAF];
 }
 
-function compileNodeAtom(
-	tokenKind: lexer.TokenKind,
-	tokenString: string,
-): [
+function compileNodeAtom(tokenKind: lexer.TokenKind, tokenString: string)
+: [
 	CompiledConstraintProperties,
 	CompiledConstraintNodeKind,
 	number | undefined,
 	string | undefined,
 ] {
-	//@ts-expect-error
-	return 0;
+
+	const properties = atomConstraintProperties(tokenKind);
+	const [siblingIndex, stringPattern] = atomSiblingIndexStringPattern(
+		tokenKind, tokenString,
+	);
+
+	return [
+		properties,
+		CompiledConstraintNodeKind.LEAF,
+		siblingIndex,
+		stringPattern,
+	];
 }
 
 
 function atomSiblingIndexStringPattern(
-	
+	tokenKind: lexer.TokenKind, tokenString: string,
 ): [number | undefined, string | undefined] {
 
-	//@ts-expect-error
-	return 0;
-}
+	let siblingIndex: number | undefined = undefined;
+	let stringPattern: string | undefined = undefined;
 
-type Writable<T> = { -readonly [Key in keyof T]: T[Key] };
+	switch(tokenKind){
+	case lexer.TokenKind.KEY_NAKED: 
+		// must make proper string pattern with quotes out of naked token
+		stringPattern = '"' + tokenString + '"';
+		break;
+	case lexer.TokenKind.KEY_QUOTED:
+		stringPattern = tokenString;
+		break;
+	case lexer.TokenKind.VALUE_EXACT_STRING:
+	case lexer.TokenKind.VALUE_EXACT_NUMBER:
+		// must strip the # value prefix from the token
+		stringPattern = tokenString.slice(1);
+		break;
+	case lexer.TokenKind.INDEX_ALL:
+		siblingIndex = parseInt(tokenString);
+		break;
+	case lexer.TokenKind.INDEX_ARRAY:
+	case lexer.TokenKind.INDEX_OBJECT:
+		// must strip surrounding '{}[]' characters
+		siblingIndex = parseInt(tokenString.slice(1, -1));
+		break;
+	default:;
+	}
+
+	return [siblingIndex, stringPattern];
+}
 
 
 /**
@@ -248,111 +389,193 @@ function atomConstraintProperties(
 	const TK = lexer.TokenKind;
 
 	switch (tokenKind){	
-		default:
-			throw new Error("Fatal compiler error, unexpected enum variant.");
-		case TK.WILDCARD_ALL:
-		case TK.INDEX_ALL:
-			props = constraintPropertiesMaybeInit();
-			props.wildcard = PS.MUST;
-			return props;
-		case TK.KEY_QUOTED:
-		case TK.KEY_NAKED:
-		case TK.INDEX_OBJECT:
-		case TK.WILDCARD_OBJECT:
-			props = constraintPropertiesMaybeInit();
-			props.contextArr = PS.MUST_NOT;
-			props.contextObj = PS.MUST;
-			return props;
-		case TK.INDEX_ARRAY:
-		case TK.WILDCARD_ARRAY:
-			props = constraintPropertiesMaybeInit();
-			props.contextArr = PS.MUST;
-			props.contextObj = PS.MUST_NOT;
-			return props;
-		// value type wildcard allows all primitives but not array or object as value
-		case TK.VALUE_TYPE_WILDCARD:
-			props = constraintPropertiesMaybeInit();
-			props.valueArr = PS.MUST_NOT;
-			props.valueObj = PS.MUST_NOT;
-			return props;
-		case TK.VALUE_EXACT_STRING:
-		case TK.VALUE_TYPE_STRING:
-			props = constraintPropertiesNotValueInit();
-			props.valueString = PS.MUST;
-			return props;
-		case TK.VALUE_TYPE_NUMBER:
-		case TK.VALUE_EXACT_NUMBER:
-			props = constraintPropertiesNotValueInit();
-			props.valueNumber = PS.MUST;
-			return props;
-		case TK.VALUE_TYPE_ARRAY:
-			props = constraintPropertiesNotValueInit();
-			props.valueArr = PS.MUST;
-			return props;
-		case TK.VALUE_TYPE_OBJECT:
-			props = constraintPropertiesNotValueInit();
-			props.valueObj = PS.MUST;
-			return props;
-		case TK.VALUE_EXACT_NULL:
-			props = constraintPropertiesNotValueInit();
-			props.valueNull = PS.MUST;
-			return props;
-		case TK.VALUE_EXACT_TRUE:
-			props = constraintPropertiesNotValueInit();
-			props.valueTrue = PS.MUST;
-			return props;
-		case TK.VALUE_EXACT_FALSE:
-			props = constraintPropertiesNotValueInit();
-			props.valueFalse = PS.MUST;
-			return props;
-		case TK.VALUE_TYPE_BOOLEAN:
-			props = constraintPropertiesNotValueInit();
-			props.valueFalse = PS.MAYBE;
-			props.valueTrue = PS.MAYBE;
-			return props;
+	default:
+		throw new Error("Fatal compiler error, unexpected enum variant.");
+	// the one and only wildcard constraint that matches everything
+	case TK.WILDCARD_ALL:
+		props = constraintPropertiesWildcardInit();
+		return props;
+
+	// cases below are trivial 
+	case TK.VALUE_TYPE_STRING:
+		props = constraintPropertiesInit(PS.UNDEFINED, PS.CANNOT_PASS);
+		props.valueString = PS.MAY_PASS;
+		return props;
+	case TK.VALUE_TYPE_NUMBER:
+		props = constraintPropertiesInit(PS.UNDEFINED, PS.CANNOT_PASS);
+		props.valueNumber = PS.MAY_PASS;
+		return props;
+	case TK.VALUE_TYPE_ARRAY:
+		props = constraintPropertiesInit(PS.UNDEFINED, PS.CANNOT_PASS);
+		props.valueArr = PS.MAY_PASS;
+		return props;
+	case TK.VALUE_TYPE_OBJECT:
+		props = constraintPropertiesInit(PS.UNDEFINED, PS.CANNOT_PASS);
+		props.valueObj = PS.MAY_PASS;
+		return props;
+	case TK.VALUE_EXACT_NULL:
+		props = constraintPropertiesInit(PS.UNDEFINED, PS.CANNOT_PASS);
+		props.valueNull = PS.MAY_PASS;
+		return props;
+	case TK.VALUE_EXACT_TRUE:
+		props = constraintPropertiesInit(PS.UNDEFINED, PS.CANNOT_PASS);
+		props.valueTrue = PS.MAY_PASS;
+		return props;
+	case TK.VALUE_EXACT_FALSE:
+		props = constraintPropertiesInit(PS.UNDEFINED, PS.CANNOT_PASS);
+		props.valueFalse = PS.MAY_PASS;
+		return props;
+	case TK.VALUE_TYPE_BOOLEAN:
+		props = constraintPropertiesInit(PS.UNDEFINED, PS.CANNOT_PASS);
+		props.valueFalse = PS.MAY_PASS;
+		props.valueTrue = PS.MAY_PASS;
+		return props;	
+	// value type wildcard allows all primitives but not array or object as value
+	case TK.VALUE_TYPE_WILDCARD:
+		props = constraintPropertiesInit(PS.UNDEFINED, PS.MAY_PASS);
+		props.valueArr = PS.CANNOT_PASS;
+		props.valueObj = PS.CANNOT_PASS;
+		return props;
+	case TK.WILDCARD_ARRAY:
+		props = constraintPropertiesInit(PS.UNDEFINED, PS.UNDEFINED);
+		props.contextArr = PS.MAY_PASS;
+		props.contextObj = PS.CANNOT_PASS;
+		return props;
+	case TK.WILDCARD_OBJECT:
+		props = constraintPropertiesInit(PS.UNDEFINED, PS.UNDEFINED);
+		props.contextArr = PS.CANNOT_PASS;
+		props.contextObj = PS.MAY_PASS;
+		return props;
+
+	// cases below are non-trivial
+	case TK.INDEX_ALL:
+		props = constraintPropertiesInit(PS.UNDEFINED, PS.UNDEFINED);
+		props.trivial = false;
+		return props;
+	case TK.KEY_QUOTED:
+	case TK.KEY_NAKED:
+	case TK.INDEX_OBJECT:
+		props = constraintPropertiesInit(PS.UNDEFINED, PS.UNDEFINED);
+		props.contextArr = PS.CANNOT_PASS;
+		props.contextObj = PS.MAY_PASS;
+		props.trivial = false;
+		return props;
+	case TK.INDEX_ARRAY:
+		props = constraintPropertiesInit(PS.UNDEFINED, PS.UNDEFINED);
+		props.contextArr = PS.MAY_PASS;
+		props.contextObj = PS.CANNOT_PASS;
+		props.trivial = false;
+		return props;
+	case TK.VALUE_EXACT_STRING:
+		props = constraintPropertiesInit(PS.UNDEFINED, PS.CANNOT_PASS);
+		props.valueString = PS.MAY_PASS;
+		props.trivial = false;
+		return props;
+	case TK.VALUE_EXACT_NUMBER:
+		props = constraintPropertiesInit(PS.UNDEFINED, PS.CANNOT_PASS);
+		props.valueNumber = PS.MAY_PASS;
+		props.trivial = false;
+		return props;
 	}
 }
 
 
+
 /**
-	Creates a mutable constraint properties object
-	filled with MUST_NOT value in all its fields regarding
-	the value content.
+	Creates a mutable constraint properties object.
+	
+	Value flags are set to value given in "valueVal" parameter
+	Context flags are set to value given in "contextVal" parameter
 
-	Wildcard and context fields must be filled with MAYBE instead.
+	"wildcard" flag is always set to UNDEFINED
+	"trivial" flag is always set to true
 */
-function constraintPropertiesNotValueInit(): Writable<CompiledConstraintProperties> {
+function constraintPropertiesInit(
+	contextVal: PropertyStatus, valueVal: PropertyStatus,
+): Writable<CompiledConstraintProperties> {
 	return {
-		wildcard:     PropertyStatus.MAYBE,
+		trivial:     true,
+		wildcard:    PropertyStatus.UNDEFINED,
 
-		contextArr:   PropertyStatus.MAYBE,
-		contextObj:   PropertyStatus.MAYBE,
+		contextArr:  contextVal,
+		contextObj:  contextVal,
 
-		valueArr:     PropertyStatus.MUST_NOT,
-		valueObj:     PropertyStatus.MUST_NOT,
-		valueNull:    PropertyStatus.MUST_NOT,
-		valueTrue:    PropertyStatus.MUST_NOT,
-		valueFalse:   PropertyStatus.MUST_NOT,
-		valueString:  PropertyStatus.MUST_NOT,
-		valueNumber:  PropertyStatus.MUST_NOT,
+		valueArr:    valueVal,
+		valueObj:    valueVal,
+		valueNull:   valueVal,
+		valueTrue:   valueVal,
+		valueFalse:  valueVal,
+		valueString: valueVal,
+		valueNumber: valueVal,
 	};
 }
-/**
-	Creates a mutable constraint properties object
-	filled with MAYBE value in all its fields.
-*/
-function constraintPropertiesMaybeInit(): Writable<CompiledConstraintProperties> {
-	return {
-		wildcard:     PropertyStatus.MAYBE,
 
-		contextArr:   PropertyStatus.MAYBE,
-		contextObj:   PropertyStatus.MAYBE,
-		valueArr:     PropertyStatus.MAYBE,
-		valueObj:     PropertyStatus.MAYBE,
-		valueNull:    PropertyStatus.MAYBE,
-		valueTrue:    PropertyStatus.MAYBE,
-		valueFalse:   PropertyStatus.MAYBE,
-		valueString:  PropertyStatus.MAYBE,
-		valueNumber:  PropertyStatus.MAYBE,
-	};
+function constraintPropertiesWildcardInit(): Writable<CompiledConstraintProperties> {
+	const props = constraintPropertiesInit(
+		PropertyStatus.UNDEFINED, PropertyStatus.UNDEFINED,
+	);
+	props.wildcard = PropertyStatus.MAY_PASS;
+	return props;
+}
+
+function constraintPropertiesNeverInit(): Writable<CompiledConstraintProperties> {
+	const props = constraintPropertiesInit(
+		PropertyStatus.UNDEFINED, PropertyStatus.UNDEFINED,
+	);
+	props.wildcard = PropertyStatus.CANNOT_PASS;
+	return props;
+}
+
+function constraintPropertiesWritableCopy(
+	original: CompiledConstraintProperties,
+): Writable<CompiledConstraintProperties> {
+	const props = {} as Writable<CompiledConstraintProperties>;
+
+	for (const k in original){
+		// typescript cannot for its life figure out that this loop is valid
+		// and that keyof typeof original is the same as keyof typeof props
+		// this is simply embarassing.
+
+		//@ts-ignore
+		props[k] = original[k];
+	}
+	return props;
+}
+
+
+function childrenPropertiesStats(
+	children: Readonly<Array<number>>,
+	outputNodes: Readonly<Array<CompiledConstraintNode>>,
+): {nevers: number, wildcards: number, trivials: number} {
+
+	let nevers = 0, wildcards = 0;
+	let trivials =  0;
+	for (const childIdx of children){
+		const props = outputNodes[childIdx].properties;
+		switch (props.wildcard){
+		case PropertyStatus.MAY_PASS:
+			wildcards += 1;
+			break;
+		case PropertyStatus.CANNOT_PASS:
+			nevers += 1;
+			break;
+		default:
+		}
+
+		if (props.trivial){
+			trivials += 1;
+		}
+	}
+
+	return {nevers, wildcards, trivials};
+}
+/**
+
+*/
+function propertiesNeverTransformable(props: CompiledConstraintProperties): boolean {
+	return false;
+}
+
+function propertiesWildcardTransformable(props: CompiledConstraintProperties): boolean {
+	return false;
 }

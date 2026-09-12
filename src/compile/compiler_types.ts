@@ -3,19 +3,22 @@ import * as parser from "./../parse/parser_a_index.ts"
 
 
 export const PropertyStatus = {
-	MUST_NOT:  -1,
-	MAYBE:     0,
-	MUST:      1,
+	UNDEFINED:        0,
+	CANNOT_PASS:      1,
+	MAY_PASS:         2,
 } as const;
 export type PropertyStatus = (typeof PropertyStatus)[keyof typeof PropertyStatus];
 
 
 
 export type CompiledConstraintProperties = Readonly<{
+	trivial:      boolean,
+
 	wildcard:     PropertyStatus,
 
 	contextArr:   PropertyStatus,
 	contextObj:   PropertyStatus,
+
 	valueArr:     PropertyStatus,
 	valueObj:     PropertyStatus,
 	valueNull:    PropertyStatus,
@@ -25,6 +28,22 @@ export type CompiledConstraintProperties = Readonly<{
 	valueNumber:  PropertyStatus,
 }>
 
+/**
+	Constains keys of compiled constraint properties 
+	type. Trivial and wildcard fields are excluded since they
+	require somewhat special handling - not for generic loops.
+*/
+export const constraintPropertiesKeys  = [
+	"contextArr",
+	"contextObj",
+	"valueArr",
+	"valueObj",
+	"valueNull",
+	"valueTrue",
+	"valueFalse",
+	"valueString",
+	"valueNumber",
+] as const;
 
 export enum CompiledConstraintNodeKind {
 	LEAF,
