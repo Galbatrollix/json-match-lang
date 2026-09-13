@@ -27,23 +27,22 @@ const expr12 = `dupa >> +  czort  !!!!!kupa  & dupa`;
 const expr13 = `a | b | !!!( c | !!d | (1 | 2 & 3)) + #"s t r i n g" | #-3.13e1`
 const expr14 = `foo ! > bar`
 const expr15 = `#{} +-(dupa | kupa) & czort+ a b c >>> d >e <123>!XD< {0}>+ #true- f +`
-const expr = `#boolean & #true & dupa & !4 & !*`
+const expr = `> dupa | kupa & {4} & [3] | *`
 const startTime = performance.now()
 
 const tokenTape = lexer.tokenizeExpressionString(expr);
 const {parseTape, errors} = parser.parseExpressionTokens(tokenTape);
-
 
 const endTime = performance.now();
 
 console.log(`Call to doSomething took ${endTime - startTime} milliseconds`);
 
 // console.log(lexer.TokenTapeUtils.Display.asStr(tokenTape));
-console.log(parser.ExpressionParseTapeUtils.Display.asTree(parseTape, tokenTape, true));
-console.log(errors);
-console.log(parser.ExpressionParseTapeUtils.Debug.integrityCheckBasic(parseTape))
-console.log(parser.ExpressionParseTapeUtils.Debug.integrityCheckDeep(parseTape, tokenTape))
+// console.log(parser.ExpressionParseTapeUtils.Display.asTree(parseTape, tokenTape, true));
+// console.log(errors);
+// console.log(parser.ExpressionParseTapeUtils.Debug.integrityCheckBasic(parseTape))
+// console.log(parser.ExpressionParseTapeUtils.Debug.integrityCheckDeep(parseTape, tokenTape))
 
 compiler.compileExpression(parseTape, tokenTape)
 
-runAllFuzzTests();
+// runAllFuzzTests();

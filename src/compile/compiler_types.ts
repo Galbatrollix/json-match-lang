@@ -28,14 +28,12 @@ export type CompiledConstraintProperties = Readonly<{
 	valueNumber:  PropertyStatus,
 }>
 
-/**
-	Constains keys of compiled constraint properties 
-	type. Trivial and wildcard fields are excluded since they
-	require somewhat special handling - not for generic loops.
-*/
-export const constraintPropertiesKeys  = [
+export const constraintPropertiesKeysContext = [
 	"contextArr",
 	"contextObj",
+] as const;
+
+export const constraintPropertiesKeysValue = [
 	"valueArr",
 	"valueObj",
 	"valueNull",
@@ -43,6 +41,29 @@ export const constraintPropertiesKeys  = [
 	"valueFalse",
 	"valueString",
 	"valueNumber",
+] as const;
+
+export const constraintPropertiesKeysOther = [
+	"trivial",
+	"wildcard",
+] as const;
+
+/**
+	Constains keys of compiled constraint properties 
+	type. Trivial and wildcard fields are excluded since they
+	require somewhat special handling - not for generic loops.
+*/
+export const constraintPropertiesKeysMain  = [
+	...constraintPropertiesKeysValue,
+	...constraintPropertiesKeysContext,
+] as const;
+
+/**
+	List of all keys in the constraint properties type.
+*/
+export const constraintPropertiesKeysAll = [
+	...constraintPropertiesKeysMain,
+	...constraintPropertiesKeysOther,
 ] as const;
 
 export enum CompiledConstraintNodeKind {

@@ -9,7 +9,11 @@ import {
 	type CompiledConstraint,
 	type CompiledConstraintNode,
 	CompiledConstraintNodeKind,
-	constraintPropertiesKeys,
+
+	constraintPropertiesKeysMain,
+	constraintPropertiesKeysAll,
+	constraintPropertiesKeysValue,
+	constraintPropertiesKeysContext,
 } from "./compiler_types.ts"
 
 
@@ -211,14 +215,52 @@ function compileNodeOr(
 	outputNodes: Readonly<Array<CompiledConstraintNode>>,
 ): [CompiledConstraintProperties, CompiledConstraintNodeKind] {
 	const kind = CompiledConstraintNodeKind.OR;
-	return [constraintPropertiesNeverInit(), kind];
+
+	const {nevers, wildcards, trivials} = childrenPropertiesStats(
+		children, outputNodes,
+	);
+	// if at least one wildcard found, entire OR is wildcard too
+	// if all children are nevers, then entire OR is never too.
+	if (wildcards){
+		return [constraintPropertiesWildcardInit(), kind];
+	}else if (nevers == children.length){
+		return [constraintPropertiesNeverInit(), kind];
+	}
+
+
+	const properties = constraintPropertiesWritableCopy(
+		outputNodes[children[0]].properties,
+	);
+	for (const key of constraintPropertiesKeysMain){
+		let prop = properties[key];
+		for (let i = 1; i < children.length; i++){
+			const childIdx = children[i];
+			const childProp = outputNodes[childIdx].properties[key];
+			prop = propertyResolutionOr[prop][childProp];
+		}
+
+		properties[key] = prop;
+	}
+	
+	
+	properties.wildcard = PropertyStatus.UNDEFINED;
+	properties.trivial = trivials == children.length;
+	
+	// if result can match everything, return wildcard instead
+	if (propertiesWildcardTransformable(properties)){
+		return [constraintPropertiesWildcardInit(), kind];
+	}
+
+	return [properties, kind];
 }
+
+
 function compileNodeAnd(
 	children: Readonly<Array<number>>,
 	outputNodes: Readonly<Array<CompiledConstraintNode>>,
 ): [CompiledConstraintProperties, CompiledConstraintNodeKind] {
 	const kind = CompiledConstraintNodeKind.AND;
-	// handle wildcards first
+
 	const {nevers, wildcards, trivials} = childrenPropertiesStats(
 		children, outputNodes,
 	);
@@ -234,9 +276,10 @@ function compileNodeAnd(
 	const properties = constraintPropertiesWritableCopy(
 		outputNodes[children[0]].properties,
 	);
-	for (const key of constraintPropertiesKeys){
+	for (const key of constraintPropertiesKeysMain){
 		let prop = properties[key];
-		for (let childIdx = 1; childIdx < children.length; childIdx++){
+		for (let i = 1; i < children.length; i++){
+			const childIdx = children[i];
 			const childProp = outputNodes[childIdx].properties[key];
 			prop = propertyResolutionAnd[prop][childProp];
 		}
@@ -247,8 +290,11 @@ function compileNodeAnd(
 	
 	properties.wildcard = PropertyStatus.UNDEFINED;
 	properties.trivial = trivials == children.length;
-
-	//todo check if result aint the never anyway
+	
+	// if result cannot match anything, return nerver instead
+	if (propertiesNeverTransformable(properties)){
+		return [constraintPropertiesNeverInit(), kind];
+	}
 
 	return [properties, kind];
 }
@@ -276,6 +322,27 @@ const propertyResolutionAnd = {
 } as const;
 
 
+/**
+	Table for resolving OR
+*/
+const propertyResolutionOr = {
+	[PropertyStatus.UNDEFINED] : {
+		[PropertyStatus.UNDEFINED]: PropertyStatus.UNDEFINED,
+		[PropertyStatus.MAY_PASS]: PropertyStatus.MAY_PASS,
+		[PropertyStatus.CANNOT_PASS]: PropertyStatus.CANNOT_PASS,
+	},
+	[PropertyStatus.MAY_PASS] : {
+		[PropertyStatus.UNDEFINED]: PropertyStatus.MAY_PASS,
+		[PropertyStatus.MAY_PASS]: PropertyStatus.MAY_PASS,
+		[PropertyStatus.CANNOT_PASS]: PropertyStatus.MAY_PASS,
+	},
+	[PropertyStatus.CANNOT_PASS] : {
+		[PropertyStatus.UNDEFINED]: PropertyStatus.CANNOT_PASS,
+		[PropertyStatus.MAY_PASS]: PropertyStatus.MAY_PASS,
+		[PropertyStatus.CANNOT_PASS]: PropertyStatus.CANNOT_PASS,
+	},
+} as const;
+
 function compileNodeNot(
 	childProps: CompiledConstraintProperties
 ): [CompiledConstraintProperties, CompiledConstraintNodeKind] {
@@ -295,7 +362,7 @@ function compileNodeNot(
 	properties.trivial = childProps.trivial;
 	properties.wildcard = PropertyStatus.UNDEFINED;
 	
-	for (const k of constraintPropertiesKeys){
+	for (const k of constraintPropertiesKeysMain){
 		switch(childProps[k]){
 		case PropertyStatus.UNDEFINED:
 			properties[k] = childProps[k];
@@ -531,12 +598,11 @@ function constraintPropertiesWritableCopy(
 ): Writable<CompiledConstraintProperties> {
 	const props = {} as Writable<CompiledConstraintProperties>;
 
-	for (const k in original){
+	for (const k of constraintPropertiesKeysAll){
 		// typescript cannot for its life figure out that this loop is valid
-		// and that keyof typeof original is the same as keyof typeof props
-		// this is simply embarassing.
+		// this is simply embarassing and plain wrong
 
-		//@ts-ignore
+		// @ts-ignore
 		props[k] = original[k];
 	}
 	return props;
@@ -570,12 +636,58 @@ function childrenPropertiesStats(
 	return {nevers, wildcards, trivials};
 }
 /**
-
+	Returns true if given props object can be safely transformed 
+	into never properties object.
 */
 function propertiesNeverTransformable(props: CompiledConstraintProperties): boolean {
+	if (props.wildcard == PropertyStatus.CANNOT_PASS){
+		return true;
+	}
+
+	const groups = [
+		constraintPropertiesKeysContext,
+		constraintPropertiesKeysValue,
+	];
+	
+	for (const group of groups){
+		let negativeConstraints = 0;	
+		for (const k of group){
+			if (props[k] == PropertyStatus.CANNOT_PASS){
+				negativeConstraints += 1;
+			}
+		}
+		// if all constraints in a group are negative, then nothing can match
+		// regardless if constraints were trivial or not
+		if (negativeConstraints == group.length){
+			return true;
+		}
+	}
+	
 	return false;
 }
 
+
+/**
+	Returns true if given props object can be safely transformed 
+	into wildcard properties object.
+*/
 function propertiesWildcardTransformable(props: CompiledConstraintProperties): boolean {
-	return false;
+	if (props.wildcard == PropertyStatus.MAY_PASS){
+		return true;
+	}
+		
+	// non trivial constraints cannot be safely converted to wildcard
+	if (! props.trivial){
+		return false;
+	}
+	
+	let negativeConstraints = 0;
+	for (const k of constraintPropertiesKeysMain){
+		if (props[k] == PropertyStatus.CANNOT_PASS){
+			negativeConstraints += 1;
+		}
+	}
+
+	return negativeConstraints == 0;
+	
 }
