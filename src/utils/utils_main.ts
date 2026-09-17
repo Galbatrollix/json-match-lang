@@ -40,3 +40,5 @@ export function primitiveArrayEquals<T>(
 
 	return true;
 }
+
+export type Writable<T> = { -readonly [Key in keyof T]: T[Key] };

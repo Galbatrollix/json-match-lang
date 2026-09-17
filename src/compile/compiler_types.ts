@@ -2,85 +2,69 @@ import * as lexer from "./../lex/lexer_a_index.ts"
 import * as parser from "./../parse/parser_a_index.ts"
 
 
-export const PropertyStatus = {
-	UNDEFINED:        0,
-	CANNOT_PASS:      1,
-	MAY_PASS:         2,
-} as const;
-export type PropertyStatus = (typeof PropertyStatus)[keyof typeof PropertyStatus];
+export type TrivialValueProperties = Readonly<{
+	allowArr:     boolean,
+	allowObj:     boolean,
+	allowNull:    boolean,
+	allowTrue:    boolean,
+	allowFalse:   boolean,
+	allowString:  boolean,
+	allowNumber:  boolean,
+}>;
 
 
-
-export type CompiledConstraintProperties = Readonly<{
-	trivial:      boolean,
-
-	wildcard:     PropertyStatus,
-
-	contextArr:   PropertyStatus,
-	contextObj:   PropertyStatus,
-
-	valueArr:     PropertyStatus,
-	valueObj:     PropertyStatus,
-	valueNull:    PropertyStatus,
-	valueTrue:    PropertyStatus,
-	valueFalse:   PropertyStatus,
-	valueString:  PropertyStatus,
-	valueNumber:  PropertyStatus,
-}>
-
-export const constraintPropertiesKeysContext = [
-	"contextArr",
-	"contextObj",
-] as const;
-
-export const constraintPropertiesKeysValue = [
-	"valueArr",
-	"valueObj",
-	"valueNull",
-	"valueTrue",
-	"valueFalse",
-	"valueString",
-	"valueNumber",
-] as const;
-
-export const constraintPropertiesKeysOther = [
-	"trivial",
-	"wildcard",
-] as const;
-
-/**
-	Constains keys of compiled constraint properties 
-	type. Trivial and wildcard fields are excluded since they
-	require somewhat special handling - not for generic loops.
-*/
-export const constraintPropertiesKeysMain  = [
-	...constraintPropertiesKeysValue,
-	...constraintPropertiesKeysContext,
-] as const;
-
-/**
-	List of all keys in the constraint properties type.
-*/
-export const constraintPropertiesKeysAll = [
-	...constraintPropertiesKeysMain,
-	...constraintPropertiesKeysOther,
-] as const;
-
-export enum CompiledConstraintNodeKind {
-	LEAF,
+export enum CompiledConstraintDataKind {
+	WILDCARD,
 	OR,
 	AND,
 	NOT,
+	KEY,
+	INDEX,
+	VALUE_TRIVIAL,
+	VALUE_STRING,
+	VALUE_NUMBER,
 };
 
+export type CompiledConstraintData = Readonly<
+	{	
+		kind: CompiledConstraintDataKind.OR,
+	} |	{
+		kind: CompiledConstraintDataKind.AND,
+	} | {
+		kind: CompiledConstraintDataKind.NOT,
+	} | {
+		kind: CompiledConstraintDataKind.WILDCARD,
+	} | {
+		kind: CompiledConstraintDataKind.KEY,
+		pattern: string,
+	} | {
+		kind: CompiledConstraintDataKind.INDEX,
+		arrAllowed: boolean,
+		objAllowed: boolean,
+		siblingIndex: number | undefined,
+	} | {
+		kind: CompiledConstraintDataKind.VALUE_TRIVIAL,
+		properties: TrivialValueProperties,
+	} | {
+		kind: CompiledConstraintDataKind.VALUE_STRING,
+		pattern: string,
+	} | {
+		kind: CompiledConstraintDataKind.VALUE_NUMBER,
+		pattern: string,
+	} 
+
+>
+
+
 export type CompiledConstraintNode = Readonly<{
-	kind: CompiledConstraintNodeKind,
+	//kind: CompiledConstraintDataKind,
 	parent: number,
 	children: Readonly<Array<number>>,
+	data: CompiledConstraintData,
 
-	properties: CompiledConstraintProperties,
-	siblingIndex: number | undefined,
-	stringPattern: string | undefined,
+	// properties: CompiledConstraintProperties,
+	// siblingIndex: number | undefined,
+	// stringPattern: string | undefined,
 }>;
 
 export type CompiledConstraint = Readonly<Array<CompiledConstraintNode>>;
