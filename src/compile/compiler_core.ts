@@ -1,9 +1,6 @@
 import * as lexer from "./../lex/lexer_a_index.ts"
 import * as parser from "./../parse/parser_a_index.ts"
 import {
-	type MutableParseTape,
-} from "./compiler_preprocess.ts"
-import {
 	type CompiledConstraint,
 	type CompiledConstraintNode,
 	type CompiledConstraintData,
@@ -12,19 +9,22 @@ import {
 
 } from "./compiler_types.ts"
 
-//todo: replace mutable parse tape with just the constraints as combinators are unneeded
+/**
+	Creates an array of compiled constraints based on array
+	of parser emitted constraint nodes and token tape contents.
+*/
 export function compileConstraints(
-	parseTape: MutableParseTape, tokenTape: lexer.TokenTape
+	constraints: Readonly<Array<parser.ConstraintTreeNode>>, tokenTape: lexer.TokenTape
 ): Array<CompiledConstraint>{
 	
-	const constraints: Array<CompiledConstraint> = [];
-	for(let i = 0; i < parseTape.pairCount; i++){
-		constraints.push(
-			compileSingleConstraint(parseTape.constraints[i], tokenTape),
+	const compiled: Array<CompiledConstraint> = [];
+	for(let i = 0; i < constraints.length; i++){
+		compiled.push(
+			compileSingleConstraint(constraints[i], tokenTape),
 		);
 	}
 	
-	return constraints;
+	return compiled;
 }
 
 /**
