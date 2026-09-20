@@ -3,7 +3,7 @@ import * as parser from "./../parse/parser_a_index.ts"
 
 import { preprocessHoistConstraints } from "./compiler_preprocess.ts"
 import {compileConstraints} from "./compiler_core.ts"
-
+import {calculateExpressionDepths} from "./compiler_depths.ts"
 export type CompiledExpression = undefined;
 
 /**
@@ -18,7 +18,7 @@ export function compileExpression(
 		parseTape.combinators, parseTape.constraints
 	);
 
-	const temp = compileConstraints(hoistedConstraints, tokenTape);
+	const compiledConstraints = compileConstraints(hoistedConstraints, tokenTape);
 
 	const tree = parser.ExpressionParseTapeUtils.Display.asTree(
 		{pairCount: parseTape.pairCount,
@@ -26,7 +26,9 @@ export function compileExpression(
 		combinators: parseTape.combinators}, tokenTape,
 	);
 	console.log(tree);
-
+	console.log(compiledConstraints);
+	const depths = calculateExpressionDepths(parseTape.combinators);
+	console.log(depths);
 	return undefined;
 
 }

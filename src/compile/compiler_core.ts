@@ -29,7 +29,7 @@ export function compileConstraints(
 
 /**
 	By performing a Kahn's algorithm compiles 
-	constraint tree into compiled constraint.
+	constraint tree into a compiled constraint.
 
 */
 function compileSingleConstraint(
@@ -163,16 +163,16 @@ function compileConstraintNode(
 		);
 		break;
 	case parser.ConstraintTreeNodeKind.NOT:
-		nodeData = compileNodeNot(); 
+		nodeData = {kind: CompiledConstraintDataKind.NOT};
 		break;
 	case parser.ConstraintTreeNodeKind.AND:
-		nodeData = compileNodeAnd(); 
+		nodeData = {kind: CompiledConstraintDataKind.AND};
 		break;
 	case parser.ConstraintTreeNodeKind.OR:
-		nodeData = compileNodeOr(); 
+		nodeData = {kind: CompiledConstraintDataKind.OR}; 
 		break;
 	case parser.ConstraintTreeNodeKind.IMPLICIT:
-		nodeData = compileNodeImplicit(); 
+		nodeData = {kind: CompiledConstraintDataKind.WILDCARD};
 		break;
 	default:
 		node satisfies never;
@@ -187,23 +187,6 @@ function compileConstraintNode(
 }
 
 
-function compileNodeOr(): CompiledConstraintData {
-	return {kind: CompiledConstraintDataKind.OR};
-}
-
-function compileNodeAnd(): CompiledConstraintData {
-	return {kind: CompiledConstraintDataKind.AND};
-}
-
-
-function compileNodeNot(): CompiledConstraintData {
-	return {kind: CompiledConstraintDataKind.NOT};
-}
-
-function compileNodeImplicit(): CompiledConstraintData {
-	// implicit must be the same as wildcard all for all intents and purposes.
-	return {kind: CompiledConstraintDataKind.WILDCARD};
-}
 type Writable<T> = { -readonly [Key in keyof T]: T[Key] };
 
 function compileNodeAtom(
