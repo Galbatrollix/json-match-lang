@@ -34,7 +34,9 @@ const expr17 = `> #string & {*} | #number & [*]`
 const expr18 = `> !(!(#string & {*}) & !(#number & [*]))`
 
 const expr19 = `>><kupa dupa<<<<<<<<<<<`
-const expr = expr19;
+const expr20 = `>>< kupa dupa + czort -- * + ~ >>< dupa kupa >>><><>`
+const expr21 = `dupa kupa >><<<<<< czort`
+const expr = expr21;
 const startTime = performance.now()
 
 const tokenTape = lexer.tokenizeExpressionString(expr);

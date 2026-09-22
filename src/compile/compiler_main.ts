@@ -3,7 +3,10 @@ import * as parser from "./../parse/parser_a_index.ts"
 
 import { preprocessHoistConstraints } from "./compiler_preprocess.ts"
 import {compileConstraints} from "./compiler_core.ts"
-import {calculateExpressionDepths} from "./compiler_depths.ts"
+import {
+	calculateMinimalExpressionDepths,
+	calculateExpressionChildDepths,
+} from "./compiler_depths.ts"
 export type CompiledExpression = undefined;
 
 /**
@@ -27,8 +30,11 @@ export function compileExpression(
 	);
 	console.log(tree);
 	console.log(compiledConstraints);
-	const depths = calculateExpressionDepths(parseTape.combinators);
-	console.log(depths);
+	// todo handle possible undefined here
+	const minDepths = calculateMinimalExpressionDepths(parseTape.combinators);
+	const childDepths = calculateExpressionChildDepths(minDepths!, parseTape.combinators);
+	console.log(minDepths);
+	console.log(childDepths);
 	return undefined;
 
 }
