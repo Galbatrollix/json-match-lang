@@ -7,6 +7,8 @@ import {
 	calculateMinimalExpressionDepths,
 	calculateExpressionChildDepths,
 } from "./compiler_depths.ts"
+
+import {getExpressionHoistGroups} from "./compiler_groups.ts"
 export type CompiledExpression = undefined;
 
 /**
@@ -17,8 +19,11 @@ export function compileExpression(
 	tokenTape: lexer.TokenTape,
 ): CompiledExpression {
 
+	const hoistGroups: Array<Array<number>> = getExpressionHoistGroups(parseTape.combinators);
+	console.log(hoistGroups);
+
 	const hoistedConstraints = preprocessHoistConstraints(
-		parseTape.combinators, parseTape.constraints
+		parseTape.constraints, hoistGroups,
 	);
 
 	const compiledConstraints = compileConstraints(hoistedConstraints, tokenTape);
