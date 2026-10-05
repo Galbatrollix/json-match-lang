@@ -36,7 +36,10 @@ const expr18 = `> !(!(#string & {*}) & !(#number & [*]))`
 const expr19 = `>><kupa dupa<<<<<<<<<<<`
 const expr20 = `>>< kupa dupa + czort -- * + ~ >>< dupa kupa >>><><>`
 const expr21 = `dupa kupa >><<<<<< czort`
-const expr = expr21;
+// for hoist groups
+const expr22 = `A + B - A+ B- A+ B -A +B >C<B>D>E<D +F-D+F-D`
+const expr23 = `A + B - A+ B- A - Z + A + B -A +B >C< B > D> E< D < B -A+ B- A`
+const expr = expr22;
 const startTime = performance.now()
 
 const tokenTape = lexer.tokenizeExpressionString(expr);

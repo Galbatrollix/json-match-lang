@@ -4,11 +4,6 @@ import {arrayExtend} from "./../utils/utils_main.ts"
 
 
 
-// TODO: currently the hoist groups are not as good as they can be.
-// It would be best to merge depth and sibling -based group finders
-// into a one, more general function.
-
-
 /**
 	Analyzes combinators sequence in the expression and 
 	arranges any expression indicies that point into unambigously the same
@@ -21,185 +16,170 @@ import {arrayExtend} from "./../utils/utils_main.ts"
 	compilation algorithms.
 */
 export function getExpressionHoistGroups(
-	combinators: Readonly<Array<parser.ExpressionCombinator>>
-): Array<Array<number>>{
-	const inDepth = hoistGroupsInDepth(combinators);
-	const inSiblings = hoistGroupsInSiblings(combinators);
-
-	return inDepth.concat(inSiblings);
-}
-
-/**
-	Walks the parse tape and finds groups of nodes that
-	unambiguously must refer to the same tree item.
-
-	Function determines what counts as "refering to the same tree item"
-	based on depth requirements that can be derived from child and parents operators.
-*/
-function hoistGroupsInDepth(
 	combinators: Readonly<Array<parser.ExpressionCombinator>>,
 ): Array<Array<number>> {
-	const rangeBegginings: Array<number> = [];
-	const rangeEnds: Array<number> = [];
+	const resultGroups: Array<Array<number>>  = [];
+	const state = initHoistState();
+
+	for(const combinator of combinators){
+		state.combinatorIndex += 1;
 	
-	rangeBegginings.push(0);
-	for (let i = 0; i < combinators.length; i++){
-		if(combinators[i] == parser.ExpressionCombinator.DESCENDANT){
-			rangeEnds.push(i);
-			rangeBegginings.push(i + 1);
-		}
-	}
-	rangeEnds.push(combinators.length);
-	
-	const hoistGroups: Array<Array<number>> = [];
-
-	for (let pair = 0; pair < rangeBegginings.length; pair++){
-		const pairGroups = hoistGroupsInRangeDepth(
-			combinators, [rangeBegginings[pair], rangeEnds[pair]]
-		);
-		arrayExtend(hoistGroups, pairGroups);
-	}
-
-	return hoistGroups;
-}
-
-/**
-	Within the provided index range, groups indexes which's constraints
-	refer to unambiguously the same item in the tree.
-	Range should span a sequence of only parent, child or sibling combinators.
-	Range can also span a 0-length interval.
-
-	Calling function is responsible for filering out and splitting sequence in a
-	way that descendant combinators don't get included in range provided to this function.
-*/
-function hoistGroupsInRangeDepth(
-	combinators: Readonly<Array<parser.ExpressionCombinator>>,
-	idxRange: [number, number],
-): Array<Array<number>> {
-
-	const hoistGroups: Array<Array<number>> = [];	
-	const hoistDepthMembers = new Map<number, Array<number>>();
-	// relative root is initialized cuz element just before the range
-	// may become a hoist target: for example "DUPA >< kupa"
-	// (range starts after DUPA element)
-	// real root cannot be hoisted to, hence the edge case
-	const relativeRootIdx = idxRange[0] - 1;
-	if (relativeRootIdx >= 0){
-		hoistDepthMembers.set(0, [relativeRootIdx]);
-	}
-
-
-	let depth = 0;
-	for (let i = idxRange[0]; i < idxRange[1]; i++){
-		
-		if (combinators[i] == parser.ExpressionCombinator.CHILD){
-			depth += 1;
-			// eject previous group and overwrite the slot.
-			// if ejected group has more than 1 member, save it to result
-			if(hoistDepthMembers.has(depth) && hoistDepthMembers.get(depth)!.length > 1){
-				hoistGroups.push(hoistDepthMembers.get(depth)!);
-			}
-			hoistDepthMembers.set(depth, [i]);
-		}else if (combinators[i] == parser.ExpressionCombinator.PARENT){
-			depth -= 1;
-			// append index to group or create group if it didnt exist
-			if(! hoistDepthMembers.has(depth)) hoistDepthMembers.set(depth, []);
-			hoistDepthMembers.get(depth)!.push(i);
-		}
-	}
-	
-	// drain map and append sufficiently large groups to result
-	for (const [_, group] of hoistDepthMembers) {
-  		if (group.length > 1){
-			hoistGroups.push(group);
-		}
-	}
-	
-	return hoistGroups;
-}
-
-/**
-	Same as hoistGroupsInDepth but uses sibling next/previous relations
-	to find nodes refering to the same item instead of using child/parent relations.
-*/
-function hoistGroupsInSiblings(
-	combinators: Readonly<Array<parser.ExpressionCombinator>>,
-): Array<Array<number>> {
-	const rangeBegginings: Array<number> = [];
-	const rangeEnds: Array<number> = [];
-	
-	rangeBegginings.push(0);
-	for (let i = 0; i < combinators.length; i++){
-		switch(combinators[i]){
-		case parser.ExpressionCombinator.SIBLING_PREV:
-		case parser.ExpressionCombinator.SIBLING_NEXT:
+		switch (combinator){
+		case parser.ExpressionCombinator.CHILD:
+			goDeeper(state);
 			break;
-		// we are interested only in next-prev sequences
-		// everything else terminates the range.
-		default:
-			rangeEnds.push(i);
-			rangeBegginings.push(i + 1);
+		case parser.ExpressionCombinator.PARENT:
+			goShallower(state, resultGroups);
+			break;
+		case parser.ExpressionCombinator.SIBLING_NEXT:
+			moveSiblingIndex(state, 1);
+			break;
+		case parser.ExpressionCombinator.SIBLING_PREV:
+			moveSiblingIndex(state, -1);
+			break;
+		case parser.ExpressionCombinator.DESCENDANT:
+			ejectAllDepths(state, resultGroups);
+			break;
+		case parser.ExpressionCombinator.SIBLING_SUBSEQUENT:
+		case parser.ExpressionCombinator.SIBLING_PRECEDING:
+		case parser.ExpressionCombinator.SIBLING_ANY:
+			resetCurrentDepth(state, resultGroups);
+			break;
+		default: 
+			combinator satisfies never;
 		}
 	}
-	rangeEnds.push(combinators.length);
-	
-	const hoistGroups: Array<Array<number>> = [];
 
-	for (let pair = 0; pair < rangeBegginings.length; pair++){
-		const pairGroups = hoistGroupsInRangeSiblings(
-			combinators, [rangeBegginings[pair], rangeEnds[pair]]
-		);
-		arrayExtend(hoistGroups, pairGroups);
-	}
-
-	return hoistGroups;
+	ejectAllDepths(state, resultGroups);
+	return resultGroups;
 }
 
-/**
-	Within the provided index range, groups indexes which's constraints
-	refer to unambiguously the same item in the tree.
-	Range should span a sequence of only sibling_next and sibling_prev combinators
-	Range can also span a 0-length interval.
+type DepthState = {
+	siblingIndex: number,
+	siblingData: Map<number, Array<number>>,
+};
 
-	Calling function is responsible for filering out and splitting sequence in a
-	way that only expected constraints are within the given range.
-*/
-function hoistGroupsInRangeSiblings(
-	combinators: Readonly<Array<parser.ExpressionCombinator>>,
-	idxRange: [number, number],
-): Array<Array<number>> {
+
+type HoistState = {
+	combinatorIndex: number,
+	currentDepth: number,
+	depthData: Map<number, DepthState>,
+};
+
+function initHoistState(): HoistState {
+	const result =  {
+		combinatorIndex: -1,
+		currentDepth: 0,
+		depthData: new Map(),
+	};
 	
-	const hoistGroups: Array<Array<number>> = [];	
-	const hoistDepthMembers = new Map<number, Array<number>>();
-	// relative root is initialized cuz element just before the range
-	// may become a hoist target: for example "DUPA +- kupa"
-	// (range starts after DUPA element)
-	// real root cannot be hoisted to, hence the edge case
-	const relativeRootIdx = idxRange[0] - 1;
-	if (relativeRootIdx >= 0){
-		hoistDepthMembers.set(0, [relativeRootIdx]);
-	}
-
-	let depth = 0;
-	for (let i = idxRange[0]; i < idxRange[1]; i++){
-		
-		if (combinators[i] == parser.ExpressionCombinator.SIBLING_NEXT){
-			depth += 1;
-		}else{ // if (combinators[i] == parser.ExpressionCombinator.SIBLING_PREV)
-			depth -= 1;
+	result.depthData.set(
+		0,
+		{
+			siblingIndex: 0,
+			siblingData: new Map([[0, []]]),
 		}
-		
-		if(! hoistDepthMembers.has(depth)) hoistDepthMembers.set(depth, []);
-		hoistDepthMembers.get(depth)!.push(i);
-		
+	)
+	return result;
+}
+
+function initDepthState(combinatorIndex: number): DepthState {
+	return {
+		siblingIndex: 0,
+		siblingData: new Map([
+			[0, [combinatorIndex]],
+
+		]),
 	}
-	
+}
+
+
+function drainSiblingDataToResult(
+	siblingData: Map<number, Array<number>>,
+	resultGroups: Array<Array<number>>,
+): void {
+	for (const [_, group] of siblingData){
+		if (group.length > 1){
+			resultGroups.push(group);
+		}
+	}
+}
+
+function resetCurrentDepth(
+	state: HoistState,
+	resultGroups: Array<Array<number>>,
+): void {
+	drainSiblingDataToResult(
+		state.depthData.get(state.currentDepth)!.siblingData,
+		resultGroups,
+	);
+	state.depthData.set(
+		state.currentDepth,
+		initDepthState(state.combinatorIndex),
+	);
+}
+
+function ejectAllDepths(
+	state: HoistState,
+	resultGroups: Array<Array<number>>,
+): void {
 	// drain map and append sufficiently large groups to result
-	for (const [_, group] of hoistDepthMembers) {
-  		if (group.length > 1){
-			hoistGroups.push(group);
-		}
+	for (const [_, depth] of state.depthData) {
+		drainSiblingDataToResult(depth.siblingData, resultGroups);
 	}
-	
-	return hoistGroups;
+	// reset state
+	state.currentDepth = 0;
+	state.depthData = new Map();
+	state.depthData.set(
+		state.currentDepth,
+		initDepthState(state.combinatorIndex),
+	);
+}
+
+function moveSiblingIndex(
+	state: HoistState,
+	direction: -1 | 1,
+): void {
+	const depthState = state.depthData.get(state.currentDepth)!;
+	depthState.siblingIndex += direction;
+
+	const exists: boolean = depthState.siblingData.has(depthState.siblingIndex);
+	if (exists){
+		depthState.siblingData.get(depthState.siblingIndex)!.push(state.combinatorIndex);
+	}else{
+		depthState.siblingData.set(depthState.siblingIndex, [state.combinatorIndex]);
+	}
+}
+
+function goDeeper(state: HoistState): void {
+	state.currentDepth += 1;
+	state.depthData.set(
+		state.currentDepth,
+		initDepthState(state.combinatorIndex),
+	);
+}
+
+function goShallower(
+	state: HoistState,
+	resultGroups: Array<Array<number>>,
+): void {
+	// current depth cannot ever be reentered so its ejected.
+	drainSiblingDataToResult(
+		state.depthData.get(state.currentDepth)!.siblingData,
+		resultGroups,
+	);
+	state.depthData.delete(state.currentDepth);
+
+	state.currentDepth -= 1;
+
+	const exists: boolean = state.depthData.has(state.currentDepth);
+	if (exists){   // if stuff exists in shallower depth, then append to it,
+		const {siblingIndex, siblingData} = state.depthData.get(state.currentDepth)!;
+		siblingData.get(siblingIndex)!.push(state.combinatorIndex);
+	}else{         // if shallower entry doesnt exist, make a new one
+		state.depthData.set(
+			state.currentDepth,
+			initDepthState(state.combinatorIndex),
+		);
+	}	
 }
