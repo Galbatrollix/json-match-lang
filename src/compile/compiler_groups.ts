@@ -1,8 +1,5 @@
 import * as parser from "./../parse/parser_a_index.ts"
 
-import {arrayExtend} from "./../utils/utils_main.ts"
-
-
 
 /**
 	Analyzes combinators sequence in the expression and 
@@ -10,7 +7,7 @@ import {arrayExtend} from "./../utils/utils_main.ts"
 	items in match tree into groups.
 
 	Array of such groups is returned. 
-	(Each group is itself an array if indexes that all point into the same item in tree)
+	(Each group is an array of indexes that all point into the same item in tree)
 
 	The groups can be used for hoisting optimization and can aid other
 	compilation algorithms.
@@ -54,18 +51,43 @@ export function getExpressionHoistGroups(
 	return resultGroups;
 }
 
-type DepthState = {
-	siblingIndex: number,
-	siblingData: Map<number, Array<number>>,
-};
 
+/**
+	Hoist state represents entirety of hoist group
+	algorithm's function state.
 
+	A valid instance of hoist state has at least
+	one entry in depthData map corresponding to current depth value.
+	And DepthState inside that entry must have at least one entry 
+	that corresponds to its contained sibling index.
+	Value of that entry can be an empty array.
+
+	Each siblingData entry in DepthState denotes a group of combinator
+	indexes that unambiguously point to the same item. 
+	
+	The algorithm manipulates hoist state by updating combinator index
+	, by creating new depths/sibling indexes
+	, by ejecting depths or sibling indexes to result,
+	moving depth and sibling index pointers around 
+	and adding each combinator index to its appropriate group.
+
+*/
 type HoistState = {
 	combinatorIndex: number,
 	currentDepth: number,
 	depthData: Map<number, DepthState>,
 };
 
+type DepthState = {
+	siblingIndex: number,
+	siblingData: Map<number, Array<number>>,
+};
+
+/**
+	Returns initial state for kicking off the beggining
+	of hoist group algorithm. Sibling index is initially empty
+	as root item cannot participate in hoisting.
+*/
 function initHoistState(): HoistState {
 	const result =  {
 		combinatorIndex: -1,
@@ -94,6 +116,13 @@ function initDepthState(combinatorIndex: number): DepthState {
 }
 
 
+/**
+	Appends contents of a siblingData entry from hoist state structure
+	into resultGroups output.
+	
+	Any group located in siblingData that is too small (less than 2 elements),
+	is not appended to the result.
+*/
 function drainSiblingDataToResult(
 	siblingData: Map<number, Array<number>>,
 	resultGroups: Array<Array<number>>,
@@ -105,6 +134,15 @@ function drainSiblingDataToResult(
 	}
 }
 
+/**
+	Drains sibling data located under current depth to the output
+	and resets depthData entry to be initialized only with currently
+	set combinator index. 
+
+	Used when sibling continuity is broken
+	but the depth continuity remains intact.
+	
+*/
 function resetCurrentDepth(
 	state: HoistState,
 	resultGroups: Array<Array<number>>,
@@ -118,7 +156,16 @@ function resetCurrentDepth(
 		initDepthState(state.combinatorIndex),
 	);
 }
+/**
+	Drains all groups in data structure on all depth levels to the output.
+	Reinitializes the state of the algorithm at the current state.combinatorIndex
+	on depth 0 sibling index 0.
 
+	Used on descedndant combinator as that combinator removes any possibility
+	of unambiguous continuity between adjacent groups.
+	Also used after the algorithm finished running to drain any remaining unejected
+	groups into the result array.
+*/
 function ejectAllDepths(
 	state: HoistState,
 	resultGroups: Array<Array<number>>,
@@ -136,6 +183,16 @@ function ejectAllDepths(
 	);
 }
 
+/**
+	Moves algorithm's state along the sibling index axis by one.
+	No group is ejected as both current and previous node might get revisited
+	in the future - no continuity is broken.
+
+	Since the operation is symetric for sibling previous and sibling next,
+	the function takes a direction parameter to differentiate between the two
+	without duplicating code unneccessarily. -1 is for previous +1 is for next.
+
+*/
 function moveSiblingIndex(
 	state: HoistState,
 	direction: -1 | 1,
@@ -151,6 +208,13 @@ function moveSiblingIndex(
 	}
 }
 
+/**
+	Moves algorithm's state 1 depth deeper. 
+	As as groups of shallower depth can still be revisited,
+	this operation doesn't eject any groups.
+	
+	Used exclusively in operator child.
+*/
 function goDeeper(state: HoistState): void {
 	state.currentDepth += 1;
 	state.depthData.set(
@@ -158,7 +222,13 @@ function goDeeper(state: HoistState): void {
 		initDepthState(state.combinatorIndex),
 	);
 }
+/**
+	Moves algorithm's state 1 depth shallower.
+	As groups on deeper depth cannot be revisited unambiguously,
+	they are drained into the result.
 
+	Only used on combinator parent.
+*/
 function goShallower(
 	state: HoistState,
 	resultGroups: Array<Array<number>>,

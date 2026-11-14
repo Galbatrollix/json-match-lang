@@ -57,14 +57,9 @@ export type CompiledConstraintData = Readonly<
 
 
 export type CompiledConstraintNode = Readonly<{
-	//kind: CompiledConstraintDataKind,
 	parent: number,
 	children: Readonly<Array<number>>,
 	data: CompiledConstraintData,
-
-	// properties: CompiledConstraintProperties,
-	// siblingIndex: number | undefined,
-	// stringPattern: string | undefined,
 }>;
 
 export type CompiledConstraint = Readonly<Array<CompiledConstraintNode>>;
