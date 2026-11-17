@@ -67,7 +67,7 @@ export namespace ParseErrorVariants {
 	
 
 	/**
-		SUBJECT TO CHANGE
+		TODO: SUBJECT TO CHANGE
 	*/
 	export type WrongSyntax = {
 		kind: ParseErrorKind.WRONG_SYNTAX,

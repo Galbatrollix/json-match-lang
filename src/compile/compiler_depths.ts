@@ -1,5 +1,21 @@
 import * as parser from "./../parse/parser_a_index.ts"
 
+/**
+	Creates an array with length equal to the length of 
+	expression combinators array.
+
+	Expression combinator with index i must be at least
+	"result[i]" levels deep in JSON tree. Root is assigned depth 0,
+	so descendant or child of root is assigned minimum depth 1, and so on.
+
+	Function may return undefined instead if the minimum depth levels analysis
+	reaches a conclusion that nothing can possibly match a given expression.
+	(for example "parent of root" expression cannot match any JSON document)
+
+	Function does not require hoist groups parameter as the current algorithm
+	already captures relations between node depths without need
+	for reading hoist groups at all.
+*/
 export function calculateMinimalExpressionDepths(
 	combinators: Readonly<Array<parser.ExpressionCombinator>>,
 ): Array<number> | undefined {
@@ -61,10 +77,22 @@ export function calculateMinimalExpressionDepths(
 	return depths.slice(1);
 }
 
+/**
+	Creates an array with length equal to the length of 
+	expression combinators array.
 
+	Expression combinator with index i must have a descendant at least
+	"result[i]" levels deeper in JSON tree. Leaf nodes in json tree 
+	are assigned child depth 0.
+
+	Function does not currently take hoist groups nor minDepths but
+	it can be further improved using these in the future.
+*/
 export function calculateExpressionChildDepths(
-	minDepths: Array<number>,
 	combinators: Readonly<Array<parser.ExpressionCombinator>>,
+	// todo: later when function is expanded
+	// hoistGroups: Array<Array<number>>,
+	// minDepths: Readonly<Array<number>>,
 ): Array<number> {
 
 	// filling "terminals" with 0 - terminals means pairs 
@@ -247,7 +275,7 @@ function adjustDepthsInPlace(
 
 	Depths is modified in place.
 
-	Depths is only modified in indexes snapping bounds denoted 
+	Depths is only modified in indexes spanning bounds denoted 
 	by indexRange <number, number)
 	
 */

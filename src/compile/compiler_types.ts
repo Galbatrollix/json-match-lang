@@ -28,7 +28,7 @@ export enum CompiledConstraintDataKind {
 export type CompiledConstraintData = Readonly<
 	{	
 		kind: CompiledConstraintDataKind.OR,
-	} |	{
+	} | {
 		kind: CompiledConstraintDataKind.AND,
 	} | {
 		kind: CompiledConstraintDataKind.NOT,
@@ -52,8 +52,7 @@ export type CompiledConstraintData = Readonly<
 		kind: CompiledConstraintDataKind.VALUE_NUMBER,
 		pattern: string,
 	} 
-
->
+>;
 
 
 export type CompiledConstraintNode = Readonly<{
@@ -64,14 +63,12 @@ export type CompiledConstraintNode = Readonly<{
 
 export type CompiledConstraint = Readonly<Array<CompiledConstraintNode>>;
 
-// export type CompiledConstraint = undefined;
-export type CompiledCombinator = undefined;
 
-export type CompiledExpression = {
+export type CompiledExpression = Readonly<{
 	size: number,
 
-	//depths: Array<[number, number]>,
-	combinators: Readonly<Array<CompiledCombinator>>,
+	combinators: Readonly<Array<parser.ExpressionCombinator>>,
 	constraints: Readonly<Array<CompiledConstraint>>,
-
-};
+	minDepths:   Readonly<Array<number>>,
+	childDepths: Readonly<Array<number>>,
+}> & { _?: never };

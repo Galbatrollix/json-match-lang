@@ -39,22 +39,24 @@ const expr21 = `dupa kupa >><<<<<< czort`
 // for hoist groups
 const expr22 = `A + B - A+ B- A+ B -A +B >C<B>D>E<D +F-D+F-D`
 const expr23 = `A + B - A+ B- A - Z + A + B -A +B >C< B > D> E< D < B -A+ B- A`
-const expr = expr22;
+const expr24 = `> A > B < A < ERROR`
+const expr = expr23;
 const startTime = performance.now()
 
 const tokenTape = lexer.tokenizeExpressionString(expr);
 const {parseTape, errors} = parser.parseExpressionTokens(tokenTape);
-compiler.compileExpression(parseTape, tokenTape)
-
+const compilerOutput = compiler.compileExpression(parseTape, tokenTape);
+console.log(compilerOutput);
 const endTime = performance.now();
 
 console.log(`Call to doSomething took ${endTime - startTime} milliseconds`);
 
 // console.log(lexer.TokenTapeUtils.Display.asStr(tokenTape));
-console.log(parser.ExpressionParseTapeUtils.Display.asTree(parseTape, tokenTape, true));
-console.log(errors);
-console.log(parser.ExpressionParseTapeUtils.Debug.integrityCheckBasic(parseTape))
-console.log(parser.ExpressionParseTapeUtils.Debug.integrityCheckDeep(parseTape, tokenTape))
 
+// console.log(parser.ExpressionParseTapeUtils.Display.asTree(parseTape, tokenTape, true));
+// console.log(errors);
+// console.log(parser.ExpressionParseTapeUtils.Debug.integrityCheckBasic(parseTape))
+// console.log(parser.ExpressionParseTapeUtils.Debug.integrityCheckDeep(parseTape, tokenTape))
+type Json = string | number | boolean | null | Json[] | { [key: string]: Json };
 
 runAllFuzzTests();
