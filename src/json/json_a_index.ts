@@ -1,1 +1,1 @@
-export const dupa = 0;
+export {forgeJsonSyntaxTree} from "./json_forge.ts"

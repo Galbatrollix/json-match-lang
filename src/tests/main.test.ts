@@ -5,6 +5,7 @@ import {runAllUnitTests} from "./unit/unit_main.test.ts"
 import {lexer} from "./../main.ts"
 import {parser} from "./../main.ts"
 import {compiler} from "./../main.ts"
+import {json} from "./../main.ts"
 
 
 runAllUnitTests();
@@ -57,6 +58,8 @@ console.log(`Call to doSomething took ${endTime - startTime} milliseconds`);
 // console.log(errors);
 // console.log(parser.ExpressionParseTapeUtils.Debug.integrityCheckBasic(parseTape))
 // console.log(parser.ExpressionParseTapeUtils.Debug.integrityCheckDeep(parseTape, tokenTape))
-type Json = string | number | boolean | null | Json[] | { [key: string]: Json };
+
+
+json.forgeJsonSyntaxTree({"Dupa": {"kupa": ["jeden", 2, false, []], "czort": null}});
 
 runAllFuzzTests();
