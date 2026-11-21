@@ -62,7 +62,7 @@ console.log(`Call to doSomething took ${endTime - startTime} milliseconds`);
 const testjson1 = {"Dupa": {"kupa": ["jeden", 2, false, []], "czort": null}};
 const testjson2 = [0, [], [[[[[[]]]]]], {"1": 1}];
 const testjson3 = [0, [], 55, 124];
-const forgeResult = json.forgeJsonSyntaxTree(testjson3);
+const forgeResult = json.forgeJsonSyntaxTree(testjson2);
 console.log(forgeResult[0]);
 console.log(forgeResult[1]);
 runAllFuzzTests();
