@@ -1,4 +1,8 @@
-import {type JsonSyntaxTree} from "./json_types.ts"
+import {
+	type JsonSyntaxTree,
+	type WritableSyntaxTree,
+	makeWritableSyntaxTree,
+} from "./json_types.ts"
 
 /**
 	Only for forging json syntax trees directly from objects that resemble json
@@ -6,7 +10,7 @@ import {type JsonSyntaxTree} from "./json_types.ts"
 export type JsonLikeValue = string | number | boolean | null |
 		JsonLikeValue[] | { [key: string]: JsonLikeValue };
 
-type JsonIntermediateReprNode = {
+export type JsonIntermediateReprNode = {
 	key: string | undefined,
 	children: Array<number>,
 	parent: number,
@@ -15,14 +19,45 @@ type JsonIntermediateReprNode = {
 };
 
 
-
 //todo: will also return some dummy object to verify results and whatnot
-export function forgeJsonSyntaxTree(root: JsonLikeValue): JsonSyntaxTree {
-	const intermediateRepresentation = makeIntermediateRepr(root);
-	console.log(intermediateRepresentation);
+export function forgeJsonSyntaxTree(
+	root: JsonLikeValue
+): [JsonSyntaxTree, Array<JsonIntermediateReprNode>] {
+	const intermediateRepr = makeIntermediateRepr(root);
 
-	return {} as JsonSyntaxTree;
+	const syntaxTree: WritableSyntaxTree = makeWritableSyntaxTree(
+		intermediateRepr.length
+	);
+	
+	populateSyntaxTreeCore(syntaxTree, intermediateRepr);
+	populateSyntaxTreeChildDepths(syntaxTree, intermediateRepr);
+
+	return [syntaxTree, intermediateRepr];
 }
+
+
+function populateSyntaxTreeChildDepths(
+	syntaxTree: WritableSyntaxTree,
+	intermediateRepr: Array<JsonIntermediateReprNode>,
+): void {
+	for (let nodeIdx = intermediateRepr.length - 1; nodeIdx >= 1; nodeIdx--){
+		const parentIdx = intermediateRepr[nodeIdx].parent;
+		syntaxTree.childDepth[parentIdx] = Math.max(
+			syntaxTree.childDepth[parentIdx],
+			syntaxTree.childDepth[nodeIdx] + 1,
+		);
+	}
+}
+
+function populateSyntaxTreeCore(
+	syntaxTree: WritableSyntaxTree,
+	intermediateRepr: Array<JsonIntermediateReprNode>,
+): void {
+	// all seen strings that must be preserved are written to this map
+	const stringToIndex: Map<string, number> = new Map();
+	let uniqueStrings = 0;
+}
+
 
 function makeIntermediateRepr(root: JsonLikeValue): Array<JsonIntermediateReprNode> {
 	const result: Array<JsonIntermediateReprNode> = [];
@@ -38,7 +73,7 @@ function makeIntermediateRepr(root: JsonLikeValue): Array<JsonIntermediateReprNo
 	let nodesVisited = 0;
 
 	// initializing stack with root elements "key-value pair"
-	stack[top++] = [root, undefined, NaN, nodesVisited++];
+	stack[top++] = [root, undefined, 0, nodesVisited++];
 
 	while (top){
 		const [node, key, parentIdx, selfIdx] = stack[--top];
@@ -50,7 +85,7 @@ function makeIntermediateRepr(root: JsonLikeValue): Array<JsonIntermediateReprNo
 				childValue, childKey, selfIdx, childIdx
 			];
 		
-			childIndexes.push(childIdx)
+			childIndexes.push(childIdx);
 		}
 		
 		result[selfIdx] = {
@@ -58,7 +93,7 @@ function makeIntermediateRepr(root: JsonLikeValue): Array<JsonIntermediateReprNo
 			children: childIndexes,
 			parent: parentIdx,
 			nodePointer: node,
-		}
+		};
 	}
 	return result;
 }

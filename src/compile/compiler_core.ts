@@ -8,6 +8,7 @@ import {
 	type TrivialValueProperties,
 
 } from "./compiler_types.ts"
+import {type Writable} from "./../vendored/ts_essentials.ts"
 
 /**
 	Creates an array of compiled constraints based on array
@@ -187,7 +188,6 @@ function compileConstraintNode(
 }
 
 
-type Writable<T> = { -readonly [Key in keyof T]: T[Key] };
 
 function compileNodeAtom(
 	tokenKind: lexer.TokenKind, tokenString: string

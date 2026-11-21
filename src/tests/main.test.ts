@@ -59,7 +59,10 @@ console.log(`Call to doSomething took ${endTime - startTime} milliseconds`);
 // console.log(parser.ExpressionParseTapeUtils.Debug.integrityCheckBasic(parseTape))
 // console.log(parser.ExpressionParseTapeUtils.Debug.integrityCheckDeep(parseTape, tokenTape))
 
-
-json.forgeJsonSyntaxTree({"Dupa": {"kupa": ["jeden", 2, false, []], "czort": null}});
-
+const testjson1 = {"Dupa": {"kupa": ["jeden", 2, false, []], "czort": null}};
+const testjson2 = [0, [], [[[[[[]]]]]], {"1": 1}];
+const testjson3 = [0, [], 55, 124];
+const forgeResult = json.forgeJsonSyntaxTree(testjson3);
+console.log(forgeResult[0]);
+console.log(forgeResult[1]);
 runAllFuzzTests();
