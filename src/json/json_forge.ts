@@ -5,22 +5,43 @@ import {
 	JsonValueKind,
 } from "./json_types.ts"
 
+
+/**
+	A node of intermediate representation of json syntax tree, used when building
+	proper syntax tree by forging it from the json-like objects.
+
+	Children and parent properties refer to indexes of other items in the tree (array of nodes)
+	Key and node properties contain pieces of the json-like value used to create a node.
+
+	Entire intermediate json representation has a form of array of nodes.
+	The complete tree upholds the three following guarantees:
+		- Root's parent property is set to 0 (it has no inherent meaning)
+		- Index of any node is larger than index of its parent
+		- All children of any node must occupy contiguous indexes in the tree
+
+	The latter two guarantees allow traversing the json tree completely without a stack
+	for most common operations that need to be performed.
+
+	Warning: contains pointers to nodes of original json-like object
+	used to create it. (via node property)
+*/
+export type JsonIntermediateReprNode = {
+	children: Array<number>,
+	parent: number,
+	
+	key: string | undefined,
+	node: JsonLikeValue,
+};
+
 /**
 	Only for forging json syntax trees directly from objects that resemble json
+	This type is not bulletproof - circular references, NaNs etc are not json.
 */
 export type JsonLikeValue = string | number | boolean | null |
 		JsonLikeValue[] | { [key: string]: JsonLikeValue };
 
-export type JsonIntermediateReprNode = {
-	key: string | undefined,
-	children: Array<number>,
-	parent: number,
-	
-	nodePointer: JsonLikeValue,
-};
 
-
-//todo: will also return some dummy object to verify results and whatnot
+//todo: docstring
 export function forgeJsonSyntaxTree(
 	root: JsonLikeValue
 ): [JsonSyntaxTree, Array<JsonIntermediateReprNode>] {
@@ -30,14 +51,23 @@ export function forgeJsonSyntaxTree(
 		intermediateRepr.length
 	);
 	
-	populateSyntaxTreeCore(syntaxTree, intermediateRepr);
-	populateSyntaxTreeChildDepths(syntaxTree, intermediateRepr);
+	writeSyntaxTreeCoreInPlace(syntaxTree, intermediateRepr);
+	writeSyntaxTreeChildDepthsInPlace(syntaxTree, intermediateRepr);
 
 	return [syntaxTree, intermediateRepr];
 }
 
+/**
+	Fills "childDepths" array in syntax tree SoA.
 
-function populateSyntaxTreeChildDepths(
+	Prior state of writable syntax tree is not relevant.
+	Values are filled solely based on given intermediate representation.
+
+	This function is separated from "writeSyntaxTreeCoreInPlace" as it demands
+	reverse iteration and skipping a root element, so it couldn't be 
+	seamlessly fused with other arrays inside one main loop.
+*/
+function writeSyntaxTreeChildDepthsInPlace(
 	syntaxTree: WritableSyntaxTree,
 	intermediateRepr: Array<JsonIntermediateReprNode>,
 ): void {
@@ -49,8 +79,16 @@ function populateSyntaxTreeChildDepths(
 		);
 	}
 }
+/**
+	Fills all arrays except "childDepths" in syntax tree SoA.
 
-function populateSyntaxTreeCore(
+	Prior state of writable syntax tree is not relevant.
+	Values are filled solely based on given intermediate representation.
+
+	"childDepths" array is delegated to other function.
+	Read "writeSyntaxTreeChildDepthsInPlace" for more info.
+*/
+function writeSyntaxTreeCoreInPlace(
 	syntaxTree: WritableSyntaxTree,
 	intermediateRepr: Array<JsonIntermediateReprNode>,
 ): void {
@@ -78,30 +116,36 @@ function populateSyntaxTreeCore(
 		];
 		
 		// writing value kind
-		const kind: JsonValueKind = determineValueKind(intermediateRepr[i].nodePointer);
+		const kind: JsonValueKind = determineValueKind(intermediateRepr[i].node);
 		syntaxTree.valueKind[i] = kind;
 		
 		// writing key strings
 		const keyString = intermediateRepr[i].key;
 		if (keyString !== undefined){
-			const keyIdx = assignStringIndex(keyString, stringToIndex);
-			stringToIndex.set(keyString, keyIdx);
-			syntaxTree.strings[keyIdx] = keyString;
-			syntaxTree.stringRefKey[i] = keyIdx;
+			const stringIdx = assignStringIndex(keyString, stringToIndex);
+			stringToIndex.set(keyString, stringIdx);
+			syntaxTree.strings[stringIdx] = keyString;
+			syntaxTree.stringRefKey[i] = stringIdx;
 		}
 
 		// writing value (number or string) strings
-		const valueString = stringFromValue(intermediateRepr[i].nodePointer, kind);
+		const valueString = stringFromValue(intermediateRepr[i].node, kind);
 		if (valueString !== undefined){
-			const valueIdx = assignStringIndex(valueString, stringToIndex);
-			stringToIndex.set(valueString, valueIdx);
-			syntaxTree.strings[valueIdx] = valueString;
-			syntaxTree.stringRefValue[i] = valueIdx; 
+			const stringIdx = assignStringIndex(valueString, stringToIndex);
+			stringToIndex.set(valueString, stringIdx);
+			syntaxTree.strings[stringIdx] = valueString;
+			syntaxTree.stringRefValue[i] = stringIdx; 
 		}
 	}
 }
 
+/**
+	Returns a json-like value as a string if the value itself is a string or a number.
+	In all other cases returns undefined.
 
+	Type resolution is performed using previously computed JsonValueKind value
+	passed as a second parameter.
+*/
 function stringFromValue(node: JsonLikeValue, kind: JsonValueKind): string | undefined {
 	switch(kind){
 	case JsonValueKind.NUMBER: 
@@ -112,7 +156,13 @@ function stringFromValue(node: JsonLikeValue, kind: JsonValueKind): string | und
 		return undefined;
 	}
 }
-
+/**
+	Checks string s against the map containing output string indexes.
+	If given string already exists in the map, its index from map is returned.
+	Otherwise the function returns the lowest non-negative index that doesn't
+	already exist in the map. 
+	(which must be current size of map as indexes are counted with increments of 1)
+*/
 function assignStringIndex(
 	s: string,
 	stringToIndex: Map<string, number>,
@@ -123,8 +173,10 @@ function assignStringIndex(
 	}else{
 		return index;	
 	}
-}	
-
+}
+/**
+	My favourite function in the entire project :)
+*/
 function determineValueKind(node: JsonLikeValue): JsonValueKind {
 	switch(node){
 	case null:  return JsonValueKind.NULL;
@@ -139,7 +191,17 @@ function determineValueKind(node: JsonLikeValue): JsonValueKind {
 	}
 }
 
+/**
+	Creates intermediate json representation from a provided json value.
 
+	This is performed using explosive DFS with a stack.
+	This method of creation allows for jamming all sibling items next to each other.
+	(In other words, all children of any node are placed on contiguous indexes)
+
+	Standard approach (stack of iterators or recursion) would lead to children
+	getting scattered all across the array.
+
+*/
 function makeIntermediateRepr(root: JsonLikeValue): Array<JsonIntermediateReprNode> {
 	const result: Array<JsonIntermediateReprNode> = [];
 
@@ -173,12 +235,17 @@ function makeIntermediateRepr(root: JsonLikeValue): Array<JsonIntermediateReprNo
 			key: key,
 			children: childIndexes,
 			parent: parentIdx,
-			nodePointer: node,
+			node: node,
 		};
 	}
 	return result;
 }
 
+/**
+	Makes iterator for iterating over children of a selected json-like item.
+	Returns count of generated items at the end.
+	Non iterable json-like items simply terminate right away and return 0.
+*/
 function * iterOverChildren(
 	node: JsonLikeValue
 ): Generator<[string | undefined, JsonLikeValue], number, void>{
@@ -198,5 +265,4 @@ function * iterOverChildren(
 		}
 		return entries.length;
 	}
-	
 }
