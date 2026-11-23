@@ -6,6 +6,7 @@ import {lexer} from "./../main.ts"
 import {parser} from "./../main.ts"
 import {compiler} from "./../main.ts"
 import {json} from "./../main.ts"
+import {match} from "./../main.ts"
 
 
 runAllUnitTests();
@@ -41,7 +42,10 @@ const expr21 = `dupa kupa >><<<<<< czort`
 const expr22 = `A + B - A+ B- A+ B -A +B >C<B>D>E<D +F-D+F-D`
 const expr23 = `A + B - A+ B- A - Z + A + B -A +B >C< B > D> E< D < B -A+ B- A`
 const expr24 = `> A > B < A < ERROR`
-const expr = expr23;
+
+// for testing end to end matching
+const expr25 = " * > <"
+const expr = expr25;
 const startTime = performance.now()
 
 const tokenTape = lexer.tokenizeExpressionString(expr);
@@ -65,6 +69,12 @@ const testjson3 = [0, [], 55, 124];
 const testjson4 = "string";
 const testjson5 = [[[7, 8, 9], 6],[[11, 12]],[13]]
 const forgeResult = json.forgeJsonSyntaxTree(testjson5);
-console.log(forgeResult[0]);
-console.log(forgeResult[1]);
+const [syntaxTree, intermediateRepr] = forgeResult;
+
+
+const nodesFound = match.findMatchingJsonNodes(compilerOutput, syntaxTree);
+//console.log(nodesFound);
+for (const node of nodesFound){
+	console.log(intermediateRepr[node].node);
+}
 //runAllFuzzTests();

@@ -85,8 +85,8 @@ function writeSyntaxTreeForwardsInPlace(
 		// writing children pointers
 		const children = intermediateRepr[i].children;
 		if (children.length){
-			syntaxTree.childFirst[i] = children[0];
-			syntaxTree.childLast[i] = children[children.length - 1];
+			syntaxTree.childFirst[i] = children[children.length - 1];
+			syntaxTree.childLast[i] = children[0];
 		}
 
 		// writing node depth

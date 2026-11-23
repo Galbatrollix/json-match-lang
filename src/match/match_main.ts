@@ -12,7 +12,7 @@ export function findMatchingJsonNodes(
 	json: json.JsonSyntaxTree,
 ): Readonly<Array<number>> {
 	const matchesFound: Array<number> = [];
-	const visited = new DenseBitSet2D(json.nodeCount, expr.size);
+	const visitedCombinations = new DenseBitSet2D(json.nodeCount, expr.size);
 
 	let stackTop = -1;
 	const searchStack: Array<{
@@ -27,7 +27,43 @@ export function findMatchingJsonNodes(
 	};
 	
 	while (stackTop != -1){
+		//console.log(searchStack, stackTop);
+		const {nodeIter, nextCombinatorIdx} = searchStack[stackTop];
+		const {value: nodeIdx, done: finished} = nodeIter.next();
+		// dropping the iterator from the stack if it got exhausted
+		if (finished){
+			stackTop -= 1;
+			continue;
+		}
+		//console.log("Node " + nodeIdx + " is being tested");
 		
+		// skipping any processing on already visited (node, combinator) pairs
+		const visited: boolean = visitedCombinations.readSet(nodeIdx, nextCombinatorIdx - 1);
+		if (visited){
+			continue;
+		}
+
+		// if node passes assigned constraints then put its iterator on the stack
+		// if it passes and also exhausts entire expression, it qualifies as a match
+		const expressionExhausted: boolean = nextCombinatorIdx == expr.size;
+		const nodeMatches: boolean = nodePassesConstraints(
+			expr, nextCombinatorIdx - 1, json, nodeIdx 
+		);
+
+		if (!nodeMatches){
+			continue;
+		}
+
+		if (expressionExhausted){
+			matchesFound.push(nodeIdx);
+			continue;
+		}
+
+	
+		searchStack[++stackTop] = {
+			nodeIter: iteratorMakers[expr.combinators[nextCombinatorIdx]](json, nodeIdx),
+			nextCombinatorIdx: nextCombinatorIdx + 1,
+		};
 	}
 
 	return matchesFound;
