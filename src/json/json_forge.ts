@@ -203,17 +203,18 @@ function makeIntermediateRepr(root: JsonLikeValue): Array<JsonIntermediateReprNo
 	while (top){
 		const [node, key, parentIdx, selfIdx] = stack[--top];
 		
-		// todo reorder to somehow push on stack reverse but keep indexes as forward
-		// third return in iterator - how many more
 		const childIndexes: Array<number> = [];
-		for (const [childKey, childValue] of iterOverChildren(node)){
-			const childIdx = nodesVisited++;
+		const childIterator = iterOverChildren(node);
+		for (const [childKey, childValue, relativeChildIdx] of childIterator){
+			const absoluteChildIdx = relativeChildIdx + nodesVisited;
 			stack[top++] = [
-				childValue, childKey, selfIdx, childIdx
+				childValue, childKey, selfIdx, absoluteChildIdx,
 			];
-		
-			childIndexes.push(childIdx);
+			childIndexes.push(absoluteChildIdx);
 		}
+		// pushing nodes visited by count of the node's children
+		nodesVisited += childIndexes.length;
+		
 		
 		result[selfIdx] = {
 			key: key,
@@ -227,25 +228,35 @@ function makeIntermediateRepr(root: JsonLikeValue): Array<JsonIntermediateReprNo
 
 /**
 	Makes iterator for iterating over children of a selected json-like item.
+	Each iteration yields a tuple of [key, value, childIndex]
+
+	Iteration is done in reverse order to generate a proper stack order
+	that is essential for certain properties of data structure.
+
 	Returns count of generated items at the end.
 	Non iterable json-like items simply terminate right away and return 0.
 */
 function * iterOverChildren(
 	node: JsonLikeValue
-): Generator<[string | undefined, JsonLikeValue], number, void>{
+): Generator<[
+	key:   string | undefined,
+	value: JsonLikeValue,
+	index: number,
+], number, void> { 
 	if (typeof node != "object" || node === null){
 		return 0;
 	}
 	
 	if (Array.isArray(node)){
-		for (const value of node){
-			yield [undefined, value];
+		for (let i = node.length - 1; i >= 0; i--){
+			yield [undefined, node[i], i];
 		}
 		return node.length;
 	}else{
 		const entries = Object.entries(node);
-		for (const [key, value] of entries){
-			yield [key, value];
+		for (let i = entries.length - 1; i >= 0; i--){
+			const [key, value] = entries[i];
+			yield [key, value, i];
 		}
 		return entries.length;
 	}
