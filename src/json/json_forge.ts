@@ -1,45 +1,15 @@
 import {
 	type JsonSyntaxTree,
 	type WritableSyntaxTree,
+	type JsonIntermediateReprNode,
+	type JsonLikeValue,
 	makeWritableSyntaxTree,
 	JsonValueKind,
 } from "./json_types.ts"
 
 
-/**
-	A node of intermediate representation of json syntax tree, used when building
-	proper syntax tree by forging it from the json-like objects.
 
-	Children and parent properties refer to indexes of other items in the tree (array of nodes)
-	Key and node properties contain pieces of the json-like value used to create a node.
-
-	Entire intermediate json representation has a form of array of nodes.
-	The complete tree upholds the three following guarantees:
-		- Root's parent property is set to 0 (it has no inherent meaning)
-		- Index of any node is larger than index of its parent
-		- All children of any node must occupy contiguous indexes in the tree
-
-	The latter two guarantees allow traversing the json tree completely without a stack
-	for most common operations that need to be performed.
-
-	Warning: contains pointers to nodes of original json-like object
-	used to create it. (via node property)
-*/
-export type JsonIntermediateReprNode = {
-	children: Array<number>,
-	parent: number,
-	
-	key: string | undefined,
-	node: JsonLikeValue,
-};
-
-/**
-	Only for forging json syntax trees directly from objects that resemble json
-	This type is not bulletproof - circular references, NaNs etc are not json.
-*/
-export type JsonLikeValue = string | number | boolean | null |
-		JsonLikeValue[] | { [key: string]: JsonLikeValue };
-
+// todo: update all descriptions of types in json_types to reflect addition of lastDescendant
 
 //todo: docstring
 export function forgeJsonSyntaxTree(
@@ -51,44 +21,56 @@ export function forgeJsonSyntaxTree(
 		intermediateRepr.length
 	);
 	
-	writeSyntaxTreeCoreInPlace(syntaxTree, intermediateRepr);
-	writeSyntaxTreeChildDepthsInPlace(syntaxTree, intermediateRepr);
+	writeSyntaxTreeForwardsInPlace(syntaxTree, intermediateRepr);
+	writeSyntaxTreeBackwardsInPlace(syntaxTree, intermediateRepr);
 
 	return [syntaxTree, intermediateRepr];
 }
 
 /**
-	Fills "childDepths" array in syntax tree SoA.
+	Fills "childDepths" and "descendantLast" arrays in syntax tree SoA.
 
-	Prior state of writable syntax tree is not relevant.
-	Values are filled solely based on given intermediate representation.
+	Prior state of writable syntax tree is relevant for this function.
+	This function assumes that both "childDepths" and "descendantLast"
+	arrays are 0-initialized. Contents of other arrays are not relevant.
 
-	This function is separated from "writeSyntaxTreeCoreInPlace" as it demands
+	This function is separated from "writeSyntaxTreeForwardsInPlace" as it demands
 	reverse iteration and skipping a root element, so it couldn't be 
 	seamlessly fused with other arrays inside one main loop.
 */
-function writeSyntaxTreeChildDepthsInPlace(
+function writeSyntaxTreeBackwardsInPlace(
 	syntaxTree: WritableSyntaxTree,
 	intermediateRepr: Array<JsonIntermediateReprNode>,
 ): void {
 	for (let nodeIdx = intermediateRepr.length - 1; nodeIdx >= 1; nodeIdx--){
 		const parentIdx = intermediateRepr[nodeIdx].parent;
+
+		// writing child depth
 		syntaxTree.childDepth[parentIdx] = Math.max(
 			syntaxTree.childDepth[parentIdx],
 			syntaxTree.childDepth[nodeIdx] + 1,
 		);
+
+		// writing last descendant pointer	
+
+		// WRONG!
+		syntaxTree.descendantLast[parentIdx] = Math.max(
+			syntaxTree.descendantLast[parentIdx],
+			syntaxTree.descendantLast[nodeIdx],
+			nodeIdx,
+		);
 	}
 }
 /**
-	Fills all arrays except "childDepths" in syntax tree SoA.
+	Fills all arrays except "childDepths" and "descendantLast" in syntax tree SoA.
 
 	Prior state of writable syntax tree is not relevant.
 	Values are filled solely based on given intermediate representation.
 
-	"childDepths" array is delegated to other function.
-	Read "writeSyntaxTreeChildDepthsInPlace" for more info.
+	"childDepths" and "descendantLast" arrays are delegated to other function.
+	Read "writeSyntaxTreeBackwardsInPlace" for more info.
 */
-function writeSyntaxTreeCoreInPlace(
+function writeSyntaxTreeForwardsInPlace(
 	syntaxTree: WritableSyntaxTree,
 	intermediateRepr: Array<JsonIntermediateReprNode>,
 ): void {
@@ -216,11 +198,13 @@ function makeIntermediateRepr(root: JsonLikeValue): Array<JsonIntermediateReprNo
 	let nodesVisited = 0;
 
 	// initializing stack with root elements "key-value pair"
-	stack[top++] = [root, undefined, 0, nodesVisited++];
+	stack[top++] = [[root], undefined, 0, nodesVisited++];
 
 	while (top){
 		const [node, key, parentIdx, selfIdx] = stack[--top];
 		
+		// todo reorder to somehow push on stack reverse but keep indexes as forward
+		// third return in iterator - how many more
 		const childIndexes: Array<number> = [];
 		for (const [childKey, childValue] of iterOverChildren(node)){
 			const childIdx = nodesVisited++;

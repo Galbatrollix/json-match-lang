@@ -8,6 +8,39 @@ export enum JsonValueKind {
 	NUMBER,
 }
 
+/**
+	Only for forging json syntax trees directly from objects that resemble json
+	This type is not bulletproof - circular references, NaNs etc are not json.
+*/
+export type JsonLikeValue = string | number | boolean | null |
+		JsonLikeValue[] | { [key: string]: JsonLikeValue };
+
+/**
+	A node of intermediate representation of json syntax tree, used when building
+	proper syntax tree by forging it from the json-like objects.
+
+	Children and parent properties refer to indexes of other items in the tree (array of nodes)
+	Key and node properties contain pieces of the json-like value used to create a node.
+
+	Entire intermediate json representation has a form of array of nodes.
+	The complete tree upholds the three following guarantees:
+		- Root's parent property is set to 0 (it has no inherent meaning)
+		- Index of any node is larger than index of its parent
+		- All children of any node must occupy contiguous indexes in the tree
+
+	The latter two guarantees allow traversing the json tree completely without a stack
+	for most common operations that need to be performed.
+
+	Warning: contains pointers to nodes of original json-like object
+	used to create it. (via node property)
+*/
+export type JsonIntermediateReprNode = {
+	children: Array<number>,
+	parent: number,
+	
+	key: string | undefined,
+	node: JsonLikeValue,
+};
 
 /**
 	Memory optimized SoA tree representation of a json document.
@@ -47,6 +80,7 @@ export type JsonSyntaxTree = Readonly<{
 	parent:           Readonly<Uint32Array>,
 	childFirst:       Readonly<Uint32Array>,
 	childLast:        Readonly<Uint32Array>,
+	descendantLast:   Readonly<Uint32Array>,
 	
 	// additional data for each that might be handy to narrow down search early and optimize
 	// not necessary, to deletion if maintaining it is not worth it
@@ -86,7 +120,8 @@ export function makeWritableSyntaxTree(nodeCount: number){
 		parent:           new Uint32Array(nodeCount),
 		childFirst:       new Uint32Array(nodeCount),
 		childLast:        new Uint32Array(nodeCount),
-	
+		descendantLast:   new Uint32Array(nodeCount),
+
 		nodeDepth:        new Uint32Array(nodeCount),
 		childDepth:       new Uint32Array(nodeCount),
 

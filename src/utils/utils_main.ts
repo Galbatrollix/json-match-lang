@@ -1,4 +1,5 @@
 
+export type Writable<T> = { -readonly [Key in keyof T]: T[Key] };
 
 /**
 	unfucked version of base.push(...ext), no risk of stack overflow
@@ -40,5 +41,3 @@ export function primitiveArrayEquals<T>(
 
 	return true;
 }
-
-export type Writable<T> = { -readonly [Key in keyof T]: T[Key] };

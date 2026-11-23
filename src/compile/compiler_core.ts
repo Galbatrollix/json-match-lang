@@ -8,7 +8,8 @@ import {
 	type TrivialValueProperties,
 
 } from "./compiler_types.ts"
-import {type Writable} from "./../vendored/ts_essentials.ts"
+
+import {type Writable} from "./../utils/utils_main.ts"
 
 /**
 	Creates an array of compiled constraints based on array
