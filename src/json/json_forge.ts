@@ -9,7 +9,6 @@ import {
 
 
 
-// todo: update all descriptions of types in json_types to reflect addition of lastDescendant
 
 //todo: docstring
 export function forgeJsonSyntaxTree(
@@ -51,9 +50,7 @@ function writeSyntaxTreeBackwardsInPlace(
 			syntaxTree.childDepth[nodeIdx] + 1,
 		);
 
-		// writing last descendant pointer	
-
-		// WRONG!
+		// writing last descendant pointer
 		syntaxTree.descendantLast[parentIdx] = Math.max(
 			syntaxTree.descendantLast[parentIdx],
 			syntaxTree.descendantLast[nodeIdx],
@@ -179,6 +176,7 @@ function determineValueKind(node: JsonLikeValue): JsonValueKind {
 	This is performed using explosive DFS with a stack.
 	This method of creation allows for jamming all sibling items next to each other.
 	(In other words, all children of any node are placed on contiguous indexes)
+	Find more info in type definition of JsonIntermediateReprNode.
 
 	Standard approach (stack of iterators or recursion) would lead to children
 	getting scattered all across the array.

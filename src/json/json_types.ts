@@ -23,12 +23,13 @@ export type JsonLikeValue = string | number | boolean | null |
 	Key and node properties contain pieces of the json-like value used to create a node.
 
 	Entire intermediate json representation has a form of array of nodes.
-	The complete tree upholds the three following guarantees:
+	The complete the following guarantees:
 		- Root's parent property is set to 0 (it has no inherent meaning)
 		- Index of any node is larger than index of its parent
 		- All children of any node must occupy contiguous indexes in the tree
+		- All descendants of any node must occupy contiguous index in the tree
 
-	The latter two guarantees allow traversing the json tree completely without a stack
+	The latter three guarantees allow traversing the json tree completely without a stack
 	for most common operations that need to be performed.
 
 	Warning: contains pointers to nodes of original json-like object
@@ -47,7 +48,7 @@ export type JsonIntermediateReprNode = {
 	Its' main purpose is to facilitate matching of json nodes
 	with a compiled match expression.
 
-	All member arrays in the tree are of length "nodeCount"
+	All but one member arrays in the tree are of length "nodeCount"
 
 	The sole exception is the "strings" array which instead of content-dependant length.
 	It stores information pointed to by "stringRefKey", "stringRefValue" arrays.
@@ -56,7 +57,9 @@ export type JsonIntermediateReprNode = {
 	Multiple pointers may point to a single entry in strings 
 	(for example if some key or value shows up in many places in the json file)
 	
-	All siblings are stored contigously in the data structure. 
+	All siblings are stored contigously in the data structure.
+	All descendants of a node are also stored contigously.
+	First sibling is guaranteed to be also node's first descendant.
 	All descendants of a node are guaranteed to have higher index than the node itself.
 	First item - root - is always at index 0. Pointers to root are considered NULL pointers.
 	(Child of a leaf node is going to point to root)
@@ -67,8 +70,12 @@ export type JsonIntermediateReprNode = {
 	properties of selected node (or its parent node).
 	
 	Sibling index (what is n in "n-th child of its parent") can be infered from parent's
-	first child and the fact children are stored contiguously.
-	Likewise, whether a node is an array or object value can be infered from parent's value kind.
+	first child and the fact children are stored contiguously. All descendants of a node
+	can be traversed by a simple loop spanning a range <childFirst, descendantLast>.
+	
+	Likewise, whether a node itself is inside an array or an object 
+	can be infered from parent's value kind.
+	
 	
 */
 export type JsonSyntaxTree = Readonly<{
