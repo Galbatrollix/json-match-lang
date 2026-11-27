@@ -38,8 +38,6 @@ function compileSingleConstraint(
 	root: parser.ConstraintTreeNode,
 	tokenTape: lexer.TokenTape,
 ): CompiledConstraint {
-
-	//console.log(root);
 	const compiledConstraints: Array<CompiledConstraintNode> = [];
 
 	const [nodes, parents]: [
@@ -62,8 +60,6 @@ function compileSingleConstraint(
 		);
 		compiledConstraints[poppedNodeIdx] = compiled;
 
-		//console.log(poppedNodeIdx, compiled.properties);
-
 		const parentIdx = parents[poppedNodeIdx];
 		incomingEdges[parentIdx] -= 1;
 		if (incomingEdges[parentIdx] == 0){
@@ -83,10 +79,10 @@ function compileSingleConstraint(
 function getConstraintNodesAndParents(root: parser.ConstraintTreeNode):
 	[nodes: Array<parser.ConstraintTreeNode>, parents: Array<number>] {
 	
-	const iter = parser.ConstraintTreeNodeUtils.Misc.iter(root);
 	const nodes: Array<parser.ConstraintTreeNode> = [];
 	const parents: Array<number> = [];
 	
+	const iter = parser.ConstraintTreeNodeUtils.Misc.iter(root);
 	for (const [node, parent] of iter){
 		nodes.push(node);
 		parents.push(parent);

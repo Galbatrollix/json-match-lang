@@ -44,7 +44,7 @@ const expr23 = `A + B - A+ B- A - Z + A + B -A +B >C< B > D> E< D < B -A+ B- A`
 const expr24 = `> A > B < A < ERROR`
 
 // for testing end to end matching
-const expr25 = " * > <"
+const expr25 = `type => {10} <=`
 const expr = expr25;
 const startTime = performance.now()
 
@@ -68,13 +68,108 @@ const testjson2 = [0, [], [[[[[[]]]]]], {"1": 1}];
 const testjson3 = [0, [], 55, 124];
 const testjson4 = "string";
 const testjson5 = [[[7, 8, 9], 6],[[11, 12]],[13]]
-const forgeResult = json.forgeJsonSyntaxTree(testjson5);
+const testjson6 = {"dupa": ["siki", "czort"], "kupa": {"0": "czort", "1": "siki"}};
+const testjson7 = {
+    "version": "0.0",
+    "pages": [
+        {
+            "title": "page 1",
+            "floorplan": {
+                "type": "grid",
+                "components": [
+                    {
+                        "type": "container",
+                        "styles": {
+                            "font-color": "red",
+                            "font-size": "80px"
+                        },
+                        "data": {
+                            "title": "container 1"
+                        },
+                        "components": [
+                            {
+                                "type": "container",
+                                "components": "[EXPRESSION]"
+                            },
+                            {
+                                "type": "button",
+                                "hide": "[EXPRESSION]",
+                                "styles": {
+                                    "borderRadius": "round"
+                                },
+                                "data": {
+                                    "text": "buton"
+                                },
+                                "events": [
+                                    {
+                                        "on": "click",
+                                        "do": "openDialog",
+                                        "config": {
+                                            "settings": {
+                                                "fullscreen": true,
+                                                "title": "dialog"
+                                            },
+                                            "component": {
+                                                "type": "another container",
+                                                "components": [
+                                                    {
+                                                        "type": "alert"
+                                                    },
+                                                    {
+                                                        "type": "calendar"
+                                                    }
+                                                ]
+                                            }
+                                        }
+                                    }
+                                ]
+                            },
+                            {
+                                "type": "datePicker",
+                                "data": {
+                                    "date": "[EXPRESSION_DATA('myData.someData')]"
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "type": "inlineContainer",
+                        "data": {
+                            "childNames": [
+                                "aaa",
+                                "bbb",
+                                "ccc"
+                            ]
+                        }
+                    }
+                ]
+            }
+        }
+    ],
+    "data": [
+        {
+            "name": "myData",
+            "structure": {
+                "nullValue": null,
+                "emptyArray": [],
+                "someData": "duck",
+                "true": false
+            }
+        }
+    ],
+    "settings": {
+        "name": "super duper template",
+        "theme": "dark",
+        "some number": 21.37
+    }
+}
+const forgeResult = json.forgeJsonSyntaxTree(testjson7);
 const [syntaxTree, intermediateRepr] = forgeResult;
 
 
 const nodesFound = match.findMatchingJsonNodes(compilerOutput, syntaxTree);
 //console.log(nodesFound);
 for (const node of nodesFound){
-	console.log(intermediateRepr[node].node);
+	console.log(intermediateRepr[node]. key,intermediateRepr[node].node);
 }
 //runAllFuzzTests();

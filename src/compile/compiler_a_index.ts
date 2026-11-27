@@ -6,6 +6,7 @@ export {
 	type CompiledExpression,
 	type CompiledConstraint,
 	type CompiledConstraintNode,
+	type CompiledConstraintData,
 	type TrivialValueProperties,
 	CompiledConstraintDataKind,
 } from "./compiler_types.ts"

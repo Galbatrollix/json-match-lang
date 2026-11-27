@@ -59,7 +59,6 @@ export function findMatchingJsonNodes(
 			continue;
 		}
 
-	
 		searchStack[++stackTop] = {
 			nodeIter: iteratorMakers[expr.combinators[nextCombinatorIdx]](json, nodeIdx),
 			nextCombinatorIdx: nextCombinatorIdx + 1,
